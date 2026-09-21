@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onde Hélirotoïdale 3D - v2.0.0 Complète & Restaurée</title>
+    <title>Onde Hélirotoïdale 3D - v2.1.0 (Paquet d'Ondes & Amplitude Variable)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; overflow: hidden; height: 100vh; width: 100vw; }
@@ -30,6 +30,8 @@
         .control-group .val { color: #58a6ff; font-family: monospace; }
         input[type=range] { width: 100%; -webkit-appearance: none; background: rgba(110, 118, 129, 0.3); height: 4px; border-radius: 2px; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: #58a6ff; cursor: pointer; }
+        select { width: 100%; background: #21262d; border: 1px solid rgba(240, 246, 252, 0.2); color: #c9d1d9; padding: 5px 8px; border-radius: 6px; font-size: 0.78rem; outline: none; margin-bottom: 6px; }
+        select:focus { border-color: #58a6ff; }
         .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 0.79rem; }
         .checkbox-group input[type=checkbox] { accent-color: #58a6ff; }
         .btn-row { display: flex; gap: 8px; margin-top: 12px; }
@@ -46,6 +48,7 @@
         .highlight-g { color: #f08c00; font-weight: bold; }
         .highlight-zbw { color: #38d9a9; font-weight: bold; }
         .highlight-chiral { color: #a371f7; font-weight: bold; }
+        .highlight-env { color: #e360c3; font-weight: bold; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -68,11 +71,37 @@
         </div>
     </div>
 
-    <div id="readout-panel">Initialisation du Moteur PEW v2.0.0...</div>
+    <div id="readout-panel">Initialisation du Moteur PEW v2.1.0...</div>
 
     <div id="ui-panel">
-        <h1>Onde Hélirotoïdale 3D - v2.0.0</h1>
-        <p class="subtitle">Modèle Intégral : Zitterbewegung, Chiralité e_L/e_R & Charge Topologique Q=-e.</p>
+        <h1>Onde Hélirotoïdale 3D - v2.1.0</h1>
+        <p class="subtitle">Modèle Intégral : Paquet d'Ondes Solitonique, Zitterbewegung & Chiralité e_L/e_R.</p>
+
+        <div class="section-title">Paquet d'Ondes & Amplitude Variable (v2.1)</div>
+        <div class="checkbox-group">
+            <label for="chk-envelope">Activer Enveloppe Spatiale</label>
+            <input type="checkbox" id="chk-envelope" checked>
+        </div>
+        <div class="control-group">
+            <label for="param-envType">Profil de l'Enveloppe</label>
+            <select id="param-envType">
+                <option value="sech">Soliton Solitaire (1/cosh)</option>
+                <option value="gaussian">Paquet Gaussien (exp(-x²))</option>
+                <option value="harmonic">Modulation Harmonique (cos)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Profondeur Modulation (M_a) <span class="val" id="val-envDepth">0.70</span></label>
+            <input type="range" id="param-envDepth" min="0.00" max="1.00" step="0.02" value="0.70">
+        </div>
+        <div class="control-group">
+            <label>Largeur du Paquet (σ) <span class="val" id="val-envWidth">0.15</span></label>
+            <input type="range" id="param-envWidth" min="0.03" max="0.50" step="0.01" value="0.15">
+        </div>
+        <div class="control-group">
+            <label>Vitesse du Paquet (v_env) <span class="val" id="val-envSpeed">1.0</span></label>
+            <input type="range" id="param-envSpeed" min="-5.0" max="5.0" step="0.1" value="1.0">
+        </div>
 
         <div class="section-title">Géométrie Support (Conserves π² & 4π³)</div>
         <div class="control-group">
@@ -86,7 +115,7 @@
 
         <div class="section-title">Hélice Secondaire (Rigueur V_inst = π²)</div>
         <div class="control-group">
-            <label>Rayon Hélice (r_hélice) <span class="val" id="val-rHelix">0.5592</span></label>
+            <label>Rayon Hélice Max (r_hélice) <span class="val" id="val-rHelix">0.5592</span></label>
             <input type="range" id="param-rHelix" min="0.05" max="1.50" step="0.0001" value="0.5592">
         </div>
         <div class="control-group">
@@ -209,6 +238,12 @@
 
     <script>
         const params = {
+            showEnvelope: true,
+            envType: 'sech',
+            envDepth: 0.70,
+            envWidth: 0.15,
+            envSpeed: 1.0,
+
             rTorus: 1.49, rTube: 0.58, rHelix: 0.5592, plungeAngle: 0,
             nTor: 1, nPol: 1, nHelix: 32, threshold: 0.18, waveSpeed: 2.0,
             omega: 0.5, respFreq: 0.4, respAmp: 0.34, bExt: 0.50,
@@ -265,6 +300,30 @@
             return Math.sin(simTime * params.respFreq * Math.PI * 2);
         }
 
+        function getEnvelopeFactor(t) {
+            if (!params.showEnvelope || params.envDepth === 0) return 1.0;
+
+            const uCenter = ((simTime * params.envSpeed * 0.1) % 1.0 + 1.0) % 1.0;
+            let d = Math.abs(t - uCenter);
+            if (d > 0.5) d = 1.0 - d;
+
+            let profile = 1.0;
+            const sigma = Math.max(0.01, params.envWidth);
+
+            if (params.envType === 'sech') {
+                const x = d / sigma;
+                profile = 1.0 / Math.cosh(x);
+            } else if (params.envType === 'gaussian') {
+                const x = d / sigma;
+                profile = Math.exp(-0.5 * x * x);
+            } else if (params.envType === 'harmonic') {
+                const phase = (t - uCenter) * Math.PI * 2 * 2;
+                profile = 0.5 + 0.5 * Math.cos(phase);
+            }
+
+            return (1.0 - params.envDepth) + params.envDepth * profile;
+        }
+
         function getHelixCenterPoint(t) {
             const phi = t * params.nTor * 2 * Math.PI;
             const theta = t * params.nPol * 2 * Math.PI;
@@ -275,8 +334,9 @@
             const sinTheta = Math.sin(theta);
 
             const breath = getBreathingFactor() * params.respAmp;
+            const envFactor = getEnvelopeFactor(t);
             const maxAllowedHelixRadius = Math.max(0.05, params.rTorus);
-            const dynamicHelixRadius = Math.min(params.rHelix * (1 + breath * 0.4), maxAllowedHelixRadius);
+            const dynamicHelixRadius = Math.min(params.rHelix * (1 + breath * 0.4) * envFactor, maxAllowedHelixRadius);
 
             const poloidDistance = params.rTube + dynamicHelixRadius + (breath * 0.2);
 
@@ -293,7 +353,7 @@
 
             const Radial = new THREE.Vector3(cosPhi, 0, sinPhi);
 
-            return { center, phi, theta, cosTheta, sinTheta, Radial, holeFactor, poloidDistance, dynamicHelixRadius, breath };
+            return { center, phi, theta, cosTheta, sinTheta, Radial, holeFactor, poloidDistance, dynamicHelixRadius, breath, envFactor };
         }
 
         function getDoubleHelixPoint(t, wavePhase, isSecondSpire = false) {
@@ -616,6 +676,8 @@
             const tubeRadius = 0.026;
 
             for (let i = 0; i <= TUBE_STEPS; i++) {
+                const t = i / TUBE_STEPS;
+                const env = getEnvelopeFactor(t);
                 const p = curvePoints[i];
                 const pNext = curvePoints[Math.min(i + 1, TUBE_STEPS)];
                 const T = pNext.clone().sub(p).normalize();
@@ -625,9 +687,14 @@
                 let B = new THREE.Vector3().crossVectors(T, N).normalize();
 
                 const inRed = isInterfering[i];
-                const rCol = inRed ? 1.0 : 0.22;
-                const gCol = inRed ? 0.15 : 0.55;
-                const bCol = inRed ? 0.15 : 0.98;
+                let rCol, gCol, bCol;
+                if (inRed) {
+                    rCol = 1.0; gCol = 0.15; bCol = 0.15;
+                } else {
+                    rCol = Math.min(1.0, 0.18 + 0.50 * env);
+                    gCol = Math.min(1.0, 0.45 + 0.45 * env);
+                    bCol = Math.min(1.0, 0.75 + 0.25 * env);
+                }
 
                 for (let j = 0; j <= radialSegments; j++) {
                     const vIndex = i * (radialSegments + 1) + j;
@@ -712,17 +779,14 @@
             const massFactor = 1.0 + (breathVal >= 0 ? 0.002 * breathVal : -0.002 * Math.abs(breathVal));
             const dynamicMass = (baseMass * massFactor).toFixed(6);
 
-            // Zitterbewegung & Compton Calculations
             const nuZbw = (1.23559 * massFactor).toFixed(3);
             const rcCompton = (386.159 / massFactor).toFixed(2);
 
-            // Chirality Calculations
             let eL_pct = 50.0 - (breathVal / 0.34) * 25.0;
             eL_pct = Math.max(15.0, Math.min(85.0, eL_pct));
             const eR_pct = 100.0 - eL_pct;
             const t3Val = (-0.5 * (eL_pct / 100.0)).toFixed(3);
 
-            // Update Chirality HUD Gauge
             if (params.showChiralityGauge) {
                 document.getElementById('gauge-el').style.width = eL_pct.toFixed(1) + '%';
                 document.getElementById('gauge-er').style.width = eR_pct.toFixed(1) + '%';
@@ -748,7 +812,12 @@
             const statusClass = collisionCount > 0 ? "status-alert" : "status-ok";
             const statusText = collisionCount > 0 ? "INTERFÉRENCES" : "FLUIDE";
 
+            const envStatus = params.showEnvelope ? 
+                `<span class="highlight-env">${params.envType.toUpperCase()}</span> (M_a = ${(params.envDepth * 100).toFixed(0)}%, σ = ${params.envWidth.toFixed(2)})` : 
+                `Homogène (M_a = 0%)`;
+
             document.getElementById('readout-panel').innerHTML =
+                `Paquet d'Ondes Soliton : ${envStatus}<br>` +
                 `Charge Topologique (Q) : <span class="highlight-charge">${qFormatted} e</span> (Invariant d'Hopf)<br>` +
                 `Flux Gaussien (∮ E·dA) : <span class="highlight-charge">${qFormatted} / ε₀</span> (Radial 1/r²)<br>` +
                 `Volume Instantané (V) : <span class="highlight-val">${vInst.toFixed(4)} u³</span> (≈ π²)<br>` +
@@ -775,6 +844,12 @@
                 if (callback) callback();
             });
         }
+
+        document.getElementById('chk-envelope').addEventListener('change', (e) => { params.showEnvelope = e.target.checked; });
+        document.getElementById('param-envType').addEventListener('change', (e) => { params.envType = e.target.value; });
+        bindSlider('param-envDepth', 'envDepth', (v) => v.toFixed(2));
+        bindSlider('param-envWidth', 'envWidth', (v) => v.toFixed(2));
+        bindSlider('param-envSpeed', 'envSpeed', (v) => v.toFixed(1));
 
         bindSlider('param-rTorus', 'rTorus', (v) => v.toFixed(2), updateSimulationGeometry);
         bindSlider('param-rTube', 'rTube', (v) => v.toFixed(2), updateSimulationGeometry);
@@ -825,7 +900,7 @@
                 <html lang="fr">
                 <head>
                     <meta charset="UTF-8">
-                    <title>Notice Théorique et Guide — Simulation PEW v2.0.0</title>
+                    <title>Notice Théorique et Guide Intégral — Simulation PEW v2.1.0</title>
                     <style>
                         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px; line-height: 1.6; max-width: 860px; margin: auto; }
                         h1 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-bottom: 20px; }
@@ -841,38 +916,47 @@
                     </style>
                 </head>
                 <body>
-                    <h1>Notice Théorique et Guide Intégral — Simulation 3D (v2.0.0)</h1>
+                    <h1>Notice Théorique et Guide Intégral — Simulation 3D (v2.1.0)</h1>
                     
-                    <h2>1. Charge Topologique (Q = -e) et Champ Électrique Radial</h2>
-                    <p>La charge électrique <code>Q = -1.000 e</code> n'est pas ajoutée de manière ad hoc : elle émerge géométriquement comme l'<strong>invariant topologique de Hopf</strong> lié au bouclage complet de l'hélice (<code>H₂ = 32</code>) autour du tore support. Le champ électrique radial <code>E_rad</code> représente le champ électrostatique de Coulomb propre au soliton. Ses flèches rouges/roses sont orientées vers l'intérieur (charge négative) et obéissent strictly à la loi de Gauss : <code>&oint; E &middot; dA = -e / &epsilon;₀</code>.</p>
+                    <h2>1. Nouveauté v2.1 : Enveloppe Spatiale & Paquet d'Ondes Solitonique</h2>
+                    <p>En physique non-linéaire (équations de Schrödinger non-linéaire ou sine-Gordon), la propagation d'une onde dans un milieu dispersif auto-focalisant forme un <strong>soliton enveloppe</strong>. Dans la version v2.1.0, l'amplitude de l'hélice <code>r_hélice</code> varie localement le long du tore :</p>
+                    <ul>
+                        <li><strong>Profil Soliton (1/cosh(x)) :</strong> Enveloppe classique d'un soliton de masse localisé.</li>
+                        <li><strong>Profil Gaussien (exp(-x²)) :</strong> Paquet d'ondes électromagnétique gaussien.</li>
+                        <li><strong>Profil Harmonique (cos) :</strong> Modes d'ondes stationnaires et de battements angulaires.</li>
+                    </ul>
+                    <p>La <strong>profondeur de modulation (M_a)</strong> règle le contraste entre la zone de haute densité d'énergie (le paquet) et le fond du vide quantique. Quand M_a = 0, on retrouve l'hélice régulière homogène de la v2.0.</p>
 
-                    <h2>2. Distinctions des Champs : Champ Propre vs Champ Externe B_ext</h2>
+                    <h2>2. Charge Topologique (Q = -e) et Champ Électrique Radial</h2>
+                    <p>La charge électrique <code>Q = -1.000 e</code> n'est pas ajoutée de manière ad hoc : elle émerge géométriquement comme l'<strong>invariant topologique de Hopf</strong> lié au bouclage complet de l'hélice (<code>H₂ = 32</code>) autour du tore support. Le champ électrique radial <code>E_rad</code> représente le champ électrostatique de Coulomb propre au soliton. Ses flèches rouges/roses sont orientées vers l'intérieur (charge négative) et obéissent strictement à la loi de Gauss : <code>&oint; E &middot; dA = -e / &epsilon;₀</code>.</p>
+
+                    <h2>3. Distinctions des Champs : Champ Propre vs Champ Externe B_ext</h2>
                     <div class="highlight-box">
                         <p><strong>A. Champ Électrique Radial (E_rad) — INTRINSÈQUE :</strong> Généré par la charge propre du soliton <code>Q = -e</code>.</p>
                         <p><strong>B. Champ Magnétique Externe (B_ext) — EXTERNE :</strong> Représente un champ appliqué extérieurement par l'expérimentateur (ex. piège de Penning). Il immerge le soliton et déclenche la précession gyroscopique de Larmor/Schwinger.</p>
-                        <p><strong>C. Soliton Libéré (B_ext = 0) :</strong> En l'absence de champ extérieur, l'axe du spin reste strictly fixe (conservation du moment cinétique). Il n'y a pas de précession spatiale dans le vide propre.</p>
+                        <p><strong>C. Soliton Libéré (B_ext = 0) :</strong> En l'absence de champ extérieur, l'axe du spin reste strictement fixe (conservation du moment cinétique). Il n'y a pas de précession spatiale dans le vide propre.</p>
                     </div>
 
-                    <h2>3. Zitterbewegung, Longueur d'Onde de Compton et Vibration de l'Axe H₁</h2>
+                    <h2>4. Zitterbewegung, Longueur d'Onde de Compton et Vibration de l'Axe H₁</h2>
                     <p>Dans l'équation de Dirac, le <strong>Zitterbewegung (ZBW)</strong> est un mouvement d'oscillation ultra-rapide de la position à la fréquence <code>&nu;<sub>ZBW</sub> = 2 m_e c² / h &approx; 1.236 &times; 10²¹ Hz</code>. Dans le modèle PEW, ce mouvement émerge de la circulation de la phase le long de la spire <code>H₂ = 32</code>. La longueur déroulée de l'hélice sur un cycle correspond à la <strong>longueur d'onde de Compton</strong> <code>&lambda;_c = h / (m_e c) &approx; 2.426 pm</code>, d'où un rayon de Compton réduit <code>r_c &approx; 386.16 fm</code>.</p>
                     <div class="highlight-box">
                         <p><strong>Option "Vibration ZBW Axe H₁" :</strong> Cette option anime la ligne blanche centrale de l'axe H1 d'une micro-vibration ondulatoire le long de son tracé. Il ne s'agit pas d'un moteur oscillatoire indépendant, mais de la matérialisation du <strong>contre-mouvement du centre de charge/masse (guiding center)</strong> induit par la rotation ultra-rapide du brin hélirotoïdal H2, tout en préservant le raccordement topologique C1.</p>
                     </div>
 
-                    <h2>4. Indice de Chiralité (e_L / e_R), Isospin Faible SU(2)_L & Couplage de Higgs</h2>
-                    <p>Dans le Modèle Standard, l'électron massif n'est ni $100\%$ gaucher ($e_L$), ni $100\%$ droitier ($e_R$), mais une superposition oscillante. Dans le soliton PEW :</p>
+                    <h2>5. Indice de Chiralité (e_L / e_R), Isospin Faible SU(2)_L & Couplage de Higgs</h2>
+                    <p>Dans le Modèle Standard, l'électron massif n'est ni 100% gaucher (<code>e_L</code>), ni 100% droitier (<code>e_R</code>), mais une superposition oscillante. Dans le soliton PEW :</p>
                     <ul>
-                        <li><strong>Phase de compression ($\Delta r_h < 0$) :</strong> Le pas de l'hélice s'allonge par rapport à l'axe toroïdal, augmentant la projection sur le spin dans l'état <strong>gauchère ($e_L$)</strong>. Cet état possède une charge d'isospin faible $T_3 = -1/2$ et interagit avec la force faible $SU(2)_L$.</li>
-                        <li><strong>Phase de dilatation ($\Delta r_h > 0$) :</strong> Le pas devient plus poloïdal, basculant la projection vers l'état <strong>droitier ($e_R$)</strong> ($T_3 = 0$).</li>
+                        <li><strong>Phase de compression (&Delta;r_h &lt; 0) :</strong> Le pas de l'hélice s'allonge par rapport à l'axe toroïdal, augmentant la projection sur le spin dans l'état <strong>gauchère (e_L)</strong>. Cet état possède une charge d'isospin faible T₃ = -1/2 et interagit avec la force faible SU(2)_L.</li>
+                        <li><strong>Phase de dilatation (&Delta;r_h &gt; 0) :</strong> Le pas devient plus poloïdal, basculant la projection vers l'état <strong>droitier (e_R)</strong> (T₃ = 0).</li>
                     </ul>
-                    <p>La <strong>Jauge de Chiralité</strong> (barre bicolore en haut à droite) affiche la répartition dynamique entre <code>e_L</code> (bleu) et <code>e_R</code> (violet) ainsi que la valeur moyenne de l'isospin faible $T_3$. La respiration géométrique simule le couplage incessant avec le champ de Higgs donnant naissance à la masse au repos $m_e$.</p>
+                    <p>La <strong>Jauge de Chiralité</strong> (barre bicolore en haut à droite) affiche la répartition dynamique entre <code>e_L</code> (bleu) et <code>e_R</code> (violet) ainsi que la valeur moyenne de l'isospin faible T₃. La respiration géométrique simule le couplage incessant avec le champ de Higgs donnant naissance à la masse au repos m_e.</p>
 
-                    <h2>5. Quantification Topologique des Enroulements (H₀, H₁, H₂)</h2>
+                    <h2>6. Quantification Topologique des Enroulements (H₀, H₁, H₂)</h2>
                     <div class="highlight-box">
                         <p><strong>A. Ratio H₁ / H₀ (Topologie du tore support) :</strong><br>
                         Détermine la trajectoire du cœur du tube (le nœud torique principal).</p>
                         <ul>
-                            <li><strong>Fermeture C⁰ (courbe fermée) :</strong> <code>H₁ / H₀ &in; &mathbb;Q</code> (rationnel strict). Si le ratio est irrationnel (&pi;, &radic;2), la ligne ne se referme jamais et remplit le tore de façon dense (onde ouverte ergodique).</li>
+                            <li><strong>Fermeture C⁰ (courbe fermée) :</strong> <code>H₁ / H₀ &in; ℚ</code> (rationnel strict). Si le ratio est irrationnel (&pi;, &radic;2), la ligne ne se referme jamais et remplit le tore de façon dense (onde ouverte ergodique).</li>
                             <li><strong>Brin unique (gcd(H₀, H₁) = 1) :</strong> Pour que le vortex soit constitué d'un seul fil continu :
                                 <ul>
                                     <li><code>H₀ = 1, H₁ = 1</code> : Cas fondamental de l'électron PEW (spire toroïdale simple).</li>
@@ -884,9 +968,9 @@
                         <p><strong>B. Paramètre H₂ (Nombre de spires de l'hélice secondaire) :</strong><br>
                         Nombre de rotations de l'hélice autour du tube support sur un cycle complet.</p>
                         <ul>
-                            <li><strong>Fermeture de position (C⁰) :</strong> <code>H₂ &in; &mathbb;N*</code> (entier naturel strict). Une fraction (ex. 30.3) empêche la jonction des extrémités à <code>t = 0 &rarr; 1</code>.</li>
+                            <li><strong>Fermeture de position (C⁰) :</strong> <code>H₂ &in; ℕ*</code> (entier naturel strict). Une fraction (ex. 30.3) empêche la jonction des extrémités à <code>t = 0 &rarr; 1</code>.</li>
                             <li><strong>Fermeture de tangente sans pincement (C¹) :</strong> Pour absorber le vrillage du repère mobile de Frenet et la phase géométrique de Berry, H₂ doit s'accorder selon la règle :<br>
-                            <code>H₂ = k &middot; (H₀ + H₁)</code> avec <code>k &in; &mathbb;N*</code>.<br>
+                            <code>H₂ = k &middot; (H₀ + H₁)</code> avec <code>k &in; ℕ*</code>.<br>
                             En configuration <code>1/1</code>, les valeurs idéalement lisses sont les multiples pairs (ex. <code>H₂ = 32</code> avec k = 16).</li>
                         </ul>
 
@@ -898,27 +982,27 @@
                         </ul>
                     </div>
 
-                    <h2>6. Calibration des Volumes (V = π² et V_cycle = 4π³), Respiration & Auto-Énergie</h2>
-                    <p>Le rayon de l'hélice fixé à <code>r_hélice = 0.5592 u</code> garantit un volume instantané du tube support strictly égal à <code>V_{\text{inst}} = &pi;²</code>. Sur un cycle d'interaction complet à $4&pi;$ (symétrie $SU(2)$), l'action géométrique vaut exactement <code>V_{\text{cycle}} = 4&pi;³</code>.</p>
-                    <p>La <strong>respiration</strong> (fluctuation du rayon $r_h$) représente le mode propre d'auto-interaction du soliton, équivalent continu du nuage de photons virtuels en QED. Au point d'équilibre central (<code>&Delta;r = 0</code>), la constante de couplage est centrée sur <code>137.0359</code>. La compression/dilatation de la densité d'énergie module la masse renormalisée $m(t)$ et génère le déphasage anomal du facteur géromagnétique $g = 2(1 + a_e)$.</p>
+                    <h2>7. Calibration des Volumes (V = π² et V_cycle = 4π³), Respiration & Auto-Énergie</h2>
+                    <p>Le rayon de l'hélice fixé à <code>r_hélice = 0.5592 u</code> garantit un volume instantané du tube support strictement égal à <code>V<sub>inst</sub> = &pi;²</code>. Sur un cycle d'interaction complet à 4&pi; (symétrie SU(2)), l'action géométrique vaut exactement <code>V<sub>cycle</sub> = 4&pi;³</code>.</p>
+                    <p>La <strong>respiration</strong> (fluctuation du rayon r_h) représente le mode propre d'auto-interaction du soliton, équivalent continu du nuage de photons virtuels en QED. Au point d'équilibre central (<code>&Delta;r = 0</code>), la constante de couplage est centrée sur <code>137.0359</code>. La compression/dilatation de la densité d'énergie module la masse renormalisée m(t) et génère le déphasage anomal du facteur géromagnétique g = 2(1 + a_e).</p>
 
-                    <h2>7. Cinématique de l'Onde, Courants & Inversion de Vitesse</h2>
+                    <h2>8. Cinématique de l'Onde, Courants & Inversion de Vitesse</h2>
                     <p>Le paramètre <strong>Vitesse de l'Onde (c)</strong> pilote la vitesse de phase. Passer à une vitesse négative inverse la direction de propagation de la déformation de l'onde tout en préservant l'orientation géométrique intrinsèque du courant.</p>
 
-                    <h2>8. Affichage du Tore Opaque & Structures</h2>
+                    <h2>9. Affichage du Tore Opaque & Structures</h2>
                     <p>Pour que l'option <strong>Tore Opaque</strong> fonctionne, la case <strong>Tore Support</strong> doit être cochée. Le Champ Toroïdal (<code>B_t</code>) circule au cœur du tore : pour le voir distinctement, désactivez l'opacité du tore.</p>
 
-                    <h2>9. Zone de Jonction (Point de Friction Topologique)</h2>
+                    <h2>10. Zone de Jonction (Point de Friction Topologique)</h2>
                     <p>L'amincissement ou la coloration rouge d'un segment de l'hélice signale le point de fermeture topologique de la boucle (<code>t = 0 &rarr; 1</code>), marquant le nœud de tension de phase sous le seuil d'interférence.</p>
 
-                    <h2>10. Paramètres de Référence Géométrique</h2>
+                    <h2>11. Paramètres de Référence Géométrique</h2>
                     <table>
                         <tr><th>Paramètre</th><th>Valeur nominale</th><th>Rôle Physique</th></tr>
                         <tr><td>Sphère Centrale (r_sphère)</td><td>0.91 u</td><td>Unité de référence centrale</td></tr>
                         <tr><td>Grand Rayon (R_tore)</td><td>1.49 u</td><td>Distance axe - cœur du tube support</td></tr>
                         <tr><td>Rayon du tube (r_tube)</td><td>0.58 u</td><td>Confinement du tore support</td></tr>
-                        <tr><td>Rayon hélice (r_hélice)</td><td>0.5592 u</td><td>Rayon théorique exact ($V_{\text{inst}} = \pi^2$)</td></tr>
-                        <tr><td>Charge Topologique (Q)</td><td>-1.000 e</td><td>Invariant de Hopf ($H_0 H_1 H_2 / 32$)</td></tr>
+                        <tr><td>Rayon hélice (r_hélice)</td><td>0.5592 u</td><td>Rayon théorique exact (V<sub>inst</sub> = &pi;²)</td></tr>
+                        <tr><td>Charge Topologique (Q)</td><td>-1.000 e</td><td>Invariant de Hopf (H₀ H₁ H₂ / 32)</td></tr>
                         <tr><td>Fréquence ZBW (&nu;_ZBW)</td><td>1.236 &times; 10²¹ Hz</td><td>Fréquence de Dirac de l'onde interne</td></tr>
                         <tr><td>Rayon de Compton (r_c)</td><td>386.16 fm</td><td>Amplitude de la fluctuation spatiale du cœur</td></tr>
                         <tr><td>Masse au repos (m_e)</td><td>0.510998 MeV/c²</td><td>Intégrale de densité d'énergie électromagnétique</td></tr>
@@ -936,6 +1020,20 @@
         });
 
         document.getElementById('btn-reset').addEventListener('click', () => {
+            params.showEnvelope = true;
+            params.envType = 'sech';
+            params.envWidth = 0.15;
+            params.envDepth = 0.70;
+            params.envSpeed = 1.0;
+            document.getElementById('chk-envelope').checked = true;
+            document.getElementById('param-envType').value = 'sech';
+            document.getElementById('val-envDepth').textContent = '0.70';
+            document.getElementById('param-envDepth').value = 0.70;
+            document.getElementById('val-envWidth').textContent = '0.15';
+            document.getElementById('param-envWidth').value = 0.15;
+            document.getElementById('val-envSpeed').textContent = '1.0';
+            document.getElementById('param-envSpeed').value = 1.0;
+
             params.rTorus = 1.49; params.rTube = 0.58; params.rHelix = 0.5592; params.plungeAngle = 0;
             params.nTor = 1; params.nPol = 1; params.nHelix = 32; params.threshold = 0.18;
             params.waveSpeed = 2.0; params.omega = 0.5; params.respFreq = 0.4; params.respAmp = 0.34; params.bExt = 0.50;
