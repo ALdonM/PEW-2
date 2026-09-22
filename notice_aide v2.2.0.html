@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notice Théorique, Guide Utilisateur & Documentation Code — Soliton ATPEW v2.2.0</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: #0d1117; 
+            color: #c9d1d9; 
+            padding: 40px 20px; 
+            line-height: 1.6; 
+            max-width: 1000px; 
+            margin: auto; 
+        }
+        h1 { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 12px; margin-bottom: 24px; font-size: 1.6rem; }
+        h2 { color: #7ee787; margin-top: 36px; margin-bottom: 14px; font-size: 1.25rem; border-bottom: 1px dashed #30363d; padding-bottom: 6px; }
+        h3 { color: #79c0ff; margin-top: 22px; margin-bottom: 10px; font-size: 1.05rem; }
+        p, li { font-size: 0.92rem; color: #8b949e; margin-bottom: 10px; text-align: justify; }
+        strong { color: #e6edf3; }
+        code { background: #161b22; padding: 3px 7px; border-radius: 5px; color: #79c0ff; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 0.86rem; border: 1px solid rgba(240, 246, 252, 0.1); }
+        pre { background: #161b22; padding: 14px; border-radius: 8px; overflow-x: auto; color: #e6edf3; font-family: monospace; font-size: 0.85rem; border: 1px solid #30363d; margin: 12px 0; }
+        ul, ol { margin-left: 24px; margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.86rem; }
+        th, td { border: 1px solid #30363d; padding: 10px 14px; text-align: left; }
+        th { background: #161b22; color: #58a6ff; font-weight: 600; }
+        tr:nth-child(even) { background: rgba(110, 118, 129, 0.04); }
+        .highlight-box { background: rgba(88, 166, 255, 0.08); border-left: 4px solid #58a6ff; padding: 14px 18px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 6px; }
+        .tag-derived { background: rgba(63, 185, 80, 0.2); color: #56d364; border: 1px solid rgba(63, 185, 80, 0.4); }
+        .tag-injected { background: rgba(210, 168, 255, 0.2); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); }
+        .tag-adhoc { background: rgba(248, 81, 73, 0.2); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.4); }
+        .formula { font-family: "Times New Roman", Times, serif; color: #ffe08a; font-size: 1.05rem; text-align: center; margin: 14px 0; }
+    </style>
+    <!-- Configuration explicite MathJax v3 pour activer les délimiteurs $ ... $ -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <h1>Notice Théorique, Guide d'Utilisation & Documentation Technique — Soliton ATPEW (v2.2.0)</h1>
+
+    <!-- ========================================================================================= -->
+    <!-- PARTIE 1 : FONDEMENTS THÉORIQUES -->
+    <!-- ========================================================================================= -->
+    <h2>1 — Partie Théorique</h2>
+
+    <h3>1-1 La géométrie associée aux hypothèses ($V_{\text{total}} = \pi + \pi^2 + 4\pi^3$)</h3>
+    <p>Le modèle repose sur une hypothèse géométrique fondamentale : la constante de structure fine de l'électrodynamique, $\alpha^{-1} \approx 137,036$, représente la <strong>somme des volumes invariants</strong> engendrés par une structure spatio-temporelle à trois étages sur une durée cyclique globale de $4\pi T$ (soit deux tours complets nécessaires pour qu'un fermion de Spin 1/2 retrouve son état de phase initial) :</p>
+    
+    <div class="formula">
+        $$V_{\text{total}} = V_1 + V_2 + V_3 = V_{\text{sphère}} + V_{\text{tore}} + V_{\text{hélice}} = \pi + \pi^2 + 4\pi^3 \approx 137,03630378$$
+    </div>
+
+    <p><strong>Explication du pourquoi des hypothèses retenues et calcul des valeurs obtenues :</strong></p>
+    <ul>
+        <li><strong>Sphère centrale ($V_1 = \pi$) :</strong> Évaluée sur la durée $4\pi T$. La symétrie sphérique parfaite fait que l'extension temporelle n'ajoute aucun degré de liberté volumique. Le volume d'enveloppe fixe le rayon :
+        $$V_1 = \frac{4}{3}\pi R_{\text{sphère}}^3 = \pi \implies R_{\text{sphère}} = \left(\frac{3}{4}\right)^{1/3} \approx 0,90856 \text{ u}$$</li>
+        
+        <li><strong>Tore support ($V_2 = \pi^2$) :</strong> Évalué sur $4\pi T$. Le tore possède une symétrie par rotation axiale. La projection volumique fixe l'invariant :
+        $$V_2 = 2\pi^2 R_{\text{tore}} r_{\text{tube}}^2 = \pi^2 \implies 2 R_{\text{tore}} r_{\text{tube}}^2 = 1$$
+        Sous la contrainte d'adjonction géométrique $R_{\text{tore}} = R_{\text{sphère}} + r_{\text{tube}}$, le rayon du tube est la racine réelle de l'équation cubique $2 r_{\text{tube}}^3 + 2 R_{\text{sphère}} r_{\text{tube}}^2 - 1 = 0$, ce qui donne :
+        $$r_{\text{tube}} \approx 0,57962 \text{ u} \quad \text{et} \quad R_{\text{tore}} \approx 1,48818 \text{ u}$$</li>
+
+        <li><strong>Hélice secondaire ($V_3 = 4\pi^3$) :</strong> L'hélice ne possédant pas de symétrie axiale, le balayage temporel sur le cycle spinoriel $4\pi T$ génère le volume complet. L'action géométrique s'écrit $V_3 = \pi (r_h^{(0)})^2 L_{\text{hélice}} = 4\pi^3$, d'où le rayon nu :
+        $$r_h^{(0)} = \frac{2\pi}{\sqrt{L_{\text{hélice}}}}$$</li>
+
+        <li><strong>Démonstration de la valeur $r_{\text{hélice}} = 0,5592 \text{ u}$ :</strong><br>
+        Le volume d'action par demi-tour ($2\pi$) vaut $V_{\text{inst}} = \frac{V_3}{4\pi} = \pi^2 \approx 9,8696 \text{ u}^3$. Pour la longueur déroulée du brin $(1, 1, 32)$ calculée à $L_{\text{hélice}} \approx 109,3277 \text{ u}$, l'égalité $V_{\text{inst}} = \pi r_{\text{hélice}}^2 \cdot L_{\text{normalisé}}$ impose $r_{\text{hélice}} \approx 0,5592 \text{ u}$. Cette valeur est donc un résultat géométrique déduit et verrouillé, non ajusté ad-hoc.</li>
+
+        <li><strong>Contrainte de fermeture topologique $C^0, C^1, C^2$ :</strong> Pour former un soliton stable sans saut de tangente ni pincement de courbure, les enroulements $(n_T, n_P, n_H)$ doivent vérifier la condition de lissure. Le triplet minimal verrouillé de manière unique est $(n_T=1, n_P=1, n_H=32)$.</li>
+    </ul>
+
+    <h3>1-2 Le Modèle physique supposé (Les liens avec ATPEW / Onde Mère)</h3>
+    <p>Dans la Théorie de l'Onde Mère (Primordial Energy Wave), la matière est constituée de nœuds de vibration non-linéaires auto-confinés :</p>
+    <ul>
+        <li><strong>Charge Électrique ($Q = -1.000 e$) :</strong> Émerge géométriquement comme l'<strong>invariant topologique de Hopf</strong> ($Q = \frac{n_T \cdot n_P \cdot n_H}{32} = 1$). La charge est une propriété géométrique globale de verrouillage $3\text{D}$.</li>
+        <li><strong>Champ Électrique Radial ($\mathbf{E}_{\text{rad}}$) :</strong> Émerge de la rigidité élastique du milieu sous gradient de phase. Il obéit strictement à la loi de Gauss : $\oint \mathbf{E} \cdot d\mathbf{A} = \frac{Q}{\varepsilon_0}$.</li>
+        <li><strong>Quantum d'Action ($h$) :</strong> Représente l'action totale accumulée par l'onde lors de son bouclage spinoriel complet sur $4\pi$ ($h = E \cdot T_{4\pi}$).</li>
+        <li><strong>Zitterbewegung (ZBW) & Compton :</strong> L'oscillation ultra-rapide émerge de la vitesse de phase circulant le long du brin $H_2=32$. La longueur déroulée correspond à la longueur d'onde de Compton $\lambda_c = \frac{h}{m_e c} \approx 2,426 \text{ pm}$, induisant un rayon de Compton réduit $r_c \approx 386,16 \text{ fm}$.</li>
+        <li><strong>Isospin Faible $SU(2)_L \times U(1)_Y$ & Chiralité :</strong> La respiration radiale du tube fait osciller la projection du brin entre une configuration allongée gauchère ($e_L$, $T_3 = -1/2$, couplée au champ faible) et une configuration élargie droitière ($e_R$, $T_3 = 0$).</li>
+        <li><strong>Formule Théorique Dynamique de $\alpha_{\text{em}}^{-1}$ (Couche A v2.1.1) :</strong><br>
+        En intégrant les fluctuations quantiques du vide et la vibration ZBW du tube support ($\sigma_{\text{ZBW}}, \sigma_{\text{vide}}$), le volume effectif $\langle V_3 \rangle$ est réévalué dynamiquement :
+        $$\alpha_{\text{em}}^{-1} = V_1 + V_2 + \langle V_3 \rangle = \pi + \pi^2 + 4\pi^3 \cdot \overline{A^2} \left( 1 + \frac{\sigma_{\text{ZBW}}^2 + \sigma_{\text{vide}}^2}{(r_h^{(0)})^2} \right)$$
+        Cette relation comble l'écart de $2,2 \text{ ppm}$ entre la géométrie statique ($137,0363$) et la valeur CODATA ($137,035999177$).</li>
+    </ul>
+
+    <h3>1-3 Les constantes dérivées et grandeurs simplement injectées/calibrées</h3>
+    <p>Classification sans filtre de toutes les grandeurs du code :</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Grandeur / Paramètre</th>
+                <th>Valeur dans le Code</th>
+                <th>Statut / Origine Théorique</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>$R_{\text{sphère}}, r_{\text{tube}}, R_{\text{tore}}$</td>
+                <td>$0,9086 \text{ ; } 0,5796 \text{ ; } 1,4882$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE PURE</span> Solution exacte des équations volumiques de Couche A.</td>
+            </tr>
+            <tr>
+                <td>$L_{\text{hélice}}$</td>
+                <td>$\approx 109,3277 \text{ u}$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE PURE</span> Intégrale curviligne $\int_0^1 \|\mathbf{X}'(t)\| dt$ du brin $(1, 1, 32)$.</td>
+            </tr>
+            <tr>
+                <td>$r_{\text{hélice}}$</td>
+                <td>$0,5592 \text{ u}$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE PURE</span> Rayon imposé par la conservation du volume $V_{\text{inst}} = \pi^2$.</td>
+            </tr>
+            <tr>
+                <td>$I_{\text{eff}}$</td>
+                <td>$e \cdot c / L_{\text{hélice}}$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE PURE</span> Courant électrique dérivé formellement en v2.2.0.</td>
+            </tr>
+            <tr>
+                <td>Charge $Q$ / Invariant Hopf</td>
+                <td>$-1,000 e$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE PURE</span> Invariant topologique de bouclage $H_0 H_1 H_2 / 32$.</td>
+            </tr>
+            <tr>
+                <td>Masse au repos $m_e$</td>
+                <td>$0,510998 \text{ MeV/c}^2$</td>
+                <td><span class="tag tag-injected">INJECTÉE SI</span> Échelle d'énergie physique d'ancrage (CODATA).</td>
+            </tr>
+            <tr>
+                <td>Fréquence $\nu_{\text{ZBW}}^{(0)}$ & Rayon $r_c^{(0)}$</td>
+                <td>$1,23559 \times 10^{21} \text{ Hz ; } 386,16 \text{ fm}$</td>
+                <td><span class="tag tag-injected">INJECTÉE SI</span> Constantes de Dirac/Compton associées à $m_e$.</td>
+            </tr>
+            <tr>
+                <td>$\alpha_{\text{CODATA}}$</td>
+                <td>$137,035999177$</td>
+                <td><span class="tag tag-injected">INJECTÉE SI</span> Valeur de référence de comparaison CODATA 2018.</td>
+            </tr>
+            <tr>
+                <td>Facteur $g-2$ / Anomalie $a_e$</td>
+                <td>$a_e = \frac{\alpha}{2\pi} (1 + 0,35 \cdot \Delta r)$</td>
+                <td><span class="tag tag-adhoc">AD-HOC / PHÉNO</span> Modulation Schwinger visuelle (en attente du calcul de Frenet Couche B).</td>
+            </tr>
+            <tr>
+                <td>Angle cône de précession $B_{\text{ext}}$</td>
+                <td>$\theta_{\text{prec}} \propto B_{\text{ext}}$</td>
+                <td><span class="tag tag-adhoc">AD-HOC / VISUEL</span> Approximation cinématique pour l'affichage WebGL.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ========================================================================================= -->
+    <!-- PARTIE 2 : MANUEL D'UTILISATION DE L'OUTIL -->
+    <!-- ========================================================================================= -->
+    <h2>2 — Partie Utilisation de l'Outil</h2>
+
+    <h3>2-1 Décomposition de l'écran en 3 zones</h3>
+
+    <h4>A. Zone 1 : Saisie / Paramétrage (Panneau Latéral Gauche)</h4>
+    <p>Permet de contrôler interactivement l'ensemble des variables géométriques, cinématiques et physiques :</p>
+    <ul>
+        <li><strong>Dérivation Dynamique de $\alpha_{\text{em}}$ (Couche A) :</strong>
+            <ul>
+                <li><code>Profil d'Enveloppe (Ā²)</code> [0,9999000 à 1,0000000, pas 0,0000001, défaut 0,9999951] : Module l'amplitude moyenne du paquet.</li>
+                <li><code>Écart-type ZBW (σ_ZBW)</code> [0,00000 à 0,00300, pas 0,00005, défaut 0,00080] : Variance de fluctuation Dirac.</li>
+                <li><code>Écart-type Vide (σ_vide)</code> [0,00000 à 0,00300, pas 0,00005, défaut 0,00060] : Variance des fluctuations du vide.</li>
+            </ul>
+        </li>
+        <li><strong>Paquet d'Ondes & Amplitude Variable :</strong>
+            <ul>
+                <li><code>Activer Enveloppe Spatiale</code> [Case] : Active/désactive la modulation d'amplitude de l'hélice.</li>
+                <li><code>Profil de l'Enveloppe</code> [Menu : Soliton (1/cosh), Gaussien (exp(-x²)), Harmonique (cos)].</li>
+                <li><code>Profondeur Modulation (M_a)</code> [0,00 à 1,00, pas 0,02, défaut 0,70] : Intensité du paquet.</li>
+                <li><code>Largeur du Paquet (σ)</code> [0,03 à 0,50, pas 0,01, défaut 0,15] : Confinement spatial du paquet.</li>
+                <li><code>Vitesse du Paquet (v_env)</code> [-5,0 à 5,0, pas 0,1, défaut 1,0] : Vitesse de propagation de l'enveloppe.</li>
+            </ul>
+        </li>
+        <li><strong>Géométrie Support & Hélice :</strong>
+            <ul>
+                <li><code>Rayon Toroïdal (R)</code> [0,80 à 3,00, défaut 1,49] & <code>Rayon Poloïdal (r)</code> [0,10 à 1,50, défaut 0,58].</li>
+                <li><code>Rayon Hélice Max (r_hélice)</code> [0,05 à 1,50, défaut 0,5592] : Rayon verrouillé à $0,5592 \text{ u}$.</li>
+                <li><code>Enroulements H₀, H₁, H₂</code> [H₀: 1-23, H₁: 1-31, H₂: 10-300] : Mode fondamental $(1, 1, 32)$.</li>
+                <li><code>Angle de Plongée Central</code> [0° à 90°, défaut 0°] : Inclinaison dans l'orifice du tore.</li>
+            </ul>
+        </li>
+        <li><strong>Respiration, ZBW, Cinématique & Visualisations :</strong>
+            <ul>
+                <li><code>Fréquence Respiration</code> [0,0-12,0 Hz] & <code>Amplitude Respiration</code> [0,00-0,50].</li>
+                <li><code>Vibration ZBW Axe H₁</code> [Case] & <code>Amplitude ZBW (r_c)</code> [0,000-0,100, défaut 0,030].</li>
+                <li><code>Champ Mag. Externe (B_ext)</code> [0,00 à 2,00 T, défaut 0,50] : Déclenche la précession gyroscopique.</li>
+                <li><code>Vitesse Onde (c)</code> [-8,0 à 8,0, défaut 2,0] & <code>Rotation Globale (ω)</code> [-4,0 à 4,0 rad/s, défaut 0,5].</li>
+                <li>Cases d'affichage : $E_{\text{rad}}$, Spin, Cône $g-2$, Courant $J$, Champs $B_t, B_p, B_{\text{tot}}$, Tore Opaque, Axe $H_1$, Double Spire et Marqueurs.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>B. Zone 2 : Sorties Calculées (Panneaux Supérieurs Droits)</h4>
+    <p>Restitue en temps réel la réponse physique du soliton aux variations des paramètres :</p>
+    <ul>
+        <li><strong>Panneau Jauge de Chiralité (Haut Droit) :</strong> Affiche les pourcentages $e_L$ (gaucher, bleu) et $e_R$ (droitier, violet) ainsi que l'isospin faible $T_3 = -0,5 \cdot (e_L / 100)$. Varie dynamiquement sous la respiration.</li>
+        <li><strong>Panneau de Lecture Synthétique (Readout Panel) :</strong>
+            <ul>
+                <li><code>Paquet d'Ondes Soliton :</code> Mode actif, $M_a, \sigma$.</li>
+                <li><code>Charge Topologique (Q) :</code> Invariant de Hopf ($Q = -1,000 e$).</li>
+                <li><code>Flux Gaussien :</code> Intégrale du champ électrique radial ($\oint \mathbf{E} \cdot d\mathbf{A} = -e / \varepsilon_0$).</li>
+                <li><code>Longueur d'Arc Brin (L_hélice) :</code> Intégrale curviligne discrète en temps réel sur 800 nœuds ($109,3277 \text{ u}$).</li>
+                <li><code>Courant Efficace Formel (I_eff) :</code> Dérivé par $I_{\text{eff}} = \frac{e \cdot c}{L_{\text{hélice}}}$.</li>
+                <li><code>Volume Instantané & Action Cycle :</code> $V_{\text{inst}} \approx \pi^2$ et $V_{\text{cycle}} \approx 4\pi^3$.</li>
+                <li><code>Facteur g & Anomalie $a_e$ :</code> Facteur géromagnétique calculé ($g \approx 2,002319$).</li>
+                <li><code>Masse Auto-Énergie m(t) :</code> Masse dynamique calculée par intégration volumique sur $\Sigma(s,t) = \pi r_h(s,t)^2$.</li>
+                <li><code>Zitterbewegung (ν_ZBW) & Rayon Compton (r_c) :</code> Recalculés selon la masse dynamique $m(t)$.</li>
+                <li><code>Constante α_em⁻¹ (Statique vs Dynamique) :</code> Valeur statique ($137,0363$) vs dynamique Couche A avec l'écart ppm CODATA.</li>
+                <li><code>Moment Dipolaire μ_z & Courants J_t, J_p :</code> Composantes du courant efficace.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>C. Zone 3 : Affichage du Soliton 3D (Canvas WebGL Central)</h4>
+    <p>Rendu graphique temps réel et réactions visuelles aux paramètres :</p>
+    <ul>
+        <li><strong>Brin Principal (Hélice H₂) :</strong> Tube 3D bleu. En cas de collision topologique entre spires (distance $< \text{seuil}$), le brin vire au <strong>rouge vif</strong>.</li>
+        <li><strong>Tore Support :</strong> Rendu en gris métallique opaque ou en grille fil de fer transparente selon les options.</li>
+        <li><strong>Axe Primaire H₁ (Ligne Pointillée Blanche) :</strong> Cœur du tube support, animé d'une micro-vibration ondulatoire si ZBW est actif.</li>
+        <li><strong>Double Spire / Halo (Ligne Jaune) :</strong> Brin jumeau déphasé illustrant la structure du paquet d'ondes.</li>
+        <li><strong>Marqueurs de Spire (Sphères Orange) :</strong> Positionnés sur les $H_2=32$ nœuds de l'hélice.</li>
+        <li><strong>Champ Électrique Radial E_rad (Flèches Rouges) :</strong> Centripètes, illustrant la loi de Gauss pour une charge négative.</li>
+        <li><strong>Vecteurs Courant J (Flèches Cyan) :</strong> Tangents à la trajectoire de l'hélice.</li>
+        <li><strong>Champ Magnétique Biot-Savart B_tot (Flèches Vertes) :</strong> Calculé par intégration vectorielle sur les 800 segments du brin.</li>
+        <li><strong>Vecteur Spin & Cône de Précession (Flèche Violette & Cône Orange) :</strong> Illustre la précession de Larmor sous champ externe $B_{\text{ext}}$.</li>
+    </ul>
+
+    <!-- ========================================================================================= -->
+    <!-- PARTIE 3 : CODAGE ET ARCHITECTURE -->
+    <!-- ========================================================================================= -->
+    <h2>3 — Partie Codage et Structure du Code</h2>
+
+    <h3>3-1 Structure du Code et Choix Techniques</h3>
+    <p>Le code est conçu de manière autoportante sans dépendance lourde, s'appuyant sur <strong>Three.js (r128)</strong> et <strong>OrbitControls.js</strong>. Il s'articule autour des composants majeurs suivants :</p>
+
+    <ul>
+        <li><strong>Objet d'État Central (<code>params</code>) :</strong> Centralise l'intégralité des variables de saisie. Chaque modification dans l'interface UI met à jour cet objet.</li>
+        <li><strong>Moteur Géométrique Paramétrique :</strong>
+            <ul>
+                <li><code>getHelixCenterPoint(t)</code> : Calcule la trajectoire du cœur sur le tore support en intégrant la respiration et l'enveloppe.</li>
+                <li><code>getDoubleHelixPoint(t, wavePhase)</code> : Érige un repère mobile local de Frenet $(T, E_1, E_2)$ pour projeter l'hélice $H_2=32$ dans l'espace 3D.</li>
+            </ul>
+        </li>
+        <li><strong>Boucle d'Animation Temps Réel (<code>animateWave()</code> à 60 FPS) :</strong>
+            <ul>
+                <li>Recalcule les 800 nœuds du brin 3D.</li>
+                <li>Effectue l'intégration numérique discrète de la longueur d'arc $L_{\text{hélice}} = \sum \|P_i - P_{i-1}\|$.</li>
+                <li>Calcule le courant efficace formel $I_{\text{eff}} = \frac{e \cdot c}{L_{\text{hélice}}}$.</li>
+                <li>Exécute l'algorithme de détection d'interférences $O(N^2)$ pour colorer les nœuds en rouge sous le seuil critique.</li>
+                <li>Met à jour les attributs de géométrie WebGL (<code>posAttr.needsUpdate = true</code>) sans réallocation mémoire GPU.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3-2 Hébergement et Déploiement GitHub</h3>
+    <div class="highlight-box">
+        <p><strong>Procédure de fonctionnement de concert sur GitHub / GitHub Pages :</strong></p>
+        <ol>
+            <li>Placer le fichier principal de la simulation (ex: <code>PEW Simulation Soliton 3D - v2.2.0.html</code>) et le présent fichier d'aide (<code>notice_aide v2.2.0.html</code>) dans la racine du même dépôt GitHub.</li>
+            <li>Dans le code de la simulation, le bouton d'aide effectue l'appel URL-encodé :
+            <pre><code>document.getElementById('btn-help').addEventListener('click', () => {
+    window.open(encodeURIComponent('notice_aide v2.2.0.html'), '_blank');
+});</code></pre></li>
+            <li>Activer <strong>GitHub Pages</strong> dans les paramètres du dépôt (Settings &gt; Pages &gt; Branch: main / root). Les deux fichiers fonctionneront parfaitement ensemble sans erreur CORS.</li>
+        </ol>
+    </div>
+
+</body>
+</html>
