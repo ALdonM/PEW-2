@@ -265,19 +265,5 @@
             </ul>
         </li>
     </ul>
-
-    <h3>3-2 Hébergement et Déploiement GitHub</h3>
-    <div class="highlight-box">
-        <p><strong>Procédure de fonctionnement de concert sur GitHub / GitHub Pages :</strong></p>
-        <ol>
-            <li>Placer le fichier principal de la simulation (ex: <code>PEW Simulation Soliton 3D - v2.2.0.html</code>) et le présent fichier d'aide (<code>notice_aide v2.2.0.html</code>) dans la racine du même dépôt GitHub.</li>
-            <li>Dans le code de la simulation, le bouton d'aide effectue l'appel URL-encodé :
-            <pre><code>document.getElementById('btn-help').addEventListener('click', () => {
-    window.open(encodeURIComponent('notice_aide v2.2.0.html'), '_blank');
-});</code></pre></li>
-            <li>Activer <strong>GitHub Pages</strong> dans les paramètres du dépôt (Settings &gt; Pages &gt; Branch: main / root). Les deux fichiers fonctionneront parfaitement ensemble sans erreur CORS.</li>
-        </ol>
-    </div>
-
 </body>
 </html>
