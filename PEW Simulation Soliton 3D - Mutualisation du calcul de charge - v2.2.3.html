@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onde Hélirotoïdale 3D - v2.2.3 (Optimisations & Cohérence UI)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; overflow: hidden; height: 100vh; width: 100vw; }
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #ui-panel { position: absolute; top: 15px; left: 15px; z-index: 10; width: 385px; max-height: calc(100vh - 30px); background: rgba(22, 27, 34, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(240, 246, 252, 0.12); border-radius: 12px; padding: 18px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); overflow-y: auto; }
+        #ui-panel::-webkit-scrollbar { width: 6px; }
+        #ui-panel::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+        #chirality-gauge-panel { position: absolute; top: 15px; right: 15px; z-index: 10; width: 390px; background: rgba(22, 27, 34, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(240, 246, 252, 0.12); border-radius: 12px; padding: 10px 14px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); font-family: monospace; font-size: 0.73rem; color: #79c0ff; transition: all 0.3s ease; }
+        .gauge-title { font-size: 0.72rem; font-weight: 600; color: #e6edf3; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .gauge-bar-container { display: flex; width: 100%; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.15); background: #0d1117; }
+        .gauge-segment { display: flex; align-items: center; justify-content: center; height: 100%; transition: width 0.1s ease-out; font-weight: bold; font-size: 0.70rem; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .el-segment { background: linear-gradient(90deg, #1f6feb, #388bfd); color: #ffffff; }
+        .er-segment { background: linear-gradient(90deg, #8957e5, #a371f7); color: #ffffff; }
+
+        #readout-panel { position: absolute; top: 92px; right: 15px; z-index: 10; width: 390px; background: rgba(22, 27, 34, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(240, 246, 252, 0.12); border-radius: 12px; padding: 14px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); font-family: monospace; font-size: 0.73rem; color: #79c0ff; line-height: 1.5; transition: top 0.3s ease; }
+
+        h1 { font-size: 1.05rem; font-weight: 600; color: #58a6ff; margin-bottom: 4px; }
+        p.subtitle { font-size: 0.76rem; color: #8b949e; margin-bottom: 12px; }
+        .section-title { font-size: 0.70rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin: 12px 0 6px 0; padding-bottom: 3px; border-bottom: 1px solid rgba(240, 246, 252, 0.1); }
+        .control-group { margin-bottom: 8px; }
+        .control-group label { display: flex; justify-content: space-between; font-size: 0.79rem; color: #e6edf3; }
+        .control-group .val { color: #58a6ff; font-family: monospace; }
+        input[type=range] { width: 100%; -webkit-appearance: none; background: rgba(110, 118, 129, 0.3); height: 4px; border-radius: 2px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: #58a6ff; cursor: pointer; }
+        select { width: 100%; background: #21262d; border: 1px solid rgba(240, 246, 252, 0.2); color: #c9d1d9; padding: 5px 8px; border-radius: 6px; font-size: 0.78rem; outline: none; margin-bottom: 6px; }
+        select:focus { border-color: #58a6ff; }
+        .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 0.79rem; }
+        .checkbox-group input[type=checkbox] { accent-color: #58a6ff; }
+        .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+        button { flex: 1; padding: 7px 10px; background: #21262d; border: 1px solid rgba(240, 246, 252, 0.1); color: #c9d1d9; border-radius: 6px; cursor: pointer; font-size: 0.76rem; }
+        button.primary { background: #238636; color: #ffffff; }
+        button.help-btn { background: #1f6feb; color: #ffffff; }
+        
+        /* Badges de quantification améliorés */
+        .status-alert { color: #f85149; font-weight: bold; }
+        .status-ok { color: #3fb950; font-weight: bold; }
+        .tag-q-ok { background: rgba(63, 185, 80, 0.15); border: 1px solid rgba(63, 185, 80, 0.4); padding: 1px 5px; border-radius: 4px; color: #3fb950; font-weight: bold; }
+        .tag-q-alert { background: rgba(248, 81, 73, 0.2); border: 1px solid rgba(248, 81, 73, 0.5); padding: 1px 5px; border-radius: 4px; color: #f85149; font-weight: bold; }
+
+        .highlight-val { color: #ffe08a; font-weight: bold; }
+        .highlight-b { color: #7ee787; font-weight: bold; }
+        .highlight-spin { color: #d2a8ff; font-weight: bold; }
+        .highlight-alpha { color: #79c0ff; font-weight: bold; }
+        .highlight-charge { color: #ff7b72; font-weight: bold; }
+        .highlight-g { color: #f08c00; font-weight: bold; }
+        .highlight-zbw { color: #38d9a9; font-weight: bold; }
+        .highlight-chiral { color: #a371f7; font-weight: bold; }
+        .highlight-env { color: #e360c3; font-weight: bold; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="chirality-gauge-panel">
+        <div class="gauge-title">
+            <span>Indice de Chiralité PEW (SU(2)<sub>L</sub> × U(1)<sub>Y</sub>)</span>
+            <span id="gauge-t3-val" style="color:#d2a8ff;">T₃ = -0.262</span>
+        </div>
+        <div class="gauge-bar-container">
+            <div id="gauge-el" class="gauge-segment el-segment" style="width: 52.4%;">
+                <span id="label-el">e<sub>L</sub>: 52.4%</span>
+            </div>
+            <div id="gauge-er" class="gauge-segment er-segment" style="width: 47.6%;">
+                <span id="label-er">e<sub>R</sub>: 47.6%</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="readout-panel">Initialisation du Moteur PEW v2.2.3...</div>
+
+    <div id="ui-panel">
+        <h1>Onde Hélirotoïdale 3D - v2.2.3</h1>
+        <p class="subtitle">Modèle Intégral : Charge Topologique Centralisée & Invariants Volumiques.</p>
+
+        <div class="section-title">Analyse de Sensibilité α_em (Fluctuations)</div>
+        <div class="control-group">
+            <label>Profil d'Enveloppe (Ā²) <span class="val" id="val-aBarSq">0.9999951</span></label>
+            <input type="range" id="param-aBarSq" min="0.9999000" max="1.0000000" step="0.0000001" value="0.9999951">
+        </div>
+        <div class="control-group">
+            <label>Écart-type ZBW (σ_ZBW) <span class="val" id="val-sigZBW">0.00080</span></label>
+            <input type="range" id="param-sigZBW" min="0.00000" max="0.00300" step="0.00005" value="0.00080">
+        </div>
+        <div class="control-group">
+            <label>Écart-type Vide (σ_vide) <span class="val" id="val-sigVide">0.00060</span></label>
+            <input type="range" id="param-sigVide" min="0.00000" max="0.00300" step="0.00005" value="0.00060">
+        </div>
+
+        <div class="section-title">Paquet d'Ondes & Amplitude Variable</div>
+        <div class="checkbox-group">
+            <label for="chk-envelope">Activer Enveloppe Spatiale</label>
+            <input type="checkbox" id="chk-envelope" checked>
+        </div>
+        <div class="control-group">
+            <label for="param-envType">Profil de l'Enveloppe</label>
+            <select id="param-envType">
+                <option value="sech">Soliton Solitaire (1/cosh)</option>
+                <option value="gaussian">Paquet Gaussien (exp(-x²))</option>
+                <option value="harmonic">Modulation Harmonique (cos)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Profondeur Modulation (M_a) <span class="val" id="val-envDepth">0.70</span></label>
+            <input type="range" id="param-envDepth" min="0.00" max="1.00" step="0.02" value="0.70">
+        </div>
+        <div class="control-group">
+            <label>Largeur du Paquet (σ) <span class="val" id="val-envWidth">0.15</span></label>
+            <input type="range" id="param-envWidth" min="0.03" max="0.50" step="0.01" value="0.15">
+        </div>
+        <div class="control-group">
+            <label>Vitesse du Paquet (v_env) <span class="val" id="val-envSpeed">1.0</span></label>
+            <input type="range" id="param-envSpeed" min="-5.0" max="5.0" step="0.1" value="1.0">
+        </div>
+
+        <div class="section-title">Géométrie Support (Conserves π² & 4π³)</div>
+        <div class="control-group">
+            <label>Rayon Toroïdal (R) <span class="val" id="val-rTorus">1.49</span></label>
+            <input type="range" id="param-rTorus" min="0.80" max="3.00" step="0.01" value="1.49">
+        </div>
+        <div class="control-group">
+            <label>Rayon Poloïdal (r) <span class="val" id="val-rTube">0.58</span></label>
+            <input type="range" id="param-rTube" min="0.10" max="1.50" step="0.01" value="0.58">
+        </div>
+
+        <div class="section-title">Hélice Secondaire (V_inst = π² ⇔ r_hélice = 0.5592)</div>
+        <div class="control-group">
+            <label>Rayon Hélice Max (r_hélice) <span class="val" id="val-rHelix">0.5592</span></label>
+            <input type="range" id="param-rHelix" min="0.05" max="1.50" step="0.0001" value="0.5592">
+        </div>
+        <div class="control-group">
+            <label>Tours Toroïdaux H₀ <span class="val" id="val-nTor">1</span></label>
+            <input type="range" id="param-nTor" min="1" max="23" step="1" value="1">
+        </div>
+        <div class="control-group">
+            <label>Tours Poloïdaux H₁ <span class="val" id="val-nPol">1</span></label>
+            <input type="range" id="param-nPol" min="1" max="31" step="1" value="1">
+        </div>
+        <div class="control-group">
+            <label>Pas de l'Hélice H₂ <span class="val" id="val-nHelix">32</span></label>
+            <input type="range" id="param-nHelix" min="10" max="300" step="1" value="32">
+        </div>
+        <div class="control-group">
+            <label>Angle de Plongée Central <span class="val" id="val-plungeAngle">0°</span></label>
+            <input type="range" id="param-plungeAngle" min="0" max="90" step="1" value="0">
+        </div>
+
+        <div class="section-title">Respiration & Auto-Énergie Quantique</div>
+        <div class="control-group">
+            <label>Fréquence Respiration <span class="val" id="val-respFreq">0.4 Hz</span></label>
+            <input type="range" id="param-respFreq" min="0.0" max="12.0" step="0.1" value="0.4">
+        </div>
+        <div class="control-group">
+            <label>Amplitude Respiration <span class="val" id="val-respAmp">0.34</span></label>
+            <input type="range" id="param-respAmp" min="0.00" max="0.50" step="0.01" value="0.34">
+        </div>
+
+        <div class="section-title">Zitterbewegung & Chiralité (SU(2)<sub>L</sub>)</div>
+        <div class="checkbox-group">
+            <label for="chk-zbw">Vibration ZBW Axe H₁</label>
+            <input type="checkbox" id="chk-zbw" checked>
+        </div>
+        <div class="control-group">
+            <label>Amplitude ZBW (r_c) <span class="val" id="val-zbwAmp">0.03</span></label>
+            <input type="range" id="param-zbwAmp" min="0.00" max="0.10" step="0.005" value="0.03">
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-chiralityGauge">Jauge de Chiralité (e_L / e_R)</label>
+            <input type="checkbox" id="chk-chiralityGauge" checked>
+        </div>
+
+        <div class="section-title">Cinématique & Champ Externe g-2</div>
+        <div class="control-group">
+            <label>Champ Mag. Externe (B_ext) <span class="val" id="val-bExt">0.50 T</span></label>
+            <input type="range" id="param-bExt" min="0.00" max="2.00" step="0.05" value="0.50">
+        </div>
+        <div class="control-group">
+            <label>Vitesse de l'Onde (c) <span class="val" id="val-waveSpeed">2.0</span></label>
+            <input type="range" id="param-waveSpeed" min="-8.0" max="8.0" step="0.1" value="2.0">
+        </div>
+        <div class="control-group">
+            <label>Rotation Globale (ω) <span class="val" id="val-omega">0.5 rad/s</span></label>
+            <input type="range" id="param-omega" min="-4.0" max="4.0" step="0.1" value="0.5">
+        </div>
+        <div class="control-group">
+            <label>Seuil d'Interférence <span class="val" id="val-threshold">0.18</span></label>
+            <input type="range" id="param-threshold" min="0.05" max="0.50" step="0.01" value="0.18">
+        </div>
+
+        <div class="section-title">Visualisation des Champs & Charge</div>
+        <div class="checkbox-group">
+            <label for="chk-eField">Champ Électrique Radial (E_rad / Gauss)</label>
+            <input type="checkbox" id="chk-eField" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-spin">Vecteur Spin & Précession</label>
+            <input type="checkbox" id="chk-spin" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-precCone">Afficher Cône de Précession g-2</label>
+            <input type="checkbox" id="chk-precCone">
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-current">Vecteurs Courant Tangent (J)</label>
+            <input type="checkbox" id="chk-current" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-fieldBt">Champ Toroïdal (B_t)</label>
+            <input type="checkbox" id="chk-fieldBt" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-fieldBp">Champ Poloïdal (B_p)</label>
+            <input type="checkbox" id="chk-fieldBp" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-fieldBtot">Champ Biot-Savart Réel (B_tot)</label>
+            <input type="checkbox" id="chk-fieldBtot">
+        </div>
+
+        <div class="section-title">Structures Géométriques</div>
+        <div class="checkbox-group">
+            <label for="chk-torus">Tore Support</label>
+            <input type="checkbox" id="chk-torus" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-torusOpaque">Tore Opaque</label>
+            <input type="checkbox" id="chk-torusOpaque">
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-axis">Axe Primaire H₁</label>
+            <input type="checkbox" id="chk-axis">
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-secondSpire">Double Spire (Halo)</label>
+            <input type="checkbox" id="chk-secondSpire" checked>
+        </div>
+        <div class="checkbox-group">
+            <label for="chk-markers">Marqueurs de Spire</label>
+            <input type="checkbox" id="chk-markers">
+        </div>
+
+        <div class="btn-row">
+            <button id="btn-pause" class="primary">Pause</button>
+            <button id="btn-reset">Réinitialiser</button>
+            <button id="btn-help" class="help-btn">Aide</button>
+        </div>
+    </div>
+
+    <script>
+        const params = {
+            aBarSq: 0.9999951,
+            sigZBW: 0.00080,
+            sigVide: 0.00060,
+
+            showEnvelope: true,
+            envType: 'sech',
+            envDepth: 0.70,
+            envWidth: 0.15,
+            envSpeed: 1.0,
+
+            rTorus: 1.49, rTube: 0.58, rHelix: 0.5592, plungeAngle: 0,
+            nTor: 1, nPol: 1, nHelix: 32, threshold: 0.18, waveSpeed: 2.0,
+            omega: 0.5, respFreq: 0.4, respAmp: 0.34, bExt: 0.50,
+            showEField: true, showSpin: true, showPrecessionCone: false, 
+            showCurrent: true, showBt: true, showBp: true, showBtot: false,
+            showTorus: true, opaqueTorus: false, showAxis: false,
+            showSecondSpire: true, showMarkers: false,
+            showZbw: true, zbwAmp: 0.03, showChiralityGauge: true,
+            paused: false
+        };
+
+        let simTime = 0;
+        const TUBE_STEPS = 800;
+
+        const MATH_PI = Math.PI;
+        const V1_exact = MATH_PI;
+        const V2_exact = Math.pow(MATH_PI, 2);
+        const V3_stat_exact = 4 * Math.pow(MATH_PI, 3);
+        const L_HELICE_NOMINALE = 109.327678;
+        const RH0_EXACT = (2 * MATH_PI) / Math.sqrt(L_HELICE_NOMINALE);
+        const ALPHA_CODATA_2018 = 137.035999177;
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0d1117);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5.5, 6.5, 7.5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const light1 = new THREE.DirectionalLight(0x58a6ff, 1.2);
+        light1.position.set(8, 12, 10);
+        scene.add(light1);
+
+        const light2 = new THREE.DirectionalLight(0xff7b72, 0.6);
+        light2.position.set(-8, -8, -10);
+        scene.add(light2);
+
+        const gridHelper = new THREE.GridHelper(16, 16, 0x30363d, 0x21262d);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        const mainGroup = new THREE.Group();
+        scene.add(mainGroup);
+
+        let torusMesh, helixMesh, secondHelixMesh, primaryAxisMesh, tubeGeometry, secondTubeGeometry, markersInstancedMesh;
+        let currentVectorsGroup, eFieldLinesGroup, btLinesGroup, bpLinesGroup, btotLinesGroup, spinGroup;
+
+        const dummyMatrix = new THREE.Matrix4();
+
+        // FIX CLAUDE : Fonction centralisée unique pour la Charge Topologique
+        function getTopologicalCharge() {
+            return -1.0 * (params.nTor * params.nPol * params.nHelix / 32.0);
+        }
+
+        function getBreathingFactor() {
+            if (params.respAmp === 0 || params.respFreq === 0) return 0;
+            return Math.sin(simTime * params.respFreq * Math.PI * 2);
+        }
+
+        function getEnvelopeFactor(t) {
+            if (!params.showEnvelope || params.envDepth === 0) return 1.0;
+
+            const uCenter = ((simTime * params.envSpeed * 0.1) % 1.0 + 1.0) % 1.0;
+            let d = Math.abs(t - uCenter);
+            if (d > 0.5) d = 1.0 - d;
+
+            let profile = 1.0;
+            const sigma = Math.max(0.01, params.envWidth);
+
+            if (params.envType === 'sech') {
+                const x = d / sigma;
+                profile = 1.0 / Math.cosh(x);
+            } else if (params.envType === 'gaussian') {
+                const x = d / sigma;
+                profile = Math.exp(-0.5 * x * x);
+            } else if (params.envType === 'harmonic') {
+                const phase = (t - uCenter) * Math.PI * 2 * 2;
+                profile = 0.5 + 0.5 * Math.cos(phase);
+            }
+
+            return (1.0 - params.envDepth) + params.envDepth * profile;
+        }
+
+        function getHelixCenterPoint(t) {
+            const phi = t * params.nTor * 2 * Math.PI;
+            const theta = t * params.nPol * 2 * Math.PI;
+
+            const cosPhi = Math.cos(phi);
+            const sinPhi = Math.sin(phi);
+            const cosTheta = Math.cos(theta);
+            const sinTheta = Math.sin(theta);
+
+            const breath = getBreathingFactor() * params.respAmp;
+            const envFactor = getEnvelopeFactor(t);
+            const maxAllowedHelixRadius = Math.max(0.05, params.rTorus);
+            const dynamicHelixRadius = Math.min(params.rHelix * (1 + breath * 0.4) * envFactor, maxAllowedHelixRadius);
+
+            const poloidDistance = params.rTube + dynamicHelixRadius + (breath * 0.2);
+
+            const rawHole = Math.max(0, -cosTheta);
+            const holeFactor = Math.pow(rawHole, 2);
+
+            const currentR = (params.rTorus + poloidDistance * cosTheta) * (1 - holeFactor);
+            
+            const center = new THREE.Vector3(
+                currentR * cosPhi,
+                poloidDistance * sinTheta,
+                currentR * sinPhi
+            );
+
+            const Radial = new THREE.Vector3(cosPhi, 0, sinPhi);
+
+            return { center, phi, theta, cosTheta, sinTheta, Radial, holeFactor, poloidDistance, dynamicHelixRadius, breath, envFactor };
+        }
+
+        function getDoubleHelixPoint(t, wavePhase, isSecondSpire = false) {
+            const cData = getHelixCenterPoint(t);
+            const helixCenter = cData.center;
+            const Up = new THREE.Vector3(0, 1, 0);
+
+            const dt = 0.0001;
+            const pNext = getHelixCenterPoint(t + dt).center;
+            const pPrev = getHelixCenterPoint(t - dt).center;
+            const realTangent = pNext.clone().sub(pPrev).normalize();
+
+            let E1 = cData.Radial.clone().projectOnPlane(realTangent).normalize();
+            
+            const plungeRad = (params.plungeAngle * Math.PI / 180) * cData.holeFactor;
+            E1.lerp(Up, Math.sin(plungeRad)).normalize();
+            
+            let E2 = new THREE.Vector3().crossVectors(realTangent, E1).normalize();
+
+            const spireOffset = isSecondSpire ? 0.35 + (cData.breath * 0.15) : 0;
+            const psi = t * params.nHelix * 2 * Math.PI - wavePhase + spireOffset;
+            const cosPsi = Math.cos(psi);
+            const sinPsi = Math.sin(psi);
+
+            const effectiveRadius = isSecondSpire ? 
+                cData.dynamicHelixRadius * (1.08 + cData.breath * 0.12) : 
+                cData.dynamicHelixRadius;
+
+            return new THREE.Vector3(
+                helixCenter.x + effectiveRadius * (cosPsi * E1.x + Math.sin(psi) * E2.x),
+                helixCenter.y + effectiveRadius * (cosPsi * E1.y + Math.sin(psi) * E2.y),
+                helixCenter.z + effectiveRadius * (cosPsi * E1.z + Math.sin(psi) * E2.z)
+            );
+        }
+
+        function computeBiotSavartField(targetPos, curvePoints, I_eff) {
+            const B = new THREE.Vector3(0, 0, 0);
+            const numSegments = curvePoints.length - 1;
+            const epsilonSq = 0.026 * 0.026;
+
+            for (let i = 0; i < numSegments; i++) {
+                const p1 = curvePoints[i];
+                const p2 = curvePoints[i + 1];
+                const dL = p2.clone().sub(p1);
+                const pMid = p1.clone().add(p2).multiplyScalar(0.5);
+                const rVec = targetPos.clone().sub(pMid);
+                const distSq = rVec.lengthSq() + epsilonSq;
+                const distCube = Math.pow(distSq, 1.5);
+
+                const crossProd = dL.clone().cross(rVec);
+                crossProd.multiplyScalar(I_eff / distCube);
+                B.add(crossProd);
+            }
+            return B;
+        }
+
+        function computeMagneticDipoleMoment(curvePoints, I_eff) {
+            const mu = new THREE.Vector3(0, 0, 0);
+            const numSegments = curvePoints.length - 1;
+
+            for (let i = 0; i < numSegments; i++) {
+                const p1 = curvePoints[i];
+                const p2 = curvePoints[i + 1];
+                const dL = p2.clone().sub(p1);
+                const pMid = p1.clone().add(p2).multiplyScalar(0.5);
+                mu.add(pMid.clone().cross(dL));
+            }
+            return mu.multiplyScalar(0.5 * I_eff);
+        }
+
+        function buildEFieldVisuals() {
+            if (eFieldLinesGroup) mainGroup.remove(eFieldLinesGroup);
+            eFieldLinesGroup = new THREE.Group();
+            mainGroup.add(eFieldLinesGroup);
+
+            if (!params.showEField) return;
+
+            const numRays = 32;
+            const breath = getBreathingFactor() * params.respAmp;
+            
+            // FIX CLAUDE : Utilise la fonction centralisée unique getTopologicalCharge()
+            const qReal = getTopologicalCharge();
+            const qScale = Math.min(2.0, Math.sqrt(Math.abs(qReal)));
+
+            for (let i = 0; i < numRays; i++) {
+                const phi = Math.acos(-1 + (2 * i) / numRays);
+                const theta = Math.sqrt(numRays * Math.PI) * phi;
+
+                const dir = new THREE.Vector3(
+                    Math.sin(phi) * Math.cos(theta),
+                    Math.cos(phi),
+                    Math.sin(phi) * Math.sin(theta)
+                ).normalize();
+
+                const startPos = dir.clone().multiplyScalar(params.rTorus + params.rTube + 0.5);
+                const arrowLength = (1.0 + breath * 0.2) * qScale;
+                const arrow = new THREE.ArrowHelper(
+                    dir.clone().negate(),
+                    startPos,
+                    arrowLength,
+                    0xff7b72, 0.25 * qScale, 0.12 * qScale
+                );
+                eFieldLinesGroup.add(arrow);
+            }
+        }
+
+        function buildSpinVisuals() {
+            if (spinGroup) mainGroup.remove(spinGroup);
+            spinGroup = new THREE.Group();
+            mainGroup.add(spinGroup);
+
+            if (!params.showSpin) return;
+
+            const breathVal = getBreathingFactor() * params.respAmp;
+            const gAnom = 0.00115965 * (1 + breathVal * 0.35);
+            const spinDirection = params.waveSpeed >= 0 ? 1 : -1;
+
+            const precConeAngle = params.bExt > 0 ? Math.min(0.45, 0.12 + params.bExt * 0.18 + Math.abs(breathVal) * 0.2) : 0;
+            const precFreq = params.omega * (1 + gAnom) * (1 + params.bExt);
+            const precPhase = (simTime * precFreq * spinDirection) % (Math.PI * 2);
+
+            const spinDir = new THREE.Vector3(
+                Math.sin(precConeAngle) * Math.cos(precPhase),
+                spinDirection * Math.cos(precConeAngle),
+                Math.sin(precConeAngle) * Math.sin(precPhase)
+            ).normalize();
+
+            const arrowOrigin = new THREE.Vector3(0, -spinDirection * 1.2, 0);
+
+            const spinArrow = new THREE.ArrowHelper(spinDir, arrowOrigin, 2.5, 0xd2a8ff, 0.38, 0.22);
+            spinGroup.add(spinArrow);
+
+            if (params.showPrecessionCone && params.bExt > 0) {
+                const coneHeight = 2.4;
+                const coneRadius = coneHeight * Math.tan(precConeAngle);
+                const coneGeom = new THREE.ConeGeometry(coneRadius, coneHeight, 32, 1, true);
+                const coneMat = new THREE.MeshBasicMaterial({ color: 0xf08c00, transparent: true, opacity: 0.18, wireframe: true, side: THREE.DoubleSide });
+                const coneMesh = new THREE.Mesh(coneGeom, coneMat);
+                coneMesh.position.set(0, arrowOrigin.y + (spinDirection * coneHeight / 2), 0);
+                if (spinDirection < 0) coneMesh.rotation.x = Math.PI;
+                spinGroup.add(coneMesh);
+            }
+
+            const ringRadius = Math.max(0.3, (params.rTorus - params.rTube) * 0.6);
+            const ringPoints = [];
+            for (let i = 0; i <= 60; i++) {
+                const a = (i / 60) * Math.PI * 2;
+                ringPoints.push(new THREE.Vector3(ringRadius * Math.cos(a), 0, ringRadius * Math.sin(a)));
+            }
+            spinGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPoints), new THREE.LineBasicMaterial({ color: 0xd2a8ff, transparent: true, opacity: 0.85 })));
+        }
+
+        function buildFieldAndCurrentVisuals() {
+            if (currentVectorsGroup) mainGroup.remove(currentVectorsGroup);
+            if (btLinesGroup) mainGroup.remove(btLinesGroup);
+            if (bpLinesGroup) mainGroup.remove(bpLinesGroup);
+            if (btotLinesGroup) mainGroup.remove(btotLinesGroup);
+
+            currentVectorsGroup = new THREE.Group();
+            btLinesGroup = new THREE.Group();
+            bpLinesGroup = new THREE.Group();
+            btotLinesGroup = new THREE.Group();
+
+            mainGroup.add(currentVectorsGroup);
+            mainGroup.add(btLinesGroup);
+            mainGroup.add(bpLinesGroup);
+            mainGroup.add(btotLinesGroup);
+
+            if (params.showBt) {
+                for (let r = 0; r < 8; r++) {
+                    const ringRadius = params.rTorus + (r / 7 - 0.5) * params.rTube * 1.4;
+                    const points = [];
+                    for (let i = 0; i <= 120; i++) {
+                        const a = (i / 120) * Math.PI * 2;
+                        points.push(new THREE.Vector3(ringRadius * Math.cos(a), 0, ringRadius * Math.sin(a)));
+                    }
+                    btLinesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.85 })));
+                }
+            }
+
+            if (params.showBp) {
+                for (let s = 0; s < 16; s++) {
+                    const phi = (s / 16) * Math.PI * 2;
+                    const ringPoints = [];
+                    for (let i = 0; i <= 50; i++) {
+                        const theta = (i / 50) * Math.PI * 2;
+                        const pr = params.rTube * 1.25;
+                        ringPoints.push(new THREE.Vector3((params.rTorus + pr * Math.cos(theta)) * Math.cos(phi), pr * Math.sin(theta), (params.rTorus + pr * Math.cos(theta)) * Math.sin(phi)));
+                    }
+                    bpLinesGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPoints), new THREE.LineBasicMaterial({ color: 0xff6b6b, transparent: true, opacity: 0.6 })));
+                }
+            }
+
+            if (params.showCurrent) {
+                for (let a = 0; a < 24; a++) {
+                    currentVectorsGroup.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 0.45, 0x00f0ff, 0.15, 0.08));
+                }
+            }
+
+            if (params.showBtot) {
+                for (let r = 0; r < 8; r++) {
+                    const phi = (r / 8) * Math.PI * 2;
+                    for (let s = 0; s < 12; s++) {
+                        const theta = (s / 12) * Math.PI * 2;
+                        const pr = params.rTube * 1.4;
+                        const cx = (params.rTorus + pr * Math.cos(theta)) * Math.cos(phi);
+                        const cy = pr * Math.sin(theta);
+                        const cz = (params.rTorus + pr * Math.cos(theta)) * Math.sin(phi);
+                        btotLinesGroup.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(cx, cy, cz), 0.3, 0x51cf66, 0.08, 0.05));
+                    }
+                }
+            }
+        }
+
+        function updateSimulationGeometry() {
+            if (torusMesh) mainGroup.remove(torusMesh);
+            if (helixMesh) mainGroup.remove(helixMesh);
+            if (secondHelixMesh) mainGroup.remove(secondHelixMesh);
+            if (primaryAxisMesh) mainGroup.remove(primaryAxisMesh);
+            if (markersInstancedMesh) mainGroup.remove(markersInstancedMesh);
+
+            if (params.showTorus) {
+                const torusGeom = new THREE.TorusGeometry(params.rTorus, params.rTube, 32, 80);
+                const torusMat = params.opaqueTorus ? 
+                    new THREE.MeshStandardMaterial({ color: 0x1f242d, roughness: 0.6, metalness: 0.2 }) :
+                    new THREE.MeshStandardMaterial({ color: 0x8b949e, wireframe: true, transparent: true, opacity: 0.12 });
+                torusMesh = new THREE.Mesh(torusGeom, torusMat);
+                torusMesh.rotation.x = Math.PI / 2;
+                mainGroup.add(torusMesh);
+            }
+
+            if (params.showAxis) {
+                const axisPoints = [];
+                for (let i = 0; i <= 600; i++) axisPoints.push(getHelixCenterPoint(i / 600).center);
+                primaryAxisMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(axisPoints), new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.08, gapSize: 0.04, opacity: 0.9, transparent: true }));
+                primaryAxisMesh.computeLineDistances();
+                mainGroup.add(primaryAxisMesh);
+            }
+
+            const curvePoints = [];
+            for (let i = 0; i <= TUBE_STEPS; i++) curvePoints.push(getDoubleHelixPoint(i / TUBE_STEPS, 0, false));
+
+            class DynamicCurve extends THREE.Curve {
+                constructor(pts) { super(); this.pts = pts; }
+                getPoint(t) { return this.pts[Math.min(Math.floor(t * TUBE_STEPS), TUBE_STEPS - 1)]; }
+            }
+
+            tubeGeometry = new THREE.TubeGeometry(new DynamicCurve(curvePoints), TUBE_STEPS, 0.026, 8, false);
+            const colors = new Float32Array(tubeGeometry.attributes.position.count * 3);
+            for (let i = 0; i < tubeGeometry.attributes.position.count; i++) {
+                colors[i * 3] = 0.22; colors[i * 3 + 1] = 0.55; colors[i * 3 + 2] = 0.98;
+            }
+            tubeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            helixMesh = new THREE.Mesh(tubeGeometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.25, metalness: 0.5 }));
+            mainGroup.add(helixMesh);
+
+            if (params.showSecondSpire) {
+                const sPoints = [];
+                for (let i = 0; i <= TUBE_STEPS; i++) sPoints.push(getDoubleHelixPoint(i / TUBE_STEPS, 0, true));
+                secondTubeGeometry = new THREE.TubeGeometry(new DynamicCurve(sPoints), TUBE_STEPS, 0.009, 6, false);
+                secondHelixMesh = new THREE.Mesh(secondTubeGeometry, new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.75 }));
+                mainGroup.add(secondHelixMesh);
+            }
+
+            if (params.showMarkers) {
+                markersInstancedMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.042, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffa657, emissive: 0xd97706, roughness: 0.2, metalness: 0.8 }), params.nHelix);
+                mainGroup.add(markersInstancedMesh);
+            }
+
+            buildEFieldVisuals();
+            buildFieldAndCurrentVisuals();
+            buildSpinVisuals();
+        }
+
+        function detectInterferences(curvePoints) {
+            const minIndexDistance = Math.floor(TUBE_STEPS / params.nHelix * 1.5);
+            const sqThresh = params.threshold * params.threshold;
+            const isInterfering = new Array(TUBE_STEPS + 1).fill(false);
+            let collisionCount = 0;
+
+            for (let i = 0; i <= TUBE_STEPS; i++) {
+                for (let j = i + minIndexDistance; j <= TUBE_STEPS; j++) {
+                    if (curvePoints[i].distanceToSquared(curvePoints[j]) < sqThresh) {
+                        isInterfering[i] = true;
+                        isInterfering[j] = true;
+                        collisionCount++;
+                    }
+                }
+            }
+            return { isInterfering, collisionCount };
+        }
+
+        function animateWave() {
+            if (!tubeGeometry || !tubeGeometry.attributes.position) return;
+
+            const wavePhase = simTime * params.waveSpeed;
+            const posAttr = tubeGeometry.attributes.position;
+            const colorAttr = tubeGeometry.attributes.color;
+
+            if (params.showAxis && primaryAxisMesh && primaryAxisMesh.geometry && primaryAxisMesh.geometry.attributes.position) {
+                const axisPosAttr = primaryAxisMesh.geometry.attributes.position;
+                for (let i = 0; i <= 600; i++) {
+                    const t = i / 600;
+                    const cData = getHelixCenterPoint(t);
+                    let p = cData.center.clone();
+                    if (params.showZbw && params.zbwAmp > 0) {
+                        const zbwPhase = t * params.nHelix * Math.PI * 6 + simTime * 28.0;
+                        const zbwOffset = Math.sin(zbwPhase) * params.zbwAmp;
+                        p.y += zbwOffset;
+                        p.x += Math.cos(zbwPhase * 0.7) * (params.zbwAmp * 0.4);
+                        p.z += Math.sin(zbwPhase * 0.7) * (params.zbwAmp * 0.4);
+                    }
+                    axisPosAttr.setXYZ(i, p.x, p.y, p.z);
+                }
+                axisPosAttr.needsUpdate = true;
+                primaryAxisMesh.computeLineDistances();
+            }
+
+            const curvePoints = [];
+            let lHelixDynamic = 0;
+            for (let i = 0; i <= TUBE_STEPS; i++) {
+                const pt = getDoubleHelixPoint(i / TUBE_STEPS, wavePhase, false);
+                curvePoints.push(pt);
+                if (i > 0) {
+                    lHelixDynamic += curvePoints[i].distanceTo(curvePoints[i - 1]);
+                }
+            }
+
+            const { isInterfering, collisionCount } = detectInterferences(curvePoints);
+            const radialSegments = 8;
+            const tubeRadius = 0.026;
+
+            for (let i = 0; i <= TUBE_STEPS; i++) {
+                const t = i / TUBE_STEPS;
+                const env = getEnvelopeFactor(t);
+                const p = curvePoints[i];
+                const pNext = curvePoints[Math.min(i + 1, TUBE_STEPS)];
+                const T = pNext.clone().sub(p).normalize();
+
+                let up = Math.abs(T.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+                let N = new THREE.Vector3().crossVectors(up, T).normalize();
+                let B = new THREE.Vector3().crossVectors(T, N).normalize();
+
+                const inRed = isInterfering[i];
+                let rCol, gCol, bCol;
+                if (inRed) {
+                    rCol = 1.0; gCol = 0.15; bCol = 0.15;
+                } else {
+                    rCol = Math.min(1.0, 0.18 + 0.50 * env);
+                    gCol = Math.min(1.0, 0.45 + 0.45 * env);
+                    bCol = Math.min(1.0, 0.75 + 0.25 * env);
+                }
+
+                for (let j = 0; j <= radialSegments; j++) {
+                    const vIndex = i * (radialSegments + 1) + j;
+                    const rad = (j / radialSegments) * 2 * Math.PI;
+                    posAttr.setXYZ(vIndex, p.x + (-tubeRadius * Math.cos(rad)) * N.x + (tubeRadius * Math.sin(rad)) * B.x,
+                                           p.y + (-tubeRadius * Math.cos(rad)) * N.y + (tubeRadius * Math.sin(rad)) * B.y,
+                                           p.z + (-tubeRadius * Math.cos(rad)) * N.z + (tubeRadius * Math.sin(rad)) * B.z);
+                    colorAttr.setXYZ(vIndex, rCol, gCol, bCol);
+                }
+            }
+            posAttr.needsUpdate = true;
+            colorAttr.needsUpdate = true;
+            tubeGeometry.computeVertexNormals();
+
+            // FIX CLAUDE : Charge Topologique centralisée
+            const qTopologicalVal = getTopologicalCharge();
+            const absQ = Math.abs(qTopologicalVal);
+            const isIntegerQ = Math.abs(qTopologicalVal - Math.round(qTopologicalVal)) < 0.001;
+
+            const phaseVelocityC = Math.abs(params.waveSpeed);
+            const effCurrent = (absQ * phaseVelocityC) / Math.max(0.001, lHelixDynamic);
+
+            if (params.showCurrent && currentVectorsGroup) {
+                const arrows = currentVectorsGroup.children;
+                for (let a = 0; a < arrows.length; a++) {
+                    const idx = Math.floor((a / arrows.length) * TUBE_STEPS);
+                    const dir = curvePoints[Math.min(idx + 1, TUBE_STEPS)].clone().sub(curvePoints[idx]).normalize();
+                    arrows[a].position.copy(curvePoints[idx]);
+                    arrows[a].setDirection(dir);
+                }
+            }
+
+            if (params.showBtot && btotLinesGroup) {
+                const arrows = btotLinesGroup.children;
+                const sampledPoints = [];
+                for (let k = 0; k <= 120; k++) sampledPoints.push(curvePoints[Math.floor((k / 120) * TUBE_STEPS)]);
+                for (let a = 0; a < arrows.length; a++) {
+                    const bVec = computeBiotSavartField(arrows[a].position, sampledPoints, effCurrent);
+                    if (bVec.length() > 0.0001) {
+                        arrows[a].setDirection(bVec.normalize());
+                        arrows[a].setLength(Math.min(0.45, bVec.length() * 0.8), 0.08, 0.05);
+                    }
+                }
+            }
+
+            if (params.showSecondSpire && secondTubeGeometry && secondTubeGeometry.attributes.position) {
+                const sPosAttr = secondTubeGeometry.attributes.position;
+                const sCurvePoints = [];
+                for (let i = 0; i <= TUBE_STEPS; i++) sCurvePoints.push(getDoubleHelixPoint(i / TUBE_STEPS, wavePhase, true));
+                for (let i = 0; i <= TUBE_STEPS; i++) {
+                    const p = sCurvePoints[i];
+                    const T = sCurvePoints[Math.min(i + 1, TUBE_STEPS)].clone().sub(p).normalize();
+                    let up = Math.abs(T.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+                    let N = new THREE.Vector3().crossVectors(up, T).normalize();
+                    let B = new THREE.Vector3().crossVectors(T, N).normalize();
+                    for (let j = 0; j <= 6; j++) {
+                        const rad = (j / 6) * 2 * Math.PI;
+                        sPosAttr.setXYZ(i * 7 + j, p.x + (-0.009 * Math.cos(rad)) * N.x + (0.009 * Math.sin(rad)) * B.x,
+                                                   p.y + (-0.009 * Math.cos(rad)) * N.y + (0.009 * Math.sin(rad)) * B.y,
+                                                   p.z + (-0.009 * Math.cos(rad)) * N.z + (0.009 * Math.sin(rad)) * B.z);
+                    }
+                }
+                sPosAttr.needsUpdate = true;
+                secondTubeGeometry.computeVertexNormals();
+            }
+
+            if (params.showMarkers && markersInstancedMesh) {
+                for (let k = 0; k < params.nHelix; k++) {
+                    dummyMatrix.setPosition(getDoubleHelixPoint(k / params.nHelix, wavePhase, false));
+                    markersInstancedMesh.setMatrixAt(k, dummyMatrix);
+                }
+                markersInstancedMesh.instanceMatrix.needsUpdate = true;
+            }
+
+            if (params.showSpin) buildSpinVisuals();
+
+            mainGroup.rotation.y = simTime * params.omega;
+
+            const breathVal = getBreathingFactor() * params.respAmp;
+            const qFormatted = qTopologicalVal.toFixed(3);
+
+            const vInst = (Math.PI * Math.PI) * Math.pow(1 + breathVal * 0.4, 2);
+            const vCycle = 4 * Math.PI * vInst;
+
+            const baseMass = 0.510998;
+            const massFactorGeometric = (lHelixDynamic / L_HELICE_NOMINALE) * Math.pow(1 + breathVal * 0.15, 2);
+            const dynamicMass = baseMass * massFactorGeometric;
+            const dynamicMassText = dynamicMass.toFixed(6);
+
+            const nuZbw = (1.23559 * (dynamicMass / baseMass)).toFixed(3);
+            const rcCompton = (386.159 * (baseMass / dynamicMass)).toFixed(2);
+
+            let eL_pct = 50.0 - (breathVal / 0.34) * 25.0;
+            eL_pct = Math.max(15.0, Math.min(85.0, eL_pct));
+            const eR_pct = 100.0 - eL_pct;
+            const t3Val = (-0.5 * (eL_pct / 100.0)).toFixed(3);
+
+            if (params.showChiralityGauge) {
+                document.getElementById('gauge-el').style.width = eL_pct.toFixed(1) + '%';
+                document.getElementById('gauge-er').style.width = eR_pct.toFixed(1) + '%';
+                document.getElementById('label-el').innerHTML = `e<sub>L</sub>: ${eL_pct.toFixed(1)}%`;
+                document.getElementById('label-er').innerHTML = `e<sub>R</sub>: ${eR_pct.toFixed(1)}%`;
+                document.getElementById('gauge-t3-val').textContent = `T₃ = ${t3Val}`;
+            }
+
+            const SchwingerAnom = 0.001159652;
+            const dynamicAnom = SchwingerAnom * (1 + breathVal * 0.35);
+            const gFactor = (2 * (1 + dynamicAnom)).toFixed(7);
+
+            const varFluct = Math.pow(params.sigZBW, 2) + Math.pow(params.sigVide, 2);
+            const v3Dynamic = V3_stat_exact * params.aBarSq * (1.0 + (varFluct / Math.pow(RH0_EXACT, 2)));
+            const alphaInvDynamic = V1_exact + V2_exact + v3Dynamic;
+            const alphaInvStaticPure = V1_exact + V2_exact + V3_stat_exact;
+            const ecartPpm = ((alphaInvDynamic - ALPHA_CODATA_2018) / ALPHA_CODATA_2018) * 1e6;
+
+            const sampledDipolePoints = [];
+            for (let k = 0; k <= 100; k++) sampledDipolePoints.push(curvePoints[Math.floor((k / 100) * TUBE_STEPS)]);
+            const magneticDipole = computeMagneticDipoleMoment(sampledDipolePoints, effCurrent);
+
+            const helixAngleRad = Math.atan2(params.rTube * params.nPol, params.rTorus * params.nTor);
+            const J_toroidal = (effCurrent * Math.cos(helixAngleRad)).toFixed(4);
+            const J_poloidal = (effCurrent * Math.sin(helixAngleRad)).toFixed(4);
+
+            const spinValText = params.waveSpeed >= 0 ? "+1/2 (Up ℏ)" : "-1/2 (Down ℏ)";
+            const statusClass = collisionCount > 0 ? "status-alert" : "status-ok";
+            const statusText = collisionCount > 0 ? "INTERFÉRENCES" : "FLUIDE";
+
+            // FIX CLAUDE : Badge mis en valeur avec conteneur stylisé
+            const qStatusTag = isIntegerQ ? 
+                `<span class="tag-q-ok">FERMÉE (Q ∈ ℤ)</span>` : 
+                `<span class="tag-q-alert">NON QUANTIFIÉE (Q ∉ ℤ)</span>`;
+
+            const envStatus = params.showEnvelope ? 
+                `<span class="highlight-env">${params.envType.toUpperCase()}</span> (M_a = ${(params.envDepth * 100).toFixed(0)}%, σ = ${params.envWidth.toFixed(2)})` : 
+                `Homogène (M_a = 0%)`;
+
+            // FIX CLAUDE : Retrait du résidu "1/r²" dans Flux Gaussien pour cohérence totale
+            document.getElementById('readout-panel').innerHTML =
+                `Paquet d'Ondes Soliton : ${envStatus}<br>` +
+                `Charge Topologique (Q) : <span class="highlight-charge">${qFormatted} e</span> [${qStatusTag}]<br>` +
+                `Flux Gaussien (∮ E·dA) : <span class="highlight-charge">${qFormatted} / ε₀</span> (Schématique Radial Q)<br>` +
+                `Longueur d'Arc Brin (L_hélice) : <span class="highlight-val">${lHelixDynamic.toFixed(4)} u</span> (Mesure en Direct)<br>` +
+                `Postulat Couplage (I_eff) : <span class="highlight-b">${effCurrent.toFixed(5)} e·c/u</span> (e·c / L_hélice)<br>` +
+                `Volume Instantané (V) : <span class="highlight-val">${vInst.toFixed(4)} u³</span> (≈ π²)<br>` +
+                `Action Cycle (4π·V) : <span class="highlight-val">${vCycle.toFixed(3)} u³</span> (≈ 4π³)<br>` +
+                `Spin Quantique : <span class="highlight-spin">${spinValText}</span> | Status : <span class="${statusClass}">${statusText}</span><br>` +
+                `Facteur g : <span class="highlight-g">${gFactor}</span> (a_e = ${(dynamicAnom * 1000).toFixed(4)}×10⁻³)<br>` +
+                `Masse Auto-Énergie m(t) : <span class="highlight-val">${dynamicMassText} MeV/c²</span> (Modulation L)<br>` +
+                `Zitterbewegung (ν_ZBW) : <span class="highlight-zbw">${nuZbw}×10²¹ Hz</span> | r_c = <span class="highlight-zbw">${rcCompton} fm</span><br>` +
+                `Indice Chiralité : <span class="highlight-chiral">e_L = ${eL_pct.toFixed(1)}%</span> | <span class="highlight-chiral">e_R = ${eR_pct.toFixed(1)}%</span> (T₃ = ${t3Val})<br>` +
+                `<strong>Constante α⁻¹ (Statique Pure) : <span class="highlight-val">${alphaInvStaticPure.toFixed(8)}</span></strong><br>` +
+                `<strong>Constante α_em⁻¹ (Sensibilité Couche A) : <span class="highlight-alpha">${alphaInvDynamic.toFixed(8)}</span></strong> (Écart : <span class="highlight-g">${(ecartPpm >= 0 ? '+' : '')}${ecartPpm.toFixed(4)} ppm</span>)<br>` +
+                `Moment Dipolaire μ_z : <span class="highlight-b">${magneticDipole.y >= 0 ? '+' : ''}${magneticDipole.y.toFixed(4)} μ_B</span><br>` +
+                `Composantes Courant J_eff : J_t = ${J_toroidal} | J_p = ${J_poloidal}<br>` +
+                `Respiration / Fluctuation : <span class="highlight-val">${(breathVal >= 0 ? '+' : '')}${breathVal.toFixed(4)} u</span> (${params.respFreq} Hz)<br>` +
+                `Proximités (< ${params.threshold.toFixed(2)} u) : ${collisionCount}`;
+        }
+
+        function bindSlider(id, key, formatFn, callback) {
+            const input = document.getElementById(id);
+            const disp = document.getElementById('val-' + key);
+            if (!input || !disp) return;
+            input.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                params[key] = val;
+                disp.textContent = formatFn ? formatFn(val) : val;
+                if (callback) callback();
+            });
+        }
+
+        bindSlider('param-aBarSq', 'aBarSq', (v) => v.toFixed(7));
+        bindSlider('param-sigZBW', 'sigZBW', (v) => v.toFixed(5));
+        bindSlider('param-sigVide', 'sigVide', (v) => v.toFixed(5));
+
+        document.getElementById('chk-envelope').addEventListener('change', (e) => { params.showEnvelope = e.target.checked; });
+        document.getElementById('param-envType').addEventListener('change', (e) => { params.envType = e.target.value; });
+        bindSlider('param-envDepth', 'envDepth', (v) => v.toFixed(2));
+        bindSlider('param-envWidth', 'envWidth', (v) => v.toFixed(2));
+        bindSlider('param-envSpeed', 'envSpeed', (v) => v.toFixed(1));
+
+        bindSlider('param-rTorus', 'rTorus', (v) => v.toFixed(2), updateSimulationGeometry);
+        bindSlider('param-rTube', 'rTube', (v) => v.toFixed(2), updateSimulationGeometry);
+        bindSlider('param-rHelix', 'rHelix', (v) => v.toFixed(4), updateSimulationGeometry);
+        bindSlider('param-nTor', 'nTor', (v) => v.toFixed(0), updateSimulationGeometry);
+        bindSlider('param-nPol', 'nPol', (v) => v.toFixed(0), updateSimulationGeometry);
+        bindSlider('param-nHelix', 'nHelix', (v) => v.toFixed(0), updateSimulationGeometry);
+        bindSlider('param-plungeAngle', 'plungeAngle', (v) => v.toFixed(0) + '°', updateSimulationGeometry);
+        bindSlider('param-respFreq', 'respFreq', (v) => v.toFixed(1) + ' Hz');
+        bindSlider('param-respAmp', 'respAmp', (v) => v.toFixed(2));
+        bindSlider('param-zbwAmp', 'zbwAmp', (v) => v.toFixed(3));
+        bindSlider('param-bExt', 'bExt', (v) => v.toFixed(2) + ' T');
+        bindSlider('param-waveSpeed', 'waveSpeed', (v) => v.toFixed(1));
+        bindSlider('param-omega', 'omega', (v) => v.toFixed(1) + ' rad/s');
+        bindSlider('param-threshold', 'threshold', (v) => v.toFixed(2));
+
+        document.getElementById('chk-zbw').addEventListener('change', (e) => { params.showZbw = e.target.checked; });
+        document.getElementById('chk-chiralityGauge').addEventListener('change', (e) => { 
+            params.showChiralityGauge = e.target.checked;
+            const gaugePanel = document.getElementById('chirality-gauge-panel');
+            const readoutPanel = document.getElementById('readout-panel');
+            if (params.showChiralityGauge) {
+                gaugePanel.style.display = 'block';
+                readoutPanel.style.top = '92px';
+            } else {
+                gaugePanel.style.display = 'none';
+                readoutPanel.style.top = '15px';
+            }
+        });
+
+        document.getElementById('chk-eField').addEventListener('change', (e) => { params.showEField = e.target.checked; buildEFieldVisuals(); });
+        document.getElementById('chk-spin').addEventListener('change', (e) => { params.showSpin = e.target.checked; buildSpinVisuals(); });
+        document.getElementById('chk-precCone').addEventListener('change', (e) => { params.showPrecessionCone = e.target.checked; buildSpinVisuals(); });
+        document.getElementById('chk-current').addEventListener('change', (e) => { params.showCurrent = e.target.checked; buildFieldAndCurrentVisuals(); });
+        document.getElementById('chk-fieldBt').addEventListener('change', (e) => { params.showBt = e.target.checked; buildFieldAndCurrentVisuals(); });
+        document.getElementById('chk-fieldBp').addEventListener('change', (e) => { params.showBp = e.target.checked; buildFieldAndCurrentVisuals(); });
+        document.getElementById('chk-fieldBtot').addEventListener('change', (e) => { params.showBtot = e.target.checked; buildFieldAndCurrentVisuals(); });
+        document.getElementById('chk-torus').addEventListener('change', (e) => { params.showTorus = e.target.checked; updateSimulationGeometry(); });
+        document.getElementById('chk-torusOpaque').addEventListener('change', (e) => { params.opaqueTorus = e.target.checked; updateSimulationGeometry(); });
+        document.getElementById('chk-axis').addEventListener('change', (e) => { params.showAxis = e.target.checked; updateSimulationGeometry(); });
+        document.getElementById('chk-secondSpire').addEventListener('change', (e) => { params.showSecondSpire = e.target.checked; updateSimulationGeometry(); });
+        document.getElementById('chk-markers').addEventListener('change', (e) => { params.showMarkers = e.target.checked; updateSimulationGeometry(); });
+
+        document.getElementById('btn-help').addEventListener('click', () => {
+            window.open(encodeURIComponent('notice_aide v2.2.3.html'), '_blank');
+        });
+
+        const btnPause = document.getElementById('btn-pause');
+        btnPause.addEventListener('click', () => {
+            params.paused = !params.paused;
+            btnPause.textContent = params.paused ? 'Reprendre' : 'Pause';
+            btnPause.classList.toggle('primary', !params.paused);
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            params.aBarSq = 0.9999951;
+            params.sigZBW = 0.00080;
+            params.sigVide = 0.00060;
+            document.getElementById('param-aBarSq').value = 0.9999951;
+            document.getElementById('val-aBarSq').textContent = '0.9999951';
+            document.getElementById('param-sigZBW').value = 0.00080;
+            document.getElementById('val-sigZBW').textContent = '0.00080';
+            document.getElementById('param-sigVide').value = 0.00060;
+            document.getElementById('val-sigVide').textContent = '0.00060';
+
+            params.showEnvelope = true;
+            params.envType = 'sech';
+            params.envWidth = 0.15;
+            params.envDepth = 0.70;
+            params.envSpeed = 1.0;
+            document.getElementById('chk-envelope').checked = true;
+            document.getElementById('param-envType').value = 'sech';
+            document.getElementById('val-envDepth').textContent = '0.70';
+            document.getElementById('param-envDepth').value = 0.70;
+            document.getElementById('val-envWidth').textContent = '0.15';
+            document.getElementById('param-envWidth').value = 0.15;
+            document.getElementById('val-envSpeed').textContent = '1.0';
+            document.getElementById('param-envSpeed').value = 1.0;
+
+            params.rTorus = 1.49; params.rTube = 0.58; params.rHelix = 0.5592; params.plungeAngle = 0;
+            params.nTor = 1; params.nPol = 1; params.nHelix = 32; params.threshold = 0.18;
+            params.waveSpeed = 2.0; params.omega = 0.5; params.respFreq = 0.4; params.respAmp = 0.34; params.bExt = 0.50;
+            params.showEField = true; params.showSpin = true; params.showPrecessionCone = false;
+            params.showCurrent = true; params.showBt = true; params.showBp = true; params.showBtot = false;
+            params.showTorus = true; params.opaqueTorus = false; params.showAxis = false;
+            params.showSecondSpire = true; params.showMarkers = false;
+            params.showZbw = true; params.zbwAmp = 0.03; params.showChiralityGauge = true;
+            
+            document.getElementById('chk-precCone').checked = false;
+            document.getElementById('chk-fieldBtot').checked = false;
+            document.getElementById('chk-torusOpaque').checked = false;
+            document.getElementById('chk-axis').checked = false;
+            document.getElementById('chk-markers').checked = false;
+            document.getElementById('chk-zbw').checked = true;
+            document.getElementById('chk-chiralityGauge').checked = true;
+            document.getElementById('chirality-gauge-panel').style.display = 'block';
+            document.getElementById('readout-panel').style.top = '92px';
+
+            updateSimulationGeometry();
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        updateSimulationGeometry();
+
+        let lastTime = performance.now();
+        function animate(now) {
+            requestAnimationFrame(animate);
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            if (!params.paused) simTime += dt;
+            animateWave();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate(performance.now());
+    </script>
+</body>
+</html>
