@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onde Hélirotoïdale 3D - v2.2.0 (Intégration Analytique L_hélice, I_eff & Transition Couche B)</title>
+    <title>Onde Hélirotoïdale 3D - v2.2.3 (Optimisations & Cohérence UI)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; overflow: hidden; height: 100vh; width: 100vw; }
@@ -38,8 +38,13 @@
         button { flex: 1; padding: 7px 10px; background: #21262d; border: 1px solid rgba(240, 246, 252, 0.1); color: #c9d1d9; border-radius: 6px; cursor: pointer; font-size: 0.76rem; }
         button.primary { background: #238636; color: #ffffff; }
         button.help-btn { background: #1f6feb; color: #ffffff; }
+        
+        /* Badges de quantification améliorés */
         .status-alert { color: #f85149; font-weight: bold; }
-        .status-ok { color: #3fb950; }
+        .status-ok { color: #3fb950; font-weight: bold; }
+        .tag-q-ok { background: rgba(63, 185, 80, 0.15); border: 1px solid rgba(63, 185, 80, 0.4); padding: 1px 5px; border-radius: 4px; color: #3fb950; font-weight: bold; }
+        .tag-q-alert { background: rgba(248, 81, 73, 0.2); border: 1px solid rgba(248, 81, 73, 0.5); padding: 1px 5px; border-radius: 4px; color: #f85149; font-weight: bold; }
+
         .highlight-val { color: #ffe08a; font-weight: bold; }
         .highlight-b { color: #7ee787; font-weight: bold; }
         .highlight-spin { color: #d2a8ff; font-weight: bold; }
@@ -71,13 +76,13 @@
         </div>
     </div>
 
-    <div id="readout-panel">Initialisation du Moteur PEW v2.2.0...</div>
+    <div id="readout-panel">Initialisation du Moteur PEW v2.2.3...</div>
 
     <div id="ui-panel">
-        <h1>Onde Hélirotoïdale 3D - v2.2.0</h1>
-        <p class="subtitle">Modèle Intégral : Intégrales Analytiques L_hélice, Courant I_eff & Transition Couche B.</p>
+        <h1>Onde Hélirotoïdale 3D - v2.2.3</h1>
+        <p class="subtitle">Modèle Intégral : Charge Topologique Centralisée & Invariants Volumiques.</p>
 
-        <div class="section-title">Dérivation Dynamique de α_em (Couche A v2.1.1)</div>
+        <div class="section-title">Analyse de Sensibilité α_em (Fluctuations)</div>
         <div class="control-group">
             <label>Profil d'Enveloppe (Ā²) <span class="val" id="val-aBarSq">0.9999951</span></label>
             <input type="range" id="param-aBarSq" min="0.9999000" max="1.0000000" step="0.0000001" value="0.9999951">
@@ -202,7 +207,7 @@
         </div>
         <div class="checkbox-group">
             <label for="chk-precCone">Afficher Cône de Précession g-2</label>
-            <input type="checkbox" id="chk-precCone" checked>
+            <input type="checkbox" id="chk-precCone">
         </div>
         <div class="checkbox-group">
             <label for="chk-current">Vecteurs Courant Tangent (J)</label>
@@ -228,11 +233,11 @@
         </div>
         <div class="checkbox-group">
             <label for="chk-torusOpaque">Tore Opaque</label>
-            <input type="checkbox" id="chk-torusOpaque" checked>
+            <input type="checkbox" id="chk-torusOpaque">
         </div>
         <div class="checkbox-group">
             <label for="chk-axis">Axe Primaire H₁</label>
-            <input type="checkbox" id="chk-axis" checked>
+            <input type="checkbox" id="chk-axis">
         </div>
         <div class="checkbox-group">
             <label for="chk-secondSpire">Double Spire (Halo)</label>
@@ -240,7 +245,7 @@
         </div>
         <div class="checkbox-group">
             <label for="chk-markers">Marqueurs de Spire</label>
-            <input type="checkbox" id="chk-markers" checked>
+            <input type="checkbox" id="chk-markers">
         </div>
 
         <div class="btn-row">
@@ -265,10 +270,10 @@
             rTorus: 1.49, rTube: 0.58, rHelix: 0.5592, plungeAngle: 0,
             nTor: 1, nPol: 1, nHelix: 32, threshold: 0.18, waveSpeed: 2.0,
             omega: 0.5, respFreq: 0.4, respAmp: 0.34, bExt: 0.50,
-            showEField: true, showSpin: true, showPrecessionCone: true, 
+            showEField: true, showSpin: true, showPrecessionCone: false, 
             showCurrent: true, showBt: true, showBp: true, showBtot: false,
-            showTorus: true, opaqueTorus: true, showAxis: true,
-            showSecondSpire: true, showMarkers: true,
+            showTorus: true, opaqueTorus: false, showAxis: false,
+            showSecondSpire: true, showMarkers: false,
             showZbw: true, zbwAmp: 0.03, showChiralityGauge: true,
             paused: false
         };
@@ -320,6 +325,11 @@
         let currentVectorsGroup, eFieldLinesGroup, btLinesGroup, bpLinesGroup, btotLinesGroup, spinGroup;
 
         const dummyMatrix = new THREE.Matrix4();
+
+        // FIX CLAUDE : Fonction centralisée unique pour la Charge Topologique
+        function getTopologicalCharge() {
+            return -1.0 * (params.nTor * params.nPol * params.nHelix / 32.0);
+        }
 
         function getBreathingFactor() {
             if (params.respAmp === 0 || params.respFreq === 0) return 0;
@@ -409,9 +419,9 @@
                 cData.dynamicHelixRadius;
 
             return new THREE.Vector3(
-                helixCenter.x + effectiveRadius * (cosPsi * E1.x + sinPsi * E2.x),
-                helixCenter.y + effectiveRadius * (cosPsi * E1.y + sinPsi * E2.y),
-                helixCenter.z + effectiveRadius * (cosPsi * E1.z + sinPsi * E2.z)
+                helixCenter.x + effectiveRadius * (cosPsi * E1.x + Math.sin(psi) * E2.x),
+                helixCenter.y + effectiveRadius * (cosPsi * E1.y + Math.sin(psi) * E2.y),
+                helixCenter.z + effectiveRadius * (cosPsi * E1.z + Math.sin(psi) * E2.z)
             );
         }
 
@@ -459,6 +469,10 @@
 
             const numRays = 32;
             const breath = getBreathingFactor() * params.respAmp;
+            
+            // FIX CLAUDE : Utilise la fonction centralisée unique getTopologicalCharge()
+            const qReal = getTopologicalCharge();
+            const qScale = Math.min(2.0, Math.sqrt(Math.abs(qReal)));
 
             for (let i = 0; i < numRays; i++) {
                 const phi = Math.acos(-1 + (2 * i) / numRays);
@@ -471,11 +485,12 @@
                 ).normalize();
 
                 const startPos = dir.clone().multiplyScalar(params.rTorus + params.rTube + 0.5);
+                const arrowLength = (1.0 + breath * 0.2) * qScale;
                 const arrow = new THREE.ArrowHelper(
                     dir.clone().negate(),
                     startPos,
-                    1.0 + breath * 0.2,
-                    0xff7b72, 0.25, 0.12
+                    arrowLength,
+                    0xff7b72, 0.25 * qScale, 0.12 * qScale
                 );
                 eFieldLinesGroup.add(arrow);
             }
@@ -741,9 +756,13 @@
             colorAttr.needsUpdate = true;
             tubeGeometry.computeVertexNormals();
 
-            const qTopologicalVal = 1.0;
+            // FIX CLAUDE : Charge Topologique centralisée
+            const qTopologicalVal = getTopologicalCharge();
+            const absQ = Math.abs(qTopologicalVal);
+            const isIntegerQ = Math.abs(qTopologicalVal - Math.round(qTopologicalVal)) < 0.001;
+
             const phaseVelocityC = Math.abs(params.waveSpeed);
-            const effCurrent = (qTopologicalVal * phaseVelocityC) / Math.max(0.001, lHelixDynamic);
+            const effCurrent = (absQ * phaseVelocityC) / Math.max(0.001, lHelixDynamic);
 
             if (params.showCurrent && currentVectorsGroup) {
                 const arrows = currentVectorsGroup.children;
@@ -802,8 +821,7 @@
             mainGroup.rotation.y = simTime * params.omega;
 
             const breathVal = getBreathingFactor() * params.respAmp;
-            const qTopological = -1.0 * (params.nTor * params.nPol * params.nHelix / 32.0);
-            const qFormatted = qTopological.toFixed(3);
+            const qFormatted = qTopologicalVal.toFixed(3);
 
             const vInst = (Math.PI * Math.PI) * Math.pow(1 + breathVal * 0.4, 2);
             const vCycle = 4 * Math.PI * vInst;
@@ -851,25 +869,31 @@
             const statusClass = collisionCount > 0 ? "status-alert" : "status-ok";
             const statusText = collisionCount > 0 ? "INTERFÉRENCES" : "FLUIDE";
 
+            // FIX CLAUDE : Badge mis en valeur avec conteneur stylisé
+            const qStatusTag = isIntegerQ ? 
+                `<span class="tag-q-ok">FERMÉE (Q ∈ ℤ)</span>` : 
+                `<span class="tag-q-alert">NON QUANTIFIÉE (Q ∉ ℤ)</span>`;
+
             const envStatus = params.showEnvelope ? 
                 `<span class="highlight-env">${params.envType.toUpperCase()}</span> (M_a = ${(params.envDepth * 100).toFixed(0)}%, σ = ${params.envWidth.toFixed(2)})` : 
                 `Homogène (M_a = 0%)`;
 
+            // FIX CLAUDE : Retrait du résidu "1/r²" dans Flux Gaussien pour cohérence totale
             document.getElementById('readout-panel').innerHTML =
                 `Paquet d'Ondes Soliton : ${envStatus}<br>` +
-                `Charge Topologique (Q) : <span class="highlight-charge">${qFormatted} e</span> (Invariant d'Hopf)<br>` +
-                `Flux Gaussien (∮ E·dA) : <span class="highlight-charge">${qFormatted} / ε₀</span> (Radial 1/r²)<br>` +
-                `Longueur d'Arc Brin (L_hélice) : <span class="highlight-val">${lHelixDynamic.toFixed(4)} u</span> (Réf: ${L_HELICE_NOMINALE.toFixed(4)})<br>` +
-                `Courant Efficace Formel (I_eff) : <span class="highlight-b">${effCurrent.toFixed(5)} e·c/u</span> (e·c / L_hélice)<br>` +
+                `Charge Topologique (Q) : <span class="highlight-charge">${qFormatted} e</span> [${qStatusTag}]<br>` +
+                `Flux Gaussien (∮ E·dA) : <span class="highlight-charge">${qFormatted} / ε₀</span> (Schématique Radial Q)<br>` +
+                `Longueur d'Arc Brin (L_hélice) : <span class="highlight-val">${lHelixDynamic.toFixed(4)} u</span> (Mesure en Direct)<br>` +
+                `Postulat Couplage (I_eff) : <span class="highlight-b">${effCurrent.toFixed(5)} e·c/u</span> (e·c / L_hélice)<br>` +
                 `Volume Instantané (V) : <span class="highlight-val">${vInst.toFixed(4)} u³</span> (≈ π²)<br>` +
                 `Action Cycle (4π·V) : <span class="highlight-val">${vCycle.toFixed(3)} u³</span> (≈ 4π³)<br>` +
                 `Spin Quantique : <span class="highlight-spin">${spinValText}</span> | Status : <span class="${statusClass}">${statusText}</span><br>` +
                 `Facteur g : <span class="highlight-g">${gFactor}</span> (a_e = ${(dynamicAnom * 1000).toFixed(4)}×10⁻³)<br>` +
-                `Masse Auto-Énergie m(t) : <span class="highlight-val">${dynamicMassText} MeV/c²</span> (Intégration Σ)<br>` +
+                `Masse Auto-Énergie m(t) : <span class="highlight-val">${dynamicMassText} MeV/c²</span> (Modulation L)<br>` +
                 `Zitterbewegung (ν_ZBW) : <span class="highlight-zbw">${nuZbw}×10²¹ Hz</span> | r_c = <span class="highlight-zbw">${rcCompton} fm</span><br>` +
                 `Indice Chiralité : <span class="highlight-chiral">e_L = ${eL_pct.toFixed(1)}%</span> | <span class="highlight-chiral">e_R = ${eR_pct.toFixed(1)}%</span> (T₃ = ${t3Val})<br>` +
                 `<strong>Constante α⁻¹ (Statique Pure) : <span class="highlight-val">${alphaInvStaticPure.toFixed(8)}</span></strong><br>` +
-                `<strong>Constante α_em⁻¹ (Dynamique Couche A) : <span class="highlight-alpha">${alphaInvDynamic.toFixed(8)}</span></strong> (Écart : <span class="highlight-g">${(ecartPpm >= 0 ? '+' : '')}${ecartPpm.toFixed(4)} ppm</span>)<br>` +
+                `<strong>Constante α_em⁻¹ (Sensibilité Couche A) : <span class="highlight-alpha">${alphaInvDynamic.toFixed(8)}</span></strong> (Écart : <span class="highlight-g">${(ecartPpm >= 0 ? '+' : '')}${ecartPpm.toFixed(4)} ppm</span>)<br>` +
                 `Moment Dipolaire μ_z : <span class="highlight-b">${magneticDipole.y >= 0 ? '+' : ''}${magneticDipole.y.toFixed(4)} μ_B</span><br>` +
                 `Composantes Courant J_eff : J_t = ${J_toroidal} | J_p = ${J_poloidal}<br>` +
                 `Respiration / Fluctuation : <span class="highlight-val">${(breathVal >= 0 ? '+' : '')}${breathVal.toFixed(4)} u</span> (${params.respFreq} Hz)<br>` +
@@ -940,9 +964,8 @@
         document.getElementById('chk-secondSpire').addEventListener('change', (e) => { params.showSecondSpire = e.target.checked; updateSimulationGeometry(); });
         document.getElementById('chk-markers').addEventListener('change', (e) => { params.showMarkers = e.target.checked; updateSimulationGeometry(); });
 
-        // APPEL NETTOYÉ APPUYANT SUR LA NOTICE EXTERNE
         document.getElementById('btn-help').addEventListener('click', () => {
-            window.open('notice_aide v2.2.0.html', '_blank');
+            window.open(encodeURIComponent('notice_aide v2.2.3.html'), '_blank');
         });
 
         const btnPause = document.getElementById('btn-pause');
@@ -980,12 +1003,17 @@
             params.rTorus = 1.49; params.rTube = 0.58; params.rHelix = 0.5592; params.plungeAngle = 0;
             params.nTor = 1; params.nPol = 1; params.nHelix = 32; params.threshold = 0.18;
             params.waveSpeed = 2.0; params.omega = 0.5; params.respFreq = 0.4; params.respAmp = 0.34; params.bExt = 0.50;
-            params.showEField = true; params.showSpin = true; params.showPrecessionCone = true;
+            params.showEField = true; params.showSpin = true; params.showPrecessionCone = false;
             params.showCurrent = true; params.showBt = true; params.showBp = true; params.showBtot = false;
-            params.showTorus = true; params.opaqueTorus = true; params.showAxis = true;
-            params.showSecondSpire = true; params.showMarkers = true;
+            params.showTorus = true; params.opaqueTorus = false; params.showAxis = false;
+            params.showSecondSpire = true; params.showMarkers = false;
             params.showZbw = true; params.zbwAmp = 0.03; params.showChiralityGauge = true;
             
+            document.getElementById('chk-precCone').checked = false;
+            document.getElementById('chk-fieldBtot').checked = false;
+            document.getElementById('chk-torusOpaque').checked = false;
+            document.getElementById('chk-axis').checked = false;
+            document.getElementById('chk-markers').checked = false;
             document.getElementById('chk-zbw').checked = true;
             document.getElementById('chk-chiralityGauge').checked = true;
             document.getElementById('chirality-gauge-panel').style.display = 'block';
