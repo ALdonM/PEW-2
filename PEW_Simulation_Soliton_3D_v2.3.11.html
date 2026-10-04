@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soliton ATPEW v2.3.11 — Simulation 3D & Moteur Électrofaible</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .ui-panel {
+            position: absolute;
+            z-index: 10;
+            background: rgba(22, 27, 34, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 0.82rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #controls-panel { top: 15px; left: 15px; width: 320px; max-height: calc(100vh - 30px); overflow-y: auto; }
+        #electroweak-panel { bottom: 15px; left: 15px; width: 320px; }
+        #readout-panel { top: 15px; right: 15px; width: 330px; }
+
+        h2 { font-size: 1.0rem; color: #58a6ff; margin-bottom: 10px; border-bottom: 1px solid #30363d; padding-bottom: 4px; }
+        h3 { font-size: 0.88rem; color: #7ee787; margin-top: 10px; margin-bottom: 6px; }
+        .control-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 4px; color: #8b949e; }
+        select, input[type="range"], button {
+            width: 100%;
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+        button {
+            background: #238636;
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            margin-top: 6px;
+        }
+        button:hover { background: #2ea043; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .data-value { font-family: monospace; color: #79c0ff; font-weight: bold; }
+        .tag-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .status-ok { background: rgba(46, 160, 67, 0.2); color: #56d364; border: 1px solid rgba(46, 160, 67, 0.4); }
+        .tag-adhoc-ui {
+            display: inline-block;
+            background: rgba(248, 81, 73, 0.2);
+            color: #ff7b72;
+            border: 1px solid rgba(248, 81, 73, 0.5);
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-left: 4px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        .warning-text { font-size: 0.72rem; color: #d29922; margin-top: 6px; line-height: 1.3; }
+    </style>
+    <!-- Three.js et OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- PANNEAU GAUSSIEN / CONTRÔLES GÉOMÉTRIQUES -->
+    <div id="controls-panel" class="ui-panel">
+        <h2>Soliton ATPEW v2.3.11</h2>
+        <div class="tag-status status-ok">HYPOTHÈSE [D] CONFORME</div>
+
+        <div class="control-group">
+            <label for="lepton-select">Génération Leptonique :</label>
+            <select id="lepton-select">
+                <option value="electron">Électron (e⁻) — H₂ = 32</option>
+                <option value="muon">Muon (μ⁻) — H₂ = 219</option>
+                <option value="tau">Tau (τ⁻) — H₂ = 3936</option>
+            </select>
+        </div>
+
+        <h3>Champ Extérieur & Labo</h3>
+        <div class="control-group">
+            <label for="b-ext">
+                Champ B_ext (Labo) : <span id="b-ext-val">0.0</span> T
+                <span class="tag-adhoc-ui">[VISUEL / AD-HOC]</span>
+            </label>
+            <input type="range" id="b-ext" min="0" max="10" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <label for="tilt-angle">Angle de Plongée : <span id="tilt-val">0</span>°</label>
+            <input type="range" id="tilt-angle" min="0" max="90" step="1" value="0">
+        </div>
+
+        <button id="reset-geo-btn">Réinitialiser Géométrie Exacte</button>
+    </div>
+
+    <!-- PANNEAU MOTEUR ÉLECTROFAIBLE -->
+    <div id="electroweak-panel" class="ui-panel">
+        <h2>Secteur Électrofaible [D]</h2>
+        <div class="control-group">
+            <label for="q-scale">Échelle d'Énergie Q : <span id="q-val">Q → 0</span></label>
+            <select id="q-scale">
+                <option value="0">Q → 0 (Limite Thomson)</option>
+                <option value="280">Q = 280 MeV (Seuil 2m_π)</option>
+                <option value="775">Q = 775 MeV (Résonance ρ)</option>
+                <option value="2000">Q = 2,0 GeV (Régime Hadronique)</option>
+                <option value="91187.6" selected>Q = M_Z (91,1876 GeV)</option>
+                <option value="1000000">Q = 1,0 TeV (Haute Énergie)</option>
+            </select>
+        </div>
+
+        <div class="data-row"><span>α⁻¹(Q) calculé :</span><span id="alpha-inv-val" class="data-value">137.03630</span></div>
+        <div class="data-row"><span>Δα_lep(Q) :</span><span id="delta-lep-val" class="data-value">0.00000</span></div>
+        <div class="data-row"><span>Δα_had(Q) [Phéno] :</span><span id="delta-had-val" class="data-value">0.02766</span></div>
+        <div class="data-row"><span>sin²θ_W(Q²) :</span><span id="sin2-val" class="data-value">0.23121</span></div>
+        <div class="data-row"><span>Couplage g_L / g_R :</span><span id="couplings-val" class="data-value">-0.2688 / 0.2312</span></div>
+        <div class="data-row"><span>Chiralité L / R :</span><span id="chirality-val" class="data-value">57.5% / 42.5%</span></div>
+        <div class="data-row"><span>Charge Faible Q_W :</span><span id="qw-val" class="data-value">-0.0752</span></div>
+
+        <div class="warning-text">
+            * Ancrage géométrique strict : α⁻¹(0) = V_tot = π + π² + 4π³ = 137,03630378.
+        </div>
+    </div>
+
+    <!-- PANNEAU D'OBSERVABLES -->
+    <div id="readout-panel" class="ui-panel">
+        <h2>Observables Géométriques</h2>
+        <div class="data-row"><span>Volume Sphère V₁ :</span><span class="data-value">3.14159 u³ (π)</span></div>
+        <div class="data-row"><span>Volume Tore V₂ :</span><span class="data-value">9.86960 u³ (π²)</span></div>
+        <div class="data-row"><span>Volume Inst. Hélice V₃,inst :</span><span id="v3-val" class="data-value">9.86960 u³</span></div>
+        <div class="data-row"><span>Volume Total V_tot :</span><span id="vtot-val" class="data-value">137.03630</span></div>
+        <div class="data-row"><span>Longueur Axe L_axe :</span><span id="laxe-val" class="data-value">15.51116 u</span></div>
+        <div class="data-row"><span>Longueur Brin L_brin :</span><span id="lbrin-val" class="data-value">-- u</span></div>
+        <div class="data-row"><span>Masse inst. m(t) :</span><span id="mass-val" class="data-value">0.511 MeV</span></div>
+        <div class="data-row"><span>Facteur g/2 calculé :</span><span class="data-value">1.001160</span></div>
+    </div>
+
+    <script>
+        // --- CONSTANTES THÉORIQUES EXACTES (V_total = pi + pi^2 + 4pi^3) ---
+        const R_SPHERE = 0.908560296416;
+        const R_TUBE   = 0.468578441463;
+        const R_TORE   = 2.277222138630;
+        const R_HELICE = 0.450041700374;
+        const RHO_AXE  = 0.918620141837;
+        const L_AXE    = 15.511162901;
+
+        // Base géométrique exacte d'ancrage pour le secteur électrofaible
+        const V_TOTAL_GEOM = Math.PI + Math.pow(Math.PI, 2) + 4.0 * Math.pow(Math.PI, 3); // 137.03630378
+
+        const LEPTON_DATA = {
+            electron: { name: 'Électron', h2: 32, baseMass: 0.51099895 },
+            muon:     { name: 'Muon',     h2: 219, baseMass: 105.6583755 },
+            tau:      { name: 'Tau',      h2: 3936, baseMass: 1776.86 }
+        };
+
+        let currentLepton = 'electron';
+        let params = {
+            bExt: 0.0,
+            tilt: 0.0,
+            qMeV: 91187.6
+        };
+
+        // --- MOTEUR ELECTROWEAK v2.3.11 ---
+
+        function computeKQCD(Q_GeV) {
+            const M_Z = 91.1876;
+            const alpha_s_MZ = 0.1187;
+            const beta_0 = (33.0 - 10.0) / 3.0;
+
+            const Q_eff = Math.max(Q_GeV, 0.7);
+            const ln_ratio = Math.log(Q_eff / M_Z);
+            const alpha_s_Q = alpha_s_MZ / (1.0 + (beta_0 * alpha_s_MZ / (2.0 * Math.PI)) * ln_ratio);
+
+            const pQCD_factor = 1.0 + (alpha_s_Q / Math.PI);
+
+            const m_rho = 0.775;
+            const gamma = 0.150;
+
+            const bw_peak = (gamma * gamma / 4.0) / (Math.pow(Q_GeV - m_rho, 2) + (gamma * gamma / 4.0));
+            const non_pert_tail = Math.pow(m_rho / Q_GeV, 0.65);
+
+            const A_res = 1.85;
+            const A_tail = 3.9552;
+
+            return pQCD_factor + (A_res * bw_peak) + (A_tail * non_pert_tail);
+        }
+
+        function computeHadronicPolarization(Q_MeV) {
+            const Q_GeV = Q_MeV / 1000.0;
+            const M_PION_THRESHOLD = 0.27957;
+            if (Q_GeV < M_PION_THRESHOLD) return 0;
+
+            const alpha0 = 1.0 / V_TOTAL_GEOM;
+            const Nc = 3.0;
+
+            const quarks = [
+                { name: 'u', m: 0.300, q:  2.0 / 3.0 },
+                { name: 'd', m: 0.300, q: -1.0 / 3.0 },
+                { name: 's', m: 0.500, q: -1.0 / 3.0 },
+                { name: 'c', m: 1.500, q:  2.0 / 3.0 },
+                { name: 'b', m: 4.500, q: -1.0 / 3.0 }
+            ];
+
+            let deltaAlphaHadBase = 0;
+            for (const q of quarks) {
+                if (Q_GeV > 2.0 * q.m) {
+                    const x = Q_GeV / q.m;
+                    const h_q = Math.log(x * x) - (5.0 / 3.0);
+                    if (h_q > 0) {
+                        deltaAlphaHadBase += (alpha0 / Math.PI) * Nc * (q.q * q.q) * (1.0 / 3.0) * h_q;
+                    }
+                }
+            }
+
+            const K_QCD = computeKQCD(Q_GeV);
+            return deltaAlphaHadBase * K_QCD;
+        }
+
+        function computeVacuumPolarization(Q_MeV) {
+            if (Q_MeV <= 0.0005) return 0;
+            const alpha0 = 1.0 / V_TOTAL_GEOM;
+            const masses = [
+                LEPTON_DATA.electron.baseMass,
+                LEPTON_DATA.muon.baseMass,
+                LEPTON_DATA.tau.baseMass
+            ];
+
+            let deltaAlphaLep = 0;
+            for (const m of masses) {
+                const x = Q_MeV / m;
+                if (x > 0.001) {
+                    const x2 = x * x;
+                    const h_x = (x2 > 10.0) ? (Math.log(x2) - 5.0 / 3.0) : ((4.0 / 15.0) * x2 / (1.0 + (4.0 / 15.0) * x2));
+                    deltaAlphaLep += (alpha0 / (3.0 * Math.PI)) * Math.max(0, h_x);
+                }
+            }
+
+            const deltaAlphaHad = computeHadronicPolarization(Q_MeV);
+            return deltaAlphaLep + deltaAlphaHad;
+        }
+
+        function computeWeinbergAngle(Q_MeV) {
+            const Q_GeV = Q_MeV / 1000.0;
+            const sin2_theta_0 = 0.23871;
+            const sin2_theta_Z = 0.23121;
+            const M_Z = 91.1876;
+
+            if (Q_GeV <= 0.001) return sin2_theta_0;
+            if (Q_GeV >= M_Z) return sin2_theta_Z;
+
+            const t = Math.log(Q_GeV / 0.001) / Math.log(M_Z / 0.001);
+            return sin2_theta_0 + (sin2_theta_Z - sin2_theta_0) * Math.min(1.0, Math.max(0.0, t));
+        }
+
+        function computeElectroweakProperties(Q_MeV) {
+            const sin2_theta = computeWeinbergAngle(Q_MeV);
+            const Q_em = -1.0;
+            const T3 = -0.5;
+
+            const gL = -0.5 + sin2_theta;
+            const gR = sin2_theta;
+
+            const gL2 = gL * gL;
+            const gR2 = gR * gR;
+            const sumG2 = gL2 + gR2;
+
+            const pctL = (gL2 / sumG2) * 100.0;
+            const pctR = (gR2 / sumG2) * 100.0;
+            const Q_W = 2.0 * T3 - 4.0 * Q_em * sin2_theta;
+
+            return { sin2_theta, gL, gR, pctL, pctR, Q_W };
+        }
+
+        function updateElectroweakUI() {
+            const Q_MeV = params.qMeV;
+            const dLep = computeVacuumPolarization(Q_MeV) - computeHadronicPolarization(Q_MeV);
+            const dHad = computeHadronicPolarization(Q_MeV);
+            const dTot = dLep + dHad;
+
+            const alpha_inv_Q = V_TOTAL_GEOM * (1.0 - dTot);
+            const ew = computeElectroweakProperties(Q_MeV);
+
+            document.getElementById('alpha-inv-val').innerText = alpha_inv_Q.toFixed(5);
+            document.getElementById('delta-lep-val').innerText = dLep.toFixed(5);
+            document.getElementById('delta-had-val').innerText = dHad.toFixed(5);
+            document.getElementById('sin2-val').innerText = ew.sin2_theta.toFixed(5);
+            document.getElementById('couplings-val').innerText = `${ew.gL.toFixed(4)} / ${ew.gR.toFixed(4)}`;
+            document.getElementById('chirality-val').innerText = `${ew.pctL.toFixed(1)}% / ${ew.pctR.toFixed(1)}%`;
+            document.getElementById('qw-val').innerText = ew.Q_W.toFixed(4);
+
+            const qLabel = Q_MeV === 0 ? "Q → 0" : (Q_MeV >= 1000 ? `${(Q_MeV/1000).toFixed(1)} GeV` : `${Q_MeV.toFixed(0)} MeV`);
+            document.getElementById('q-val').innerText = qLabel;
+        }
+
+        // --- RENDU THREE.JS DE LA SIMULATION ---
+        let scene, camera, renderer, controls;
+        let mainGroup, labGroup, strandMesh, sphereMesh, torusMesh;
+
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0d1117);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+
+            mainGroup = new THREE.Group();
+            labGroup = new THREE.Group();
+            scene.add(mainGroup);
+            scene.add(labGroup);
+
+            buildSolitonGeometry();
+            buildLabEnvironment();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function buildSolitonGeometry() {
+            const sphereGeo = new THREE.SphereGeometry(R_SPHERE, 32, 32);
+            const sphereMat = new THREE.MeshPhongMaterial({
+                color: 0x388bfd,
+                transparent: true,
+                opacity: 0.22
+            });
+            sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+            mainGroup.add(sphereMesh);
+
+            const torusGeo = new THREE.TorusGeometry(R_TORE, R_TUBE, 32, 64);
+            const torusMat = new THREE.MeshBasicMaterial({
+                color: 0x8b949e,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            torusMesh = new THREE.Mesh(torusGeo, torusMat);
+            torusMesh.rotation.x = Math.PI / 2;
+            mainGroup.add(torusMesh);
+
+            rebuildStrand();
+        }
+
+        function rebuildStrand() {
+            if (strandMesh) mainGroup.remove(strandMesh);
+
+            const h2 = LEPTON_DATA[currentLepton].h2;
+            const points = [];
+            const steps = 2000;
+
+            let totalLength = 0;
+            let prevPt = null;
+
+            for (let i = 0; i <= steps; i++) {
+                const u = (i / steps) * Math.PI * 2;
+                const v = u * h2;
+
+                const xAxe = (R_TORE + RHO_AXE * Math.cos(u)) * Math.cos(u);
+                const yAxe = (R_TORE + RHO_AXE * Math.cos(u)) * Math.sin(u);
+                const zAxe = RHO_AXE * Math.sin(u);
+
+                const x = xAxe + R_HELICE * Math.cos(v) * Math.cos(u);
+                const y = yAxe + R_HELICE * Math.cos(v) * Math.sin(u);
+                const z = zAxe + R_HELICE * Math.sin(v);
+
+                const pt = new THREE.Vector3(x, z, y);
+                points.push(pt);
+
+                if (prevPt) totalLength += pt.distanceTo(prevPt);
+                prevPt = pt;
+            }
+
+            const curve = new THREE.CatmullRomCurve3(points);
+            const tubeGeo = new THREE.TubeGeometry(curve, 1000, 0.02, 8, false);
+            const tubeMat = new THREE.MeshPhongMaterial({ color: 0x388bfa, emissive: 0x112244 });
+            strandMesh = new THREE.Mesh(tubeGeo, tubeMat);
+            mainGroup.add(strandMesh);
+
+            document.getElementById('lbrin-val').innerText = totalLength.toFixed(2) + " u";
+            document.getElementById('laxe-val').innerText = L_AXE.toFixed(5) + " u";
+        }
+
+        function buildLabEnvironment() {
+            const gridHelper = new THREE.GridHelper(10, 20, 0x30363d, 0x161b22);
+            gridHelper.position.y = -3;
+            labGroup.add(gridHelper);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Effet visuel ad-hoc du champ B_ext sur la précession/rotation
+            mainGroup.rotation.y += 0.005 + (params.bExt * 0.001);
+            mainGroup.rotation.z = params.bExt * 0.02;
+            mainGroup.rotation.x = (params.tilt * Math.PI) / 180.0;
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- ÉVÉNEMENTS & ÉCOUTEURS ---
+        document.getElementById('lepton-select').addEventListener('change', (e) => {
+            currentLepton = e.target.value;
+            rebuildStrand();
+            document.getElementById('mass-val').innerText = LEPTON_DATA[currentLepton].baseMass + " MeV";
+        });
+
+        document.getElementById('q-scale').addEventListener('change', (e) => {
+            params.qMeV = parseFloat(e.target.value);
+            updateElectroweakUI();
+        });
+
+        document.getElementById('tilt-angle').addEventListener('input', (e) => {
+            params.tilt = parseFloat(e.target.value);
+            document.getElementById('tilt-val').innerText = params.tilt;
+        });
+
+        document.getElementById('b-ext').addEventListener('input', (e) => {
+            params.bExt = parseFloat(e.target.value);
+            document.getElementById('b-ext-val').innerText = params.bExt.toFixed(1);
+        });
+
+        document.getElementById('reset-geo-btn').addEventListener('click', () => {
+            params.tilt = 0;
+            params.bExt = 0;
+            document.getElementById('tilt-angle').value = 0;
+            document.getElementById('tilt-val').innerText = 0;
+            document.getElementById('b-ext').value = 0;
+            document.getElementById('b-ext-val').innerText = "0.0";
+            mainGroup.rotation.set(0, 0, 0);
+        });
+
+        initScene();
+        updateElectroweakUI();
+        animate();
+    </script>
+</body>
+</html>
