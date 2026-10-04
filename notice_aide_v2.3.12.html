@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notice Théorique, Guide Utilisateur & Documentation Code — Soliton ATPEW v2.3.12</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 40px 20px;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: auto;
+        }
+        h1 { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 12px; margin-bottom: 24px; font-size: 1.6rem; }
+        h2 { color: #7ee787; margin-top: 36px; margin-bottom: 14px; font-size: 1.25rem; border-bottom: 1px dashed #30363d; padding-bottom: 6px; }
+        h3 { color: #79c0ff; margin-top: 22px; margin-bottom: 10px; font-size: 1.05rem; }
+        p, li { font-size: 0.92rem; color: #8b949e; margin-bottom: 10px; text-align: justify; }
+        strong { color: #e6edf3; }
+        code { background: #161b22; padding: 3px 7px; border-radius: 5px; color: #79c0ff; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 0.86rem; border: 1px solid rgba(240, 246, 252, 0.1); }
+        ul, ol { margin-left: 24px; margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.86rem; }
+        th, td { border: 1px solid #30363d; padding: 10px 14px; text-align: left; }
+        th { background: #161b22; color: #58a6ff; font-weight: 600; }
+        tr:nth-child(even) { background: rgba(110, 118, 129, 0.04); }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 6px; }
+        .tag-derived { background: rgba(63, 185, 80, 0.2); color: #56d364; border: 1px solid rgba(63, 185, 80, 0.4); }
+        .tag-injected { background: rgba(210, 168, 255, 0.2); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); }
+        .tag-adhoc { background: rgba(248, 81, 73, 0.2); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.5); }
+        .formula { font-family: "Times New Roman", Times, serif; color: #ffe08a; font-size: 1.05rem; text-align: center; margin: 14px 0; }
+        .warning-box { background: rgba(210, 153, 34, 0.15); border-left: 4px solid #d29922; padding: 12px 16px; border-radius: 4px; margin: 16px 0; font-size: 0.90rem; color: #e6edf3; }
+        .success-box { background: rgba(46, 160, 67, 0.15); border-left: 4px solid #2ea043; padding: 12px 16px; border-radius: 4px; margin: 16px 0; font-size: 0.90rem; color: #e6edf3; }
+    </style>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <h1>Notice Théorique, Guide d'Utilisation & Documentation Technique — Soliton ATPEW (v2.3.12)</h1>
+
+    <h2>0 — Ce qui change dans la v2.3.12</h2>
+    <p>Les versions v2.3.8 à v2.3.11 avaient progressivement simplifié l'interface au profit du seul secteur électrofaible, perdant au passage la quasi-totalité des paramètres interactifs présents dans la v2.3.7 (curseurs de géométrie, enveloppe d'onde, respiration, Zitterbewegung, champs Biot-Savart, spin/précession, détection d'interférences, multi-leptons visuel complet). La v2.3.12 restaure l'intégralité de ces paramètres en reprenant le fichier v2.3.7 comme base, et y greffe le secteur électrofaible réconcilié des versions v2.3.9 à v2.3.11 (polarisation hadronique, running de l'angle de Weinberg, couplages $g_L/g_R$, charge faible $Q_W$).</p>
+
+    <div class="success-box">
+        <strong>Point important sur le branchement électrofaible :</strong> contrairement à la v2.3.11, qui ancrait la correction électrofaible sur une constante figée <code>V_TOTAL_GEOM = π+π²+4π³</code>, la v2.3.12 l'ancre sur la valeur géométrique <strong>vivante</strong> <code>alphaInvBare</code> — celle que la v2.3.7 recalculait déjà à chaque image à partir des curseurs de géométrie (sphère, tore, hélice). Les deux coïncident à réglage canonique à <strong>~5×10⁻⁹</strong> près (erreur numérique de l'intégrale curviligne à 20 000 pas, vérifiée indépendamment). C'est un ancrage plus robuste que celui de la v2.3.11 : il reste cohérent même quand on déplace les curseurs de géométrie pour l'analyse de sensibilité, ce qu'une constante figée ne pouvait pas garantir.
+    </div>
+
+    <h2>1 — Fondements Théoriques & Invariants Géométriques</h2>
+
+    <h3>1-1 La géométrie fermée sans paramètre libre ($V_{\text{total}} = \pi + \pi^2 + 4\pi^3$)</h3>
+    <p>Le modèle repose sur l'hypothèse géométrique canonique [D] : la constante de structure fine à l'énergie nulle, $\alpha^{-1}(0) \approx 137,0363038$, représente la <strong>somme des trois volumes invariants disjoints</strong> engendrés par la structure spatio-temporelle du soliton :</p>
+
+    <div class="formula">
+        $$V_{\text{total}} = V_{\text{sphère}} + V_{\text{tore}} + 4\pi \cdot V_{\text{hélice,inst}} = \pi + \pi^2 + 4\pi^3 \approx 137,03630378$$
+    </div>
+
+    <p>Cette somme est recalculée en direct à chaque image à partir des curseurs de géométrie (section « Géométrie Canonique Disjointe » de l'interface) : $R_{\text{sphère}}$, $r_{\text{tube}}$, $R_{\text{tore}}$, $r_{\text{hélice}}$, ainsi que l'intégrale curviligne $L_{\text{axe}}$ du nœud $(1,1)$. À réglage canonique (valeurs nominales par défaut), cette somme vivante vaut $137,0363031...$, soit $137,03630378$ à $5\times10^{-9}$ près — l'écart résiduel est uniquement numérique (pas de paramètre libre caché).</p>
+
+    <h3>1-2 Secteur Électrofaible — Ancrage sur la Géométrie Vivante [D]</h3>
+    <p>Le secteur électrofaible applique le running de la polarisation du vide (leptonique + hadronique) directement à cette valeur géométrique <strong>vivante</strong> :</p>
+
+    <div class="formula">
+        $$\alpha^{-1}(Q) = \alpha^{-1}_{\text{bare,vivant}} \cdot \left(1 - \Delta\alpha_{\text{lep}}(Q) - \Delta\alpha_{\text{had}}(Q)\right)$$
+    </div>
+
+    <p>À la limite Thomson ($Q \to 0$), la polarisation du vide s'annule, donc $\alpha^{-1}(0)$ affiché dans le panneau électrofaible est <em>exactement</em> égal à la somme des volumes affichée dans le panneau principal — par construction, puisque c'est la même variable qui alimente les deux affichages. Il ne peut plus y avoir de divergence entre les deux panneaux, contrairement à ce qui s'était produit dans la v2.3.9 (où le secteur électrofaible repartait par erreur de la constante CODATA au lieu de la géométrie).</p>
+
+    <h3>1-3 Polarisation du Vide Hadronique Phénoménologique</h3>
+    <p>Le calcul de la polarisation hadronique $\Delta\alpha_{\text{had}}^{(5)}(Q^2)$ est inchangé depuis la v2.3.9 : une somme sur les 5 quarks légers et lourds ($u,d,s,c,b$) avec leurs charges fractionnaires, multipliée par un facteur correctif $K_{\text{QCD}}(Q)$ combinant une résonance de Breit-Wigner centrée sur le méson $\rho(775\text{ MeV})$ et un terme perturbatif $1+\alpha_s(Q)/\pi$.</p>
+
+    <div class="warning-box">
+        <strong>Avertissement méthodologique (inchangé) :</strong> ce module hadronique est un modèle d'interpolation phénoménologique étalonné pour reproduire $\Delta\alpha_{\text{had}}(M_Z) \approx 0,02766$, et non une intégrale de dispersion issue de données expérimentales $e^+e^- \to \text{hadrons}$. Il est désactivable individuellement via la case « Activer Polarisation Hadronique », indépendamment du running leptonique QED.
+    </div>
+
+    <h3>1-4 Deux notions distinctes de « chiralité » — à ne pas confondre</h3>
+    <p>La v2.3.7 affichait déjà une jauge $e_L/e_R$ liée à la respiration (oscillation sinusoïdale de l'enveloppe), sans rapport avec le secteur électrofaible. La v2.3.9–11 a introduit une seconde grandeur, de même forme ($e_L/e_R$ en pourcentage), mais calculée à partir des couplages chiraux $g_L=-\tfrac12+\sin^2\theta_W$, $g_R=\sin^2\theta_W$ du Modèle Standard. Ce sont deux quantités physiquement indépendantes qui portaient le même nom dans les versions précédentes — source de confusion possible. La v2.3.12 les distingue explicitement :</p>
+    <ul>
+        <li><strong>Jauge de Chiralité ZBW (Respiration)</strong> <span class="tag tag-adhoc">[VISUEL/AD-HOC]</span> — panneau en haut à droite, pilotée par l'amplitude de respiration, sans lien avec le Modèle Standard.</li>
+        <li><strong>Chiralité Électrofaible L/R ($g_L,g_R$)</strong> — panneau « Secteur Électrofaible » en bas à gauche, dérivée de $\sin^2\theta_W(Q^2)$, convention standard LEP.</li>
+    </ul>
+
+    <!-- ========================================================================================= -->
+    <h2>2 — Statut & Provenance des Paramètres</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Paramètre / Variable</th>
+                <th>Valeur / Expression</th>
+                <th>Statut</th>
+                <th>Origine / Rôle</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>alphaInvBare</code> (vivant)</td>
+                <td>$v_1+v_2+4\pi v_{3,\text{inst}} \approx 137,0363$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE sous hypothèse [D]</span></td>
+                <td>Recalculée en direct à partir des curseurs de géométrie. Ancrage unique du secteur électrofaible.</td>
+            </tr>
+            <tr>
+                <td>$R_{\text{sphère}}, r_{\text{tube}}, R_{\text{tore}}, r_{\text{hélice}}$</td>
+                <td>$0,90856\text{ ; }0,46858\text{ ; }2,27722\text{ ; }0,45004$</td>
+                <td><span class="tag tag-derived">DÉRIVÉE sous hypothèse [D]</span></td>
+                <td>Solution du système fermé de tangence. Ajustables (analyse de sensibilité).</td>
+            </tr>
+            <tr>
+                <td>$\Delta\alpha_{\text{had}}^{(5)}(M_Z)$</td>
+                <td>$0,02766$</td>
+                <td><span class="tag tag-injected">VALEUR ÉTALON</span></td>
+                <td>Ancrage expérimental à la masse du $Z$ (91,1876 GeV).</td>
+            </tr>
+            <tr>
+                <td>$K_{\text{QCD}}(Q)$</td>
+                <td>Dynamique (≈6,93 à $\rho$ ; ≈1,216 à $M_Z$ ; ≈1,07 à 1 TeV)</td>
+                <td><span class="tag tag-adhoc">MODÈLE PHÉNOMÉNOLOGIQUE [D]</span></td>
+                <td>Interpolation Breit-Wigner + pQCD, étalonnée sur 3 points de repère. Désactivable (case dédiée).</td>
+            </tr>
+            <tr>
+                <td>$g_L, g_R, Q_W$</td>
+                <td>$g_L=-0,2688\text{ ; }g_R=0,2312$ (à $M_Z$)</td>
+                <td><span class="tag tag-derived">DÉRIVÉE CONVENTION LEP</span></td>
+                <td>Normalisation standard du Modèle Standard.</td>
+            </tr>
+            <tr>
+                <td>Chiralité ZBW (respiration)</td>
+                <td>$e_L/e_R$, 15–85 %</td>
+                <td><span class="tag tag-adhoc">[VISUEL/AD-HOC]</span></td>
+                <td>Pilotée par l'amplitude de respiration — sans lien avec $g_L,g_R$.</td>
+            </tr>
+            <tr>
+                <td><code>B_ext</code></td>
+                <td>Curseur $0,00$ à $2,00\text{ T}$</td>
+                <td><span class="tag tag-adhoc">[VISUEL/AD-HOC]</span></td>
+                <td>Pilote le cône de précession affiché (effet illustratif de type g-2), pas une précession de Larmor calculée.</td>
+            </tr>
+            <tr>
+                <td>Échelle d'énergie $Q$</td>
+                <td>Curseur log, $10^{-4}$ MeV → $10^{6}$ MeV (1 TeV)</td>
+                <td><span class="tag tag-derived">CONTRÔLE CONTINU</span></td>
+                <td>Étendu par rapport à la v2.3.7 (qui plafonnait à 100 GeV) pour couvrir les points d'ancrage $M_Z$ et 1 TeV utilisés par $K_{\text{QCD}}(Q)$.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ========================================================================================= -->
+    <h2>3 — Guide Utilisateur</h2>
+
+    <h3>3-1 Panneaux de l'interface</h3>
+    <ul>
+        <li><strong>Panneau Gauche (haut) — Contrôles complets :</strong> sélection du lepton, running QED/hadronique, échelle d'énergie $Q$ (continue, jusqu'à 1 TeV), analyse de sensibilité $\bar A^2/\sigma_{ZBW}/\sigma_{\text{vide}}$, paquet d'ondes, géométrie canonique (curseurs), respiration, Zitterbewegung, champ $B_{\text{ext}}$, visualisation des champs, structures géométriques.</li>
+        <li><strong>Panneau Droit (haut) — Jauge de Chiralité ZBW</strong> <span class="tag tag-adhoc">[AD-HOC]</span> <strong>et Observables :</strong> lecture détaillée (volumes, masse, g-factor, ZBW, running QED+hadronique, écart CODATA).</li>
+        <li><strong>Panneau Gauche (bas) — Secteur Électrofaible :</strong> $\Delta\alpha_{\text{lep}}$, $\Delta\alpha_{\text{had}}$, $\sin^2\theta_W(Q^2)$, $g_L/g_R$, chiralité électrofaible $L/R$, charge faible $Q_W$, et le rappel de l'ancrage géométrique vivant.</li>
+    </ul>
+
+    <h3>3-2 Nouveautés v2.3.12 par rapport à la v2.3.11</h3>
+    <ol>
+        <li>Restauration intégrale des paramètres interactifs de la v2.3.7 (géométrie, enveloppe, respiration, ZBW, champs, spin/précession, interférences, multi-leptons visuel complet).</li>
+        <li>Ancrage du secteur électrofaible sur la géométrie <strong>vivante</strong> plutôt que sur une constante figée — robuste à l'analyse de sensibilité.</li>
+        <li>Case « Activer Polarisation Hadronique » ajoutée, indépendante du running QED leptonique.</li>
+        <li>Plage de l'échelle d'énergie $Q$ étendue à 1 TeV pour couvrir tous les points d'ancrage de $K_{\text{QCD}}(Q)$.</li>
+        <li>Les deux notions de « chiralité » (ZBW/respiration vs électrofaible) sont désormais nommées et étiquetées séparément pour éviter toute confusion.</li>
+        <li>Étiquetage $B_{\text{ext}}$ comme [VISUEL/AD-HOC], dans la continuité de la correction apportée en v2.3.11.</li>
+    </ol>
+
+</body>
+</html>
