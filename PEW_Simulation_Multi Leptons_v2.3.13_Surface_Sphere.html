@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onde Hélirotoïdale 3D - v2.3.13-Surface (Vide central = Disque, une face)</title>
+    <title>Onde Hélirotoïdale 3D - v2.3.13-Surface (Construction Surfacique Exploratoire)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; overflow: hidden; height: 100vh; width: 100vw; }
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <div id="readout-panel">Initialisation du Moteur PEW v2.3.13-Surface (Disque)...</div>
+    <div id="readout-panel">Initialisation du Moteur PEW v2.3.13-Surface...</div>
 
     <div id="electroweak-panel">
         <div class="ew-title">Secteur Électrofaible [D] — Ancrage sur la Valeur Géométrique Vivante (Surfaces)</div>
@@ -117,15 +117,15 @@
         <div class="ew-row"><span>Chiralité Électrofaible L/R (g_L,g_R) :</span><span id="ew-chirality" class="highlight-chiral">54.4% / 45.6%</span></div>
         <div class="ew-row"><span>Charge Faible Q_W (électron) :</span><span id="ew-qw" class="highlight-charge">-0.0452</span></div>
         <div class="ew-anchor">
-            * Référence théorique [DÉRIVÉE] : S_tot = π + π² + 4π³ = 137,03630378. La correction électrofaible ci-dessus et dans le panneau principal s'applique directement à la valeur géométrique <em>vivante</em> α⁻¹(0) recalculée à partir des curseurs de géométrie (disque/tore/hélice) — ici via les <strong>surfaces</strong> S₁,S₂,S₃ et non les volumes V₁,V₂,V₃ — pas à une constante figée.<br>
-            * Variante [D] <span class="tag-surface-variant">SURFACIQUE — EXPLORATOIRE</span> : l'espace central est un <strong>disque plan, une seule face</strong> (pas une sphère), tangent au tore et à l'hélice. Résolu pour que πR²=π (disque), 4π²Rr=π² (tore), 2πr·L_axe=π² (hélice) au lieu des formules de volume ou de sphère. Reste une résolution à rebours (numérologie déclarée) : voir note jointe.<br>
+            * Référence théorique [DÉRIVÉE] : S_tot = π + π² + 4π³ = 137,03630378. La correction électrofaible ci-dessus et dans le panneau principal s'applique directement à la valeur géométrique <em>vivante</em> α⁻¹(0) recalculée à partir des curseurs de géométrie (sphère/tore/hélice) — ici via les <strong>surfaces</strong> S₁,S₂,S₃ et non les volumes V₁,V₂,V₃ — pas à une constante figée.<br>
+            * Variante [D] <span class="tag-surface-variant">SURFACIQUE — EXPLORATOIRE</span> : mêmes rayons canoniques tangents (sphère/tore/hélice), mais résolus pour que 4πR²=π, 4π²Rr=π², 2πr·L_axe=π² au lieu des formules de volume. Reste une résolution à rebours (numérologie déclarée) : voir note jointe.<br>
             * Δα_had est un modèle d'interpolation phénoménologique (Breit-Wigner + pQCD) étalonné sur Δα_had(M_Z)≈0,02766, non une intégrale de dispersion e⁺e⁻→hadrons réelle.
         </div>
     </div>
 
     <div id="ui-panel">
-        <h1>Onde Hélirotoïdale 3D - v2.3.13-Surface <span class="tag-surface-variant">DISQUE, UNE FACE</span></h1>
-        <p class="subtitle">Variante surfacique : l'espace central est un disque plan (une seule face), pas une sphère. S₁=πR_disque²=π, S₂=4π²R_tore·r_tube=π², S₃=2π·r_hélice·L_axe=π² (même tangence disque/tore/hélice que la construction en volumes). [D] Résolution à rebours — cf. note d'audit jointe.</p>
+        <h1>Onde Hélirotoïdale 3D - v2.3.13-Surface <span class="tag-surface-variant">EXPLORATOIRE</span></h1>
+        <p class="subtitle">Variante surfacique de la v2.3.12 : S₁=4πR_s²=π, S₂=4π²R_tore·r_tube=π², S₃=2π·r_hélice·L_axe=π² (même tangence sphère/tore/hélice que la construction en volumes). [D] Résolution à rebours — cf. note d'audit jointe.</p>
 
         <div class="section-title">Famille de Leptons (Génération I, II, III)</div>
         <div class="control-group">
@@ -195,22 +195,22 @@
             <input type="range" id="param-envSpeed" min="-5.0" max="5.0" step="0.1" value="1.0">
         </div>
 
-        <div class="section-title">Géométrie Canonique Disjointe — Surfaces, Disque (S = π + π² + 4π³)</div>
+        <div class="section-title">Géométrie Canonique Disjointe — Surfaces (S = π + π² + 4π³)</div>
         <div class="control-group">
-            <label>Rayon du Disque (R_disque, 1 face) <span class="val" id="val-rDisque">1.00000</span></label>
-            <input type="range" id="param-rDisque" min="0.30" max="2.00" step="0.00001" value="1.000000000000">
+            <label>Rayon Sphère (R_sphère) <span class="val" id="val-rSphere">0.50000</span></label>
+            <input type="range" id="param-rSphere" min="0.30" max="1.50" step="0.00001" value="0.500000000000">
         </div>
         <div class="control-group">
-            <label>Rayon Toroïdal (R_tore) <span class="val" id="val-rTorus">1.49394</span></label>
-            <input type="range" id="param-rTorus" min="0.80" max="3.50" step="0.00001" value="1.493937335344">
+            <label>Rayon Toroïdal (R_tore) <span class="val" id="val-rTorus">1.13230</span></label>
+            <input type="range" id="param-rTorus" min="0.80" max="3.00" step="0.00001" value="1.132298002057">
         </div>
         <div class="control-group">
-            <label>Rayon Poloïdal (r_tube) <span class="val" id="val-rTube">0.16734</span></label>
-            <input type="range" id="param-rTube" min="0.05" max="1.00" step="0.00001" value="0.167343029781">
+            <label>Rayon Poloïdal (r_tube) <span class="val" id="val-rTube">0.22079</span></label>
+            <input type="range" id="param-rTube" min="0.05" max="1.00" step="0.00001" value="0.220789932991">
         </div>
         <div class="control-group">
-            <label>Rayon Hélice (r_hélice) <span class="val" id="val-rHelix">0.16330</span></label>
-            <input type="range" id="param-rHelix" min="0.02" max="0.80" step="0.00001" value="0.163297152781">
+            <label>Rayon Hélice (r_hélice) <span class="val" id="val-rHelix">0.20575</span></label>
+            <input type="range" id="param-rHelix" min="0.02" max="0.80" step="0.00001" value="0.205754034533">
         </div>
         <div class="control-group">
             <label>Tours Toroïdaux H₀ <span class="val" id="val-nTor">1</span></label>
@@ -307,8 +307,8 @@
 
         <div class="section-title">Structures Géométriques</div>
         <div class="checkbox-group">
-            <label for="chk-disque">Disque Central, une face (S₁ = π)</label>
-            <input type="checkbox" id="chk-disque" checked>
+            <label for="chk-sphere">Sphère Centrale Invariante (S₁ = π)</label>
+            <input type="checkbox" id="chk-sphere" checked>
         </div>
         <div class="checkbox-group">
             <label for="chk-torus">Tore Support (S₂ = π²)</label>
@@ -329,33 +329,30 @@
 
         <div class="btn-row">
             <button id="btn-pause" class="primary">Pause</button>
-            <button id="btn-reset">Réinitialiser Canonique (Surfaces, Disque)</button>
+            <button id="btn-reset">Réinitialiser Canonique (Surfaces)</button>
             <button id="btn-help" class="help-btn">Aide</button>
         </div>
     </div>
 
     <script>
-        // --- Variante SURFACIQUE [D] (exploratoire) — vide central = DISQUE PLAN, UNE SEULE FACE ---
-        // L'espace central laissé par l'enroulement sur le tore est pris ici comme un disque plan
-        // (pas une sphère), dont on ne compte qu'une face — cohérent avec une image de flux/holonomie
-        // capté par la boucle (Stokes), plutôt qu'une membrane physique à deux faces.
-        // Même tangence que pour la sphère/les volumes : R_tore = R_disque + r_tube + 2·r_hélice.
-        // Résolu pour que :
-        //   S1 = π·R_disque²  (1 face)     = π
-        //   S2 = 4π²·R_tore·r_tube          = π²
-        //   S3 = 2π·r_hélice·L_axe(1,1)     = π²   (L_axe = longueur curviligne vivante, cf. computeLaxe())
-        // Solution canonique (bissection 1D sur R_tore, L_axe à 40000 pas, précision ~1e-9 ppm) :
-        //   R_disque = 1.000000000000 (exact, forme fermée : πR²=π ⟹ R=1)
-        //   R_tore   = 1.493937335344
-        //   r_tube   = 0.167343029781
-        //   r_hélice = 0.163297152781
-        //   L_axe    ≈ 9.619251162938 (valeur d'affichage ; toujours recalculée en direct par computeLaxe())
-        const R_DISQUE_NOMINAL = 1.000000000000;
-        const R_TORUS_NOMINAL  = 1.493937335344;
-        const R_TUBE_NOMINAL   = 0.167343029781;
-        const R_HELIX_NOMINAL  = 0.163297152781;
+        // --- Variante SURFACIQUE [D] (exploratoire) ---
+        // Mêmes 3 formes (sphère/tore/hélice) et même tangence R_tore = R_sphère + r_tube + 2·r_hélice
+        // que la construction en volumes de la v2.3.7→v2.3.12, mais résolues pour que :
+        //   S1 = 4π·R_sphère²            = π
+        //   S2 = 4π²·R_tore·r_tube        = π²
+        //   S3 = 2π·r_hélice·L_axe(1,1)   = π²   (L_axe = longueur curviligne vivante, cf. computeLaxe())
+        // Solution canonique (bissection 1D sur R_tore, L_axe à 40000 pas, précision ~1e-13 relatif) :
+        //   R_sphère = 0.500000000000 (exact, forme fermée : 4πR²=π ⟹ R=1/2)
+        //   R_tore   = 1.132298002057
+        //   r_tube   = 0.220789932991
+        //   r_hélice = 0.205754034533
+        //   L_axe    ≈ 7.634340344091 (valeur d'affichage ; toujours recalculée en direct par computeLaxe())
+        const R_SPHERE_NOMINAL = 0.500000000000;
+        const R_TORUS_NOMINAL  = 1.132298002057;
+        const R_TUBE_NOMINAL   = 0.220789932991;
+        const R_HELIX_NOMINAL  = 0.205754034533;
         const ALPHA_CODATA_2022 = 137.035999177;
-        // Référence théorique fixe (affichage uniquement) : à réglage canonique, alphaInvBare (vivant, via S1+S2+4π·S3) la reproduit à ~0,003 ppm près (20000 pas, cf. note jointe).
+        // Référence théorique fixe (affichage uniquement) : à réglage canonique, alphaInvBare (vivant, via S1+S2+4π·S3) la reproduit à ~1e-9 près.
         const V_TOTAL_GEOM = Math.PI + Math.pow(Math.PI, 2) + 4.0 * Math.pow(Math.PI, 3); // 137.03630378
 
         const LEPTON_DATA = {
@@ -418,7 +415,7 @@
             envWidth: 0.15,
             envSpeed: 1.0,
 
-            rDisque: R_DISQUE_NOMINAL,
+            rSphere: R_SPHERE_NOMINAL,
             rTorus: R_TORUS_NOMINAL,
             rTube: R_TUBE_NOMINAL,
             rHelix: R_HELIX_NOMINAL,
@@ -428,7 +425,7 @@
             omega: 0.5, respFreq: 0.4, respAmp: 0.34, bExt: 0.50, showBExt: true,
             showEField: true, showSpin: true, showPrecessionCone: false,
             showCurrent: true, showBt: true, showBp: true, showBtot: false,
-            showDisque: true, showTorus: true, opaqueTorus: false, showAxis: false,
+            showSphere: true, showTorus: true, opaqueTorus: false, showAxis: false,
             showMarkers: false,
             showZbw: true, zbwAmp: 0.03, showChiralityGauge: true,
             paused: false
@@ -436,7 +433,7 @@
 
         let simTime = 0;
         let TUBE_STEPS = 800;
-        let cachedLAxe = 9.619251162938;
+        let cachedLAxe = 7.634340344091;
 
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
@@ -473,7 +470,7 @@
         const labGroup = new THREE.Group();
         scene.add(labGroup);
 
-        let diskMesh, torusMesh, helixMesh, primaryAxisMesh, tubeGeometry, markersInstancedMesh;
+        let sphereMesh, torusMesh, helixMesh, primaryAxisMesh, tubeGeometry, markersInstancedMesh;
         let currentVectorsGroup, eFieldLinesGroup, btLinesGroup, bpLinesGroup, btotLinesGroup, spinGroup, bExtGroup;
 
         const dummyMatrix = new THREE.Matrix4();
@@ -922,7 +919,7 @@
         }
 
         function updateSimulationGeometry() {
-            if (diskMesh) mainGroup.remove(diskMesh);
+            if (sphereMesh) mainGroup.remove(sphereMesh);
             if (torusMesh) mainGroup.remove(torusMesh);
             if (helixMesh) mainGroup.remove(helixMesh);
             if (primaryAxisMesh) mainGroup.remove(primaryAxisMesh);
@@ -933,24 +930,17 @@
             updateLaxeCache();
             autoCalibrateL0();
 
-            if (params.showDisque) {
-                // Disque plan (une face dans le calcul de S1 = πR²), posé à plat dans le plan
-                // horizontal du tore (même convention de rotation que torusMesh ci-dessous) pour
-                // visuellement "boucher" le trou central laissé par l'enroulement.
-                // Note : le matériau est DoubleSide pour rester visible des deux côtés à l'écran —
-                // c'est un choix de RENDU uniquement, la surface comptée dans S1 reste une seule face.
-                const diskGeom = new THREE.CircleGeometry(params.rDisque, 64);
-                const diskMat = new THREE.MeshStandardMaterial({
+            if (params.showSphere) {
+                const sphereGeom = new THREE.SphereGeometry(params.rSphere, 32, 32);
+                const sphereMat = new THREE.MeshStandardMaterial({
                     color: 0x388bfd,
                     transparent: true,
                     opacity: 0.22,
                     roughness: 0.2,
-                    metalness: 0.1,
-                    side: THREE.DoubleSide
+                    metalness: 0.1
                 });
-                diskMesh = new THREE.Mesh(diskGeom, diskMat);
-                diskMesh.rotation.x = Math.PI / 2;
-                mainGroup.add(diskMesh);
+                sphereMesh = new THREE.Mesh(sphereGeom, sphereMat);
+                mainGroup.add(sphereMesh);
             }
 
             if (params.showTorus) {
@@ -1158,10 +1148,9 @@
             mainGroup.rotation.y = simTime * params.omega;
 
             // --- Surfaces canoniques (valeur VIVANTE, dépend des curseurs de géométrie) ---
-            // S1 = aire du disque central, UNE SEULE FACE (πR², pas 4πR² comme une sphère) ;
-            // S2 = aire du tore (4π²Rr, et non le volume 2π²Rr²) ;
+            // S1 = aire de la sphère ; S2 = aire du tore (4π²Rr, et non le volume 2π²Rr²) ;
             // S3,inst = aire latérale du tube de Weyl enroulé sur l'axe (1,1) : 2π·r_hélice·L_axe.
-            const s1 = Math.PI * Math.pow(params.rDisque, 2);
+            const s1 = 4.0 * Math.PI * Math.pow(params.rSphere, 2);
             const s2 = 4.0 * Math.pow(Math.PI, 2) * params.rTorus * params.rTube;
             const lAxe = computeLaxe();
             const s3Inst = 2.0 * Math.PI * params.rHelix * lAxe;
@@ -1173,11 +1162,11 @@
             const isConforme = isS1Ok && isS2Ok && isS3Ok;
 
             const rho = params.rTube + params.rHelix;
-            const distAxisDisque = params.rTorus - rho;
+            const distAxisSphere = params.rTorus - rho;
             const distAxisTorus = rho - params.rTube;
-            const isDisqueDisjoint = distAxisDisque >= (params.rDisque + params.rHelix - 1e-5);
+            const isSphereDisjoint = distAxisSphere >= (params.rSphere + params.rHelix - 1e-5);
             const isTorusDisjoint = distAxisTorus >= (params.rHelix - 1e-5);
-            const isDisjoint = isDisqueDisjoint && isTorusDisjoint;
+            const isDisjoint = isSphereDisjoint && isTorusDisjoint;
 
             const tagConforme = isConforme ?
                 `<span class="tag-q-ok">CONFORME À L'HYPOTHÈSE [D] (SURFACES)</span>` :
@@ -1340,7 +1329,7 @@
         bindSlider('param-envWidth', 'envWidth', (v) => v.toFixed(2));
         bindSlider('param-envSpeed', 'envSpeed', (v) => v.toFixed(1));
 
-        bindSlider('param-rDisque', 'rDisque', (v) => v.toFixed(5), updateSimulationGeometry);
+        bindSlider('param-rSphere', 'rSphere', (v) => v.toFixed(5), updateSimulationGeometry);
         bindSlider('param-rTorus', 'rTorus', (v) => v.toFixed(5), updateSimulationGeometry);
         bindSlider('param-rTube', 'rTube', (v) => v.toFixed(5), updateSimulationGeometry);
         bindSlider('param-rHelix', 'rHelix', (v) => v.toFixed(5), updateSimulationGeometry);
@@ -1378,7 +1367,7 @@
         document.getElementById('chk-fieldBt').addEventListener('change', (e) => { params.showBt = e.target.checked; buildFieldAndCurrentVisuals(); });
         document.getElementById('chk-fieldBp').addEventListener('change', (e) => { params.showBp = e.target.checked; buildFieldAndCurrentVisuals(); });
         document.getElementById('chk-fieldBtot').addEventListener('change', (e) => { params.showBtot = e.target.checked; buildFieldAndCurrentVisuals(); });
-        document.getElementById('chk-disque').addEventListener('change', (e) => { params.showDisque = e.target.checked; updateSimulationGeometry(); });
+        document.getElementById('chk-sphere').addEventListener('change', (e) => { params.showSphere = e.target.checked; updateSimulationGeometry(); });
         document.getElementById('chk-torus').addEventListener('change', (e) => { params.showTorus = e.target.checked; updateSimulationGeometry(); });
         document.getElementById('chk-torusOpaque').addEventListener('change', (e) => { params.opaqueTorus = e.target.checked; updateSimulationGeometry(); });
         document.getElementById('chk-axis').addEventListener('change', (e) => { params.showAxis = e.target.checked; updateSimulationGeometry(); });
@@ -1434,14 +1423,14 @@
             document.getElementById('val-envSpeed').textContent = '1.0';
             document.getElementById('param-envSpeed').value = 1.0;
 
-            params.rDisque = R_DISQUE_NOMINAL;
+            params.rSphere = R_SPHERE_NOMINAL;
             params.rTorus  = R_TORUS_NOMINAL;
             params.rTube   = R_TUBE_NOMINAL;
             params.rHelix  = R_HELIX_NOMINAL;
             params.plungeAngle = 0;
 
-            document.getElementById('param-rDisque').value = R_DISQUE_NOMINAL;
-            document.getElementById('val-rDisque').textContent = R_DISQUE_NOMINAL.toFixed(5);
+            document.getElementById('param-rSphere').value = R_SPHERE_NOMINAL;
+            document.getElementById('val-rSphere').textContent = R_SPHERE_NOMINAL.toFixed(5);
             document.getElementById('param-rTorus').value = R_TORUS_NOMINAL;
             document.getElementById('val-rTorus').textContent = R_TORUS_NOMINAL.toFixed(5);
             document.getElementById('param-rTube').value = R_TUBE_NOMINAL;
@@ -1459,14 +1448,14 @@
             params.waveSpeed = 2.0; params.omega = 0.5; params.respFreq = 0.4; params.respAmp = 0.34; params.bExt = 0.50; params.showBExt = true;
             params.showEField = true; params.showSpin = true; params.showPrecessionCone = false;
             params.showCurrent = true; params.showBt = true; params.showBp = true; params.showBtot = false;
-            params.showDisque = true; params.showTorus = true; params.opaqueTorus = false; params.showAxis = false;
+            params.showSphere = true; params.showTorus = true; params.opaqueTorus = false; params.showAxis = false;
             params.showMarkers = false;
             params.showZbw = true; params.zbwAmp = 0.03; params.showChiralityGauge = true;
 
             document.getElementById('chk-bExt').checked = true;
             document.getElementById('chk-precCone').checked = false;
             document.getElementById('chk-fieldBtot').checked = false;
-            document.getElementById('chk-disque').checked = true;
+            document.getElementById('chk-sphere').checked = true;
             document.getElementById('chk-torusOpaque').checked = false;
             document.getElementById('chk-axis').checked = false;
             document.getElementById('chk-markers').checked = false;
