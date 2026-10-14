@@ -1,0 +1,7 @@
+PEW numerical minimization — eta_max=20, N=400
+
+This is a separate numerical run, not a modification of scientific papers.
+Functional: native-staggered energy with f_core=pi, f0=e0=1.
+Scale reduction: E(a)=E2*a+E4/a; astar=sqrt(E4/E2), G=2*sqrt(E2*E4).
+Initialization: linear f(eta) ramp from 0 to pi, dchi=0. It is an initial guess, not a result.
+Iteration counter only advances through actual SciPy callback iterations. Checkpoint fields and JSONL history are saved every 250 iterations.
