@@ -1,1 +1,48 @@
+name: PEW eta20 N400 minimization
 
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'numerical_minimization/eta20_N400/**'
+      - '.github/workflows/pew-eta20-n400.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  minimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta20_N400
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta20_N400/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume eta20 N400
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '10000'
+        run: python -u free_ar.py 20 400 eta20_init eta20_N400 | tee run.log
+      - name: Preserve checkpoint and history even if the run stops early
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta20-N400-checkpoint-and-history
+          path: |
+            numerical_minimization/eta20_N400/*ckpt.npy
+            numerical_minimization/eta20_N400/*state.json
+            numerical_minimization/eta20_N400/*history.jsonl
+            numerical_minimization/eta20_N400/run.log
+            numerical_minimization/eta20_N400/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
