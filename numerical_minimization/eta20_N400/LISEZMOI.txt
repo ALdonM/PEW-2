@@ -1,7 +1,0 @@
-PEW numerical minimization - eta_max=16, N=320 (a_r libre)
-Run separate from the papers. Native-staggered functional, f_core=pi, f0=e0=1, float64.
-Initial state ('start16'): the profile of the eta20 N400 GitHub run (commit 8ee6441, run 38600357991) adapted to this grid
-(eta16: truncated+periodic reinterpolation in xi; eta24: 80 rows appended in eta with dchi copied from the last row, then reinterpolated in xi),
-then minimised ~5-6e3 iterations (local container). The cumulative counter restarts at 0 in this run.
-Scale reduction: E(a)=E2*a+E4/a; astar=sqrt(E4/E2), G=2*sqrt(E2*E4).
-Checkpoint and history are written every CHECKPOINT_EVERY (=10000) iterations.
