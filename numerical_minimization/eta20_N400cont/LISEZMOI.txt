@@ -1,0 +1,4 @@
+PEW numerical minimization - eta_max=20, N=400 (a_r libre) - CONTINUATION
+Etat de depart ('start20') : etat final (1 000 000 it) du run GitHub eta20 N400 (chunk 10, G=30.8012876, a*=1.677927).
+Le compteur cumule repart a 0 dans ce run. 10 chunks x 100 000 it, checkpoint tous les 10 000.
+Tag : eta20_N400gh. Verifie en local : G(300 it) = 30.8012828 (reproduit le depart).
