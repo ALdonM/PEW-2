@@ -1,0 +1,5 @@
+PEW - eta_max=16, N=320 (a_r libre) - TEST DE PRECONDITIONNEMENT EXPONENTIEL
+Depart ('start16pc') : etat final (1 000 000 it) du run GitHub eta16 N320 (chunk 10) : G=30.790961, a*=1.72589.
+Variables optimisees : f = pi - s(eta)*u, s = exp(-(eta-8)) pour eta>8 (sinon 1) ; dchi inchange. Fonction d'energie identique.
+Les checkpoints sauvegardes contiennent f, dchi vrais (pas u). Compteur cumule repart a 0. 3 chunks x 100 000 it (TOTAL_MAXITER=300000).
+Test local 4000 it depuis le meme etat : sans precond DeltaG=-4.7e-6 ; avec precond DeltaG=-7.5e-5.
