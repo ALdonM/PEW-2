@@ -1,0 +1,5 @@
+PEW - eta_max=20, N=400 (a_r libre) - PRECONDITIONNEMENT EXPONENTIEL
+Depart ('start20pc') : etat final du chunk 4 du run eta20 N400 continuation (400 000 it de continuation), G=30.799341, a*=1.69394 (verifie : G(200 it) reproduit le depart).
+Variables optimisees : f = pi - s(eta)*u, s = exp(-(eta-8)) pour eta>8 (sinon 1) ; dchi inchange. Fonction d'energie identique.
+Les checkpoints contiennent f, dchi vrais. Compteur cumule repart a 0. 10 chunks x 100 000 it (TOTAL_MAXITER=1000000).
+runs-on: ubuntu-24.04 (pas ubuntu-latest) pour des conditions constantes sur toute la chaine.
