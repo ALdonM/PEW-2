@@ -1,0 +1,5 @@
+PEW - eta_max=16, N=320 (a_r libre) - PRECONDITIONNEMENT EXPONENTIEL, SUITE (run "pc2")
+Depart ('start16pc2') : etat final du chunk 07 du run eta16 N320 PRECOND #2 (1 000 000 it de PC, 2 000 000 cumules avec le run sans PC) :
+G=30.790212, a*=1.73953, E4/E2=3.0260, rms=5.5e-7.
+Variables optimisees : f = pi - s(eta)*u, s = exp(-(eta-8)) pour eta>8 (sinon 1) ; dchi inchange. Fonction d'energie identique.
+Les checkpoints contiennent f, dchi vrais. Compteur cumule repart a 0. 10 chunks x 100 000 it (TOTAL_MAXITER=1000000). runs-on: ubuntu-24.04.
