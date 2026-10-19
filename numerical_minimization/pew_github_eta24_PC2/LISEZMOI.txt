@@ -1,6 +1,0 @@
-PEW - eta_max=24, N=480 (a_r libre) - PRECONDITIONNEMENT 2 (dchi) : TEST
-Depart ('start24pc2') : etat du run eta24 PC a 500 000 it (chunk 05), AVANT le saut : G=30.792122, a*=1.721214, rms=5.4e-6.
-Variables optimisees : f = pi - s(eta)*u (PC1, s=exp(-(eta-8)) pour eta>8) ET dchi = w / clip(|sin f_ref|, 1e-3, 1) (PC2), f_ref = ref_f24_500k.npy (FIXE, identique a chaque chunk).
-Les checkpoints contiennent f, dchi vrais. Compteur cumule repart a 0. 4 chunks x 50 000 it (TOTAL_MAXITER=200 000) ; on peut s'arreter apres le chunk 2 (100 000 it).
-Test local 4 000 it depuis ce meme etat : sans PC2 DeltaG=-6e-9 ; avec PC2 DeltaG=-1.3e-6, rms 5.4e-6 -> 3.4e-6.
-Question du test : le saut (G -1.2e-3, a* +0.004, observe a 570-600k it dans le run PC) arrive-t-il plus tot ?
