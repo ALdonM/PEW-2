@@ -1,0 +1,808 @@
+name: PEW eta16 N320 PRECOND 2 (suite, 1 000 000 it)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  chunk01:
+    name: PEW eta16 N320 PRECOND chunk 01/10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-01
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-01
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk02:
+    name: PEW eta16 N320 PRECOND chunk 02/10
+    needs: chunk01
+    if: needs.chunk01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-02
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-02
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk03:
+    name: PEW eta16 N320 PRECOND chunk 03/10
+    needs: chunk02
+    if: needs.chunk02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-03
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-03
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk04:
+    name: PEW eta16 N320 PRECOND chunk 04/10
+    needs: chunk03
+    if: needs.chunk03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-04
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-04
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk05:
+    name: PEW eta16 N320 PRECOND chunk 05/10
+    needs: chunk04
+    if: needs.chunk04.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-05
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-05
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk06:
+    name: PEW eta16 N320 PRECOND chunk 06/10
+    needs: chunk05
+    if: needs.chunk05.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-06
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-06
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk07:
+    name: PEW eta16 N320 PRECOND chunk 07/10
+    needs: chunk06
+    if: needs.chunk06.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-07
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-07
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk08:
+    name: PEW eta16 N320 PRECOND chunk 08/10
+    needs: chunk07
+    if: needs.chunk07.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-08
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-08
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk09:
+    name: PEW eta16 N320 PRECOND chunk 09/10
+    needs: chunk08
+    if: needs.chunk08.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-09
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-09
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk10:
+    name: PEW eta16 N320 PRECOND chunk 10/10
+    needs: chunk09
+    if: needs.chunk09.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta16_N320pc2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta16_N320pc2/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/f_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/dchi_free_eta16_N320pc2_ckpt.npy
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_state.json
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_history.jsonl
+          key: pew-eta16-n320pc2-${{ github.run_id }}-${{ github.run_attempt }}-chunk-10
+          restore-keys: |
+            pew-eta16-n320pc2-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '100000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 16 320 start16pc2 eta16_N320pc2 | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta16_N320pc2_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta16-N320pc2-checkpoint-chunk-10
+          path: |
+            numerical_minimization/eta16_N320pc2/free_eta16_N320pc2_checkpoint.npz
+            numerical_minimization/eta16_N320pc2/*ckpt.npy
+            numerical_minimization/eta16_N320pc2/*state.json
+            numerical_minimization/eta16_N320pc2/*history.jsonl
+            numerical_minimization/eta16_N320pc2/run.log
+            numerical_minimization/eta16_N320pc2/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
