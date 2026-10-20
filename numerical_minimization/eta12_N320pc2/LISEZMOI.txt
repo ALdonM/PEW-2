@@ -1,0 +1,4 @@
+PEW - eta_max=12, N=320 (a_r libre) - PC + PC2 : BALAYAGE EN PAS deta (deta=12/320)
+Depart : etat eta20 N400 PC2 (200 000 it, G=30.790128, a*=1.74303) tronque a eta<12 et interpole sur la grille 320 x 320.
+Variables : PC1 + PC2 (f_ref=ref_f12_N320.npy fixe). 4 chunks x 50 000 it.
+But : G(deta) a eta_max fixe -> ordre de convergence et G extrapole.
