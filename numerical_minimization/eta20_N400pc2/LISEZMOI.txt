@@ -1,0 +1,6 @@
+PEW - eta_max=20, N=400 (a_r libre) - PRECONDITIONNEMENT 2 (dchi) : TEST
+Depart ('start20pc2') : etat final du run eta20 N400 PC (1 000 000 it de PC) : G=30.790337, a*=1.73619, rms=3.1e-7.
+Variables optimisees : f = pi - s(eta)*u (PC1, s=exp(-(eta-8)) pour eta>8) ET dchi = w / clip(|sin f_ref|, 1e-3, 1) (PC2), f_ref = ref_f20_1M.npy (FIXE, identique a chaque chunk).
+Compteur cumule repart a 0. 4 chunks x 50 000 it (TOTAL_MAXITER=200 000) ; on peut s'arreter apres le chunk 2.
+Test local 300 it : G=30.7903369587 (depart 30.790337445), a*=1.7361933.
+Question du test : PC2 relance-t-il la montee de a* (1.736 -> ~1.74) comme sur eta24 ?
