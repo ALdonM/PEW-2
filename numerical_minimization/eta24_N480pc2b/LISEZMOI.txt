@@ -1,0 +1,4 @@
+PEW - eta_max=24, N=480 (a_r libre) - PRECONDITIONNEMENT 2 (dchi), SUITE 'pc2b'
+Depart ('start24pc2b') : etat final du test eta24 PC2 (200 000 it PC2 apres 500 000 it PC) : G=30.7901357, a*=1.74011, E4/E2=3.028, rms=2.0e-6.
+Variables : f = pi - s(eta)*u (PC1) ET dchi = w / clip(|sin f_ref|, 1e-3, 1) (PC2), f_ref = ref_f24_200k.npy (FIXE = f du depart).
+Compteur cumule repart a 0. 20 chunks x 50 000 it (TOTAL_MAXITER=1 000 000) ; on arrete le run quand on veut (Cancel workflow), le dernier artefact suffit pour reprendre.
