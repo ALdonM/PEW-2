@@ -1,0 +1,1668 @@
+name: PEW eta24 N480 PRECOND 2b suite 1 000 000 it (arret a volonte)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  chunk01:
+    name: PEW eta24 N480 PRECOND2b chunk 01/20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-01
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-01
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk02:
+    name: PEW eta24 N480 PRECOND2b chunk 02/20
+    needs: chunk01
+    if: needs.chunk01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-02
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-02
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk03:
+    name: PEW eta24 N480 PRECOND2b chunk 03/20
+    needs: chunk02
+    if: needs.chunk02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-03
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-03
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk04:
+    name: PEW eta24 N480 PRECOND2b chunk 04/20
+    needs: chunk03
+    if: needs.chunk03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-04
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-04
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk05:
+    name: PEW eta24 N480 PRECOND2b chunk 05/20
+    needs: chunk04
+    if: needs.chunk04.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-05
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-05
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk06:
+    name: PEW eta24 N480 PRECOND2b chunk 06/20
+    needs: chunk05
+    if: needs.chunk05.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-06
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-06
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk07:
+    name: PEW eta24 N480 PRECOND2b chunk 07/20
+    needs: chunk06
+    if: needs.chunk06.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-07
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-07
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk08:
+    name: PEW eta24 N480 PRECOND2b chunk 08/20
+    needs: chunk07
+    if: needs.chunk07.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-08
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-08
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk09:
+    name: PEW eta24 N480 PRECOND2b chunk 09/20
+    needs: chunk08
+    if: needs.chunk08.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-09
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-09
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk10:
+    name: PEW eta24 N480 PRECOND2b chunk 10/20
+    needs: chunk09
+    if: needs.chunk09.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-10
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-10
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk11:
+    name: PEW eta24 N480 PRECOND2b chunk 11/20
+    needs: chunk10
+    if: needs.chunk10.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-11
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-11
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk12:
+    name: PEW eta24 N480 PRECOND2b chunk 12/20
+    needs: chunk11
+    if: needs.chunk11.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-12
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-12
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk13:
+    name: PEW eta24 N480 PRECOND2b chunk 13/20
+    needs: chunk12
+    if: needs.chunk12.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-13
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-13
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk14:
+    name: PEW eta24 N480 PRECOND2b chunk 14/20
+    needs: chunk13
+    if: needs.chunk13.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-14
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-14
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk15:
+    name: PEW eta24 N480 PRECOND2b chunk 15/20
+    needs: chunk14
+    if: needs.chunk14.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-15
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-15
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk16:
+    name: PEW eta24 N480 PRECOND2b chunk 16/20
+    needs: chunk15
+    if: needs.chunk15.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-16
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-16
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk17:
+    name: PEW eta24 N480 PRECOND2b chunk 17/20
+    needs: chunk16
+    if: needs.chunk16.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-17
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-17
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk18:
+    name: PEW eta24 N480 PRECOND2b chunk 18/20
+    needs: chunk17
+    if: needs.chunk17.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-18
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-18
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk19:
+    name: PEW eta24 N480 PRECOND2b chunk 19/20
+    needs: chunk18
+    if: needs.chunk18.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-19
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-19
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
+  chunk20:
+    name: PEW eta24 N480 PRECOND2b chunk 20/20
+    needs: chunk19
+    if: needs.chunk19.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/eta24_N480pc2b
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/eta24_N480pc2b/requirements.txt
+
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/f_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/dchi_free_eta24_N480pc2b_ckpt.npy
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_state.json
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_history.jsonl
+          key: pew-eta24-n480pc2b-${{ github.run_id }}-${{ github.run_attempt }}-chunk-20
+          restore-keys: |
+            pew-eta24-n480pc2b-
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          OPENBLAS_NUM_THREADS: '1'
+          MAXITER: '50000'
+          PC: '1'
+          PC_ETA0: '8.0'
+          PC2: '1'
+          PC2_FLOOR: '1e-3'
+          PC2_REF: 'ref_f24_200k.npy'
+          TOTAL_MAXITER: '1000000'
+          CHECKPOINT_EVERY: '10000'
+        run: python -u free_ar.py 24 480 start24pc2b eta24_N480pc2b | tee run.log
+
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        env:
+          TOTAL_MAXITER: '1000000'
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          with open("free_eta24_N480pc2b_state.json", encoding="utf-8") as f:
+              state = json.load(f)
+          nit = int(state["nit_ckpt"])
+          limit = int(os.environ["TOTAL_MAXITER"])
+          finished = nit >= limit
+          print(f"Checkpoint cumulatif : {nit} / {limit}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-eta24-N480pc2b-checkpoint-chunk-20
+          path: |
+            numerical_minimization/eta24_N480pc2b/free_eta24_N480pc2b_checkpoint.npz
+            numerical_minimization/eta24_N480pc2b/*ckpt.npy
+            numerical_minimization/eta24_N480pc2b/*state.json
+            numerical_minimization/eta24_N480pc2b/*history.jsonl
+            numerical_minimization/eta24_N480pc2b/run.log
+            numerical_minimization/eta24_N480pc2b/LISEZMOI.txt
+          if-no-files-found: warn
+          retention-days: 30
