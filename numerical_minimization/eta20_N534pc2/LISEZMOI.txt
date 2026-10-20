@@ -1,0 +1,5 @@
+PEW - eta_max=20, N=534 (a_r libre) - PRECONDITIONNEMENT 2 : TEST DE CONVERGENCE EN N
+Depart ('start20n534') : etat eta20 N400 PC2 a 100 000 it (G=30.790130, a*=1.74268), INTERPOLE sur la grille 534x534 (interp_N400_vers_N534.py : log(pi-f) lineaire, dchi lineaire avec bords bloques pour garder le saut au joint xi=0).
+Apres interpolation, G(N534, 200 it)=30.788993, a*=1.74249, rms=1.3e-4 (bruit d'interpolation, a relaxer).
+Variables : PC1 + PC2 (f_ref = ref_f20_n534.npy fixe). Compteur cumule repart a 0. 8 chunks x 50 000 it (TOTAL 400 000), ~2h40 par chunk ; arret possible a tout moment.
+Question : G et a* a N534 vs N400 une fois les deux au plateau (extrapolation en N).
