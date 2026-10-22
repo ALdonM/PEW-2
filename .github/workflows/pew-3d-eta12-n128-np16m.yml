@@ -1,0 +1,392 @@
+name: PEW 3D statique eta12 N128 Np16 (axe gele eta<0.6)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  c01:
+    name: PEW 3D statique eta12 N128 Np16 chunk 01/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-01
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
+  c02:
+    name: PEW 3D statique eta12 N128 Np16 chunk 02/6
+    needs: c01
+    if: needs.c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-02
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
+  c03:
+    name: PEW 3D statique eta12 N128 Np16 chunk 03/6
+    needs: c02
+    if: needs.c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-03
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
+  c04:
+    name: PEW 3D statique eta12 N128 Np16 chunk 04/6
+    needs: c03
+    if: needs.c03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-04-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-04
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
+  c05:
+    name: PEW 3D statique eta12 N128 Np16 chunk 05/6
+    needs: c04
+    if: needs.c04.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-05-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-05
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
+  c06:
+    name: PEW 3D statique eta12 N128 Np16 chunk 06/6
+    needs: c05
+    if: needs.c05.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+          key: pew-3d-eta12m-06-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-3d-eta12m-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume 3D minimization
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '2'
+          AR: '1.743'
+          AMP: '0.02'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '240000'
+          CHECKPOINT_EVERY: '5000'
+        run: python -u run3d.py 12 128 16 static3d_eta12_N128_Np16m | tee run.log
+      - name: Check whether the global iteration limit was reached
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          nit = int(json.load(open("x3d_static3d_eta12_N128_Np16m_state.json"))["nit_ckpt"])
+          finished = nit >= 240000
+          print(f"Checkpoint cumulatif : {nit} / 240000")
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"finished={'true' if finished else 'false'}\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-eta12-N128-Np16m-checkpoint-chunk-06
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m.npz
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m/x3d_static3d_eta12_N128_Np16m_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m/run.log
+          if-no-files-found: warn
+          retention-days: 30
