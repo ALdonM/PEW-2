@@ -1,0 +1,390 @@
+name: PEW 3D toroidal a libre depuis 2D relaxe (axe gele eta<0.6)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  n02_c01:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.02 chunk 01/03
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+          key: pew-v1-afreeR_amp02-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp02-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.743'
+          AMP: '0.02'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp02 2>&1 | tee run_afreeR_amp02.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp02_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp02-chunk-01
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp02.log
+          if-no-files-found: warn
+          retention-days: 30
+  n02_c02:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.02 chunk 02/03
+    needs: n02_c01
+    if: needs.n02_c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+          key: pew-v1-afreeR_amp02-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp02-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.743'
+          AMP: '0.02'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp02 2>&1 | tee run_afreeR_amp02.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp02_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp02-chunk-02
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp02.log
+          if-no-files-found: warn
+          retention-days: 30
+  n02_c03:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.02 chunk 03/03
+    needs: n02_c02
+    if: needs.n02_c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+          key: pew-v1-afreeR_amp02-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp02-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.743'
+          AMP: '0.02'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp02 2>&1 | tee run_afreeR_amp02.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp02_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp02-chunk-03
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp02_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp02.log
+          if-no-files-found: warn
+          retention-days: 30
+  n10_c01:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.10, a=1.9 chunk 01/03
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+          key: pew-v1-afreeR_amp10-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp10-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.9'
+          AMP: '0.10'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp10 2>&1 | tee run_afreeR_amp10.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp10_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp10-chunk-01
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp10.log
+          if-no-files-found: warn
+          retention-days: 30
+  n10_c02:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.10, a=1.9 chunk 02/03
+    needs: n10_c01
+    if: needs.n10_c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+          key: pew-v1-afreeR_amp10-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp10-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.9'
+          AMP: '0.10'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp10 2>&1 | tee run_afreeR_amp10.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp10_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp10-chunk-02
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp10.log
+          if-no-files-found: warn
+          retention-days: 30
+  n10_c03:
+    name: PEW 3D a libre, depart 2D relaxe, bruit 0.10, a=1.9 chunk 03/03
+    needs: n10_c02
+    if: needs.n10_c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+          key: pew-v1-afreeR_amp10-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-afreeR_amp10-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          MASK_ETA: '0.6'
+          MAXITER: '40000'
+          TOTAL_MAXITER: '120000'
+          CHECKPOINT_EVERY: '5000'
+          AR: '1.9'
+          AMP: '0.10'
+        run: python -u run3d_a.py 12 128 16 afreeR_amp10 2>&1 | tee run_afreeR_amp10.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("x3d_afreeR_amp10_state.json")); nit=int(st["nit_ckpt"])
+          finished = nit >= 120000 or bool(st.get("converged"))
+          print("Checkpoint", nit, "a =", st.get("a"), "rms =", st.get("rms"), "dE =", st.get("dE"))
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if finished else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-afreeR-afreeR_amp10-chunk-03
+          path: |
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10.npz
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_state.json
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/x3d_afreeR_amp10_history.jsonl
+            numerical_minimization/static3d_eta12_N128_Np16m_afree_relaxed/run_afreeR_amp10.log
+          if-no-files-found: warn
+          retention-days: 30
