@@ -41,7 +41,7 @@ def init_from_toroidal(f2, d2, EM, a, N, L):
     x = np.linspace(-L, L, N); X, Y, Z = np.meshgrid(x, x, x, indexing='ij')
     rho = np.hypot(X, Y); r2 = rho**2 + Z**2
     ETA = np.arctanh(np.clip(2*a*rho/(r2 + a*a), 0, 1-1e-15)); XI = np.mod(np.arctan2(2*a*Z, r2 - a*a), 2*np.pi)
-    pts = np.stack([np.clip(ETA, 0, EM), XI], -1)
+    pts = np.stack([np.clip(ETA, 0, eta_e[-1]), XI], -1)
     f = fI(pts); dch = dI(pts); phi = np.arctan2(Y, X)
     th = XI + dch + phi
     n = np.stack([np.sin(f)*np.cos(th), np.sin(f)*np.sin(th), np.cos(f)], -1)
