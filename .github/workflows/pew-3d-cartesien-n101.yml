@@ -1,0 +1,736 @@
+name: PEW 3D cartesien N101 L10 (3 rayons initiaux)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  c150_c01:
+    name: PEW 3D cartesien N101 L10 (depart a=1.50) chunk 01/04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+          key: pew-v1-cart_a150-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a150-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.5'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a150 | tee run_cart_a150.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a150_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a150-chunk-01
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a150.log
+          if-no-files-found: warn
+          retention-days: 30
+  c150_c02:
+    name: PEW 3D cartesien N101 L10 (depart a=1.50) chunk 02/04
+    needs: c150_c01
+    if: needs.c150_c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+          key: pew-v1-cart_a150-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a150-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.5'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a150 | tee run_cart_a150.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a150_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a150-chunk-02
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a150.log
+          if-no-files-found: warn
+          retention-days: 30
+  c150_c03:
+    name: PEW 3D cartesien N101 L10 (depart a=1.50) chunk 03/04
+    needs: c150_c02
+    if: needs.c150_c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+          key: pew-v1-cart_a150-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a150-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.5'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a150 | tee run_cart_a150.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a150_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a150-chunk-03
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a150.log
+          if-no-files-found: warn
+          retention-days: 30
+  c150_c04:
+    name: PEW 3D cartesien N101 L10 (depart a=1.50) chunk 04/04
+    needs: c150_c03
+    if: needs.c150_c03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+          key: pew-v1-cart_a150-04-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a150-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.5'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a150 | tee run_cart_a150.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a150_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a150-chunk-04
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a150_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a150.log
+          if-no-files-found: warn
+          retention-days: 30
+  c174_c01:
+    name: PEW 3D cartesien N101 L10 (depart a=1.74) chunk 01/04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+          key: pew-v1-cart_a174-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a174-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.743'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a174 | tee run_cart_a174.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a174_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a174-chunk-01
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a174.log
+          if-no-files-found: warn
+          retention-days: 30
+  c174_c02:
+    name: PEW 3D cartesien N101 L10 (depart a=1.74) chunk 02/04
+    needs: c174_c01
+    if: needs.c174_c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+          key: pew-v1-cart_a174-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a174-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.743'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a174 | tee run_cart_a174.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a174_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a174-chunk-02
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a174.log
+          if-no-files-found: warn
+          retention-days: 30
+  c174_c03:
+    name: PEW 3D cartesien N101 L10 (depart a=1.74) chunk 03/04
+    needs: c174_c02
+    if: needs.c174_c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+          key: pew-v1-cart_a174-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a174-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.743'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a174 | tee run_cart_a174.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a174_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a174-chunk-03
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a174.log
+          if-no-files-found: warn
+          retention-days: 30
+  c174_c04:
+    name: PEW 3D cartesien N101 L10 (depart a=1.74) chunk 04/04
+    needs: c174_c03
+    if: needs.c174_c03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+          key: pew-v1-cart_a174-04-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a174-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '1.743'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a174 | tee run_cart_a174.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a174_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a174-chunk-04
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a174_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a174.log
+          if-no-files-found: warn
+          retention-days: 30
+  c200_c01:
+    name: PEW 3D cartesien N101 L10 (depart a=2.00) chunk 01/04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+          key: pew-v1-cart_a200-01-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a200-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '2.0'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a200 | tee run_cart_a200.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a200_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a200-chunk-01
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a200.log
+          if-no-files-found: warn
+          retention-days: 30
+  c200_c02:
+    name: PEW 3D cartesien N101 L10 (depart a=2.00) chunk 02/04
+    needs: c200_c01
+    if: needs.c200_c01.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+          key: pew-v1-cart_a200-02-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a200-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '2.0'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a200 | tee run_cart_a200.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a200_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a200-chunk-02
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a200.log
+          if-no-files-found: warn
+          retention-days: 30
+  c200_c03:
+    name: PEW 3D cartesien N101 L10 (depart a=2.00) chunk 03/04
+    needs: c200_c02
+    if: needs.c200_c02.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+          key: pew-v1-cart_a200-03-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a200-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '2.0'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a200 | tee run_cart_a200.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a200_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a200-chunk-03
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a200.log
+          if-no-files-found: warn
+          retention-days: 30
+  c200_c04:
+    name: PEW 3D cartesien N101 L10 (depart a=2.00) chunk 04/04
+    needs: c200_c03
+    if: needs.c200_c03.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/static3d_cartesien_N101_L10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/static3d_cartesien_N101_L10/requirements.txt
+      - name: Restore latest checkpoint and history
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+          key: pew-v1-cart_a200-04-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            pew-v1-cart_a200-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume minimization
+        env:
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '2'
+          TIME_BUDGET: '18900'
+          TOTAL_MAXITER: '200000'
+          CK: '200'
+          A0: '2.0'
+        run: python -u cart_gh.py 101 10 "$A0" cart_a200 | tee run_cart_a200.log
+      - name: Check whether the chain is finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st=json.load(open("cart_cart_a200_state.json"))
+          print(st)
+          open(os.environ["GITHUB_OUTPUT"], "a").write("finished=" + ("true" if st["finished"] else "false") + "\n")
+          PYCODE
+      - name: Preserve checkpoint and history artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PEW-3D-cart-cart_a200-chunk-04
+          path: |
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200.npz
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_state.json
+            numerical_minimization/static3d_cartesien_N101_L10/cart_cart_a200_history.jsonl
+            numerical_minimization/static3d_cartesien_N101_L10/run_cart_a200.log
+          if-no-files-found: warn
+          retention-days: 30
