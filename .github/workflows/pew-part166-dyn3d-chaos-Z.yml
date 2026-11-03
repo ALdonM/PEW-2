@@ -1,0 +1,868 @@
+name: PEW part166 dynamique 3D chaos d'ondes modele Z (expansion, friction, noeud insere)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rad10_s1_c1:
+    name: part166 rad10_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s1_*.npy
+          key: p166-rad10_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '1'
+        run: python -u dyn.py rad10_s1 2>&1 | tee run_rad10_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_s1-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_s1_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad10_s1_c2:
+    name: part166 rad10_s1 chunk 2/2
+    needs: rad10_s1_c1
+    if: needs.rad10_s1_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s1_*.npy
+          key: p166-rad10_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '1'
+        run: python -u dyn.py rad10_s1 2>&1 | tee run_rad10_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_s1-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_s1_c2.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad10_s2_c1:
+    name: part166 rad10_s2 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s2.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s2_*.npy
+          key: p166-rad10_s2-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '2'
+        run: python -u dyn.py rad10_s2 2>&1 | tee run_rad10_s2_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_s2-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s2.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s2_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_s2_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad10_s2_c2:
+    name: part166 rad10_s2 chunk 2/2
+    needs: rad10_s2_c1
+    if: needs.rad10_s2_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s2.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s2_*.npy
+          key: p166-rad10_s2-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '2'
+        run: python -u dyn.py rad10_s2 2>&1 | tee run_rad10_s2_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_s2-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_s2.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_s2_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_s2_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_s2_c2.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad40_s1_c1:
+    name: part166 rad40_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad40_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad40_s1_*.npy
+          key: p166-rad40_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad40_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '40'
+          T_END: '160'
+          SEED: '1'
+        run: python -u dyn.py rad40_s1 2>&1 | tee run_rad40_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad40_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad40_s1-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad40_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad40_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad40_s1_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad40_s1_c2:
+    name: part166 rad40_s1 chunk 2/2
+    needs: rad40_s1_c1
+    if: needs.rad40_s1_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad40_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad40_s1_*.npy
+          key: p166-rad40_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad40_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '40'
+          T_END: '160'
+          SEED: '1'
+        run: python -u dyn.py rad40_s1 2>&1 | tee run_rad40_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad40_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad40_s1-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad40_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad40_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad40_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad40_s1_c2.log
+          if-no-files-found: warn
+          retention-days: 90
+  fric02_s1_c1:
+    name: part166 fric02_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_fric02_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_fric02_s1_*.npy
+          key: p166-fric02_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-fric02_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'none'
+          G0: '0.02'
+          T0: '0'
+          T_END: '150'
+          SEED: '1'
+        run: python -u dyn.py fric02_s1 2>&1 | tee run_fric02_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('fric02_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-fric02_s1-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_fric02_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_fric02_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_fric02_s1_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  fric02_s1_c2:
+    name: part166 fric02_s1 chunk 2/2
+    needs: fric02_s1_c1
+    if: needs.fric02_s1_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_fric02_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_fric02_s1_*.npy
+          key: p166-fric02_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-fric02_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'none'
+          G0: '0.02'
+          T0: '0'
+          T_END: '150'
+          SEED: '1'
+        run: python -u dyn.py fric02_s1 2>&1 | tee run_fric02_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('fric02_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-fric02_s1-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_fric02_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/fric02_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_fric02_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_fric02_s1_c2.log
+          if-no-files-found: warn
+          retention-days: 90
+  cons_s1_c1:
+    name: part166 cons_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_cons_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_cons_s1_*.npy
+          key: p166-cons_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-cons_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'none'
+          G0: '0.0'
+          T0: '0'
+          T_END: '60'
+          SEED: '1'
+        run: python -u dyn.py cons_s1 2>&1 | tee run_cons_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('cons_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-cons_s1-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_cons_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_cons_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_cons_s1_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  cons_s1_c2:
+    name: part166 cons_s1 chunk 2/2
+    needs: cons_s1_c1
+    if: needs.cons_s1_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_cons_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_cons_s1_*.npy
+          key: p166-cons_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-cons_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'none'
+          G0: '0.0'
+          T0: '0'
+          T_END: '60'
+          SEED: '1'
+        run: python -u dyn.py cons_s1 2>&1 | tee run_cons_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('cons_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-cons_s1-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_cons_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/cons_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_cons_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_cons_s1_c2.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad10_knot_s1_c1:
+    name: part166 rad10_knot_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_knot_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_knot_s1_*.npy
+          key: p166-rad10_knot_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_knot_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '1'
+          INIT: 'knot_in_chaos'
+        run: python -u dyn.py rad10_knot_s1 2>&1 | tee run_rad10_knot_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_knot_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_knot_s1-chunk-1
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_knot_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_knot_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_knot_s1_c1.log
+          if-no-files-found: warn
+          retention-days: 90
+  rad10_knot_s1_c2:
+    name: part166 rad10_knot_s1 chunk 2/2
+    needs: rad10_knot_s1_c1
+    if: needs.rad10_knot_s1_c1.outputs.finished != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/dyn3d_chaos_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/dyn3d_chaos_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_knot_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_knot_s1_*.npy
+          key: p166-rad10_knot_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p166-rad10_knot_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.125'
+          E0: '0.125'
+          XI0: '6.0'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '10.0'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          SEED: '1'
+          INIT: 'knot_in_chaos'
+        run: python -u dyn.py rad10_knot_s1 2>&1 | tee run_rad10_knot_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('rad10_knot_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part166-rad10_knot_s1-chunk-2
+          path: |
+            numerical_minimization/dyn3d_chaos_Z/ck_rad10_knot_s1.npz
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_history.jsonl
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_params.json
+            numerical_minimization/dyn3d_chaos_Z/rad10_knot_s1_state.json
+            numerical_minimization/dyn3d_chaos_Z/snap_rad10_knot_s1_*.npy
+            numerical_minimization/dyn3d_chaos_Z/run_rad10_knot_s1_c2.log
+          if-no-files-found: warn
+          retention-days: 90
