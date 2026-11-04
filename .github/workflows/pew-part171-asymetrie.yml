@@ -1,0 +1,298 @@
+name: PEW part171 generation d'asymetrie noeuds/anti-noeuds (potentiel chimique de Hopf)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  mu0375_kw0:
+    name: part171 mu0375_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.375'
+          KW: '0'
+        run: python -u dyn.py mu0375_kw0 2>&1 | tee run_mu0375_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0375_kw0; mkdir -p $OUT
+          cp mu0375_kw0_history.jsonl mu0375_kw0_params.json mu0375_kw0_state.json run_mu0375_kw0.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0375_kw0.npz'); np.save('../../resultats/part171/mu0375_kw0/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0375_kw0; git commit -q -m 'part171 mu0375_kw0 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
+  mu0375_kwp20:
+    name: part171 mu0375_kwp20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.375'
+          KW: '20'
+        run: python -u dyn.py mu0375_kwp20 2>&1 | tee run_mu0375_kwp20.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0375_kwp20; mkdir -p $OUT
+          cp mu0375_kwp20_history.jsonl mu0375_kwp20_params.json mu0375_kwp20_state.json run_mu0375_kwp20.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0375_kwp20.npz'); np.save('../../resultats/part171/mu0375_kwp20/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0375_kwp20; git commit -q -m 'part171 mu0375_kwp20 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
+  mu0375_kwm20:
+    name: part171 mu0375_kwm20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.375'
+          KW: '-20'
+        run: python -u dyn.py mu0375_kwm20 2>&1 | tee run_mu0375_kwm20.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0375_kwm20; mkdir -p $OUT
+          cp mu0375_kwm20_history.jsonl mu0375_kwm20_params.json mu0375_kwm20_state.json run_mu0375_kwm20.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0375_kwm20.npz'); np.save('../../resultats/part171/mu0375_kwm20/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0375_kwm20; git commit -q -m 'part171 mu0375_kwm20 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
+  mu0375_kwp60:
+    name: part171 mu0375_kwp60
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.375'
+          KW: '60'
+        run: python -u dyn.py mu0375_kwp60 2>&1 | tee run_mu0375_kwp60.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0375_kwp60; mkdir -p $OUT
+          cp mu0375_kwp60_history.jsonl mu0375_kwp60_params.json mu0375_kwp60_state.json run_mu0375_kwp60.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0375_kwp60.npz'); np.save('../../resultats/part171/mu0375_kwp60/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0375_kwp60; git commit -q -m 'part171 mu0375_kwp60 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
+  mu0125_kw0:
+    name: part171 mu0125_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.125'
+          KW: '0'
+        run: python -u dyn.py mu0125_kw0 2>&1 | tee run_mu0125_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0125_kw0; mkdir -p $OUT
+          cp mu0125_kw0_history.jsonl mu0125_kw0_params.json mu0125_kw0_state.json run_mu0125_kw0.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0125_kw0.npz'); np.save('../../resultats/part171/mu0125_kw0/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0125_kw0; git commit -q -m 'part171 mu0125_kw0 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
+  mu0125_kwp20:
+    name: part171 mu0125_kwp20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          XI0: '6.0'
+          SEED: '1'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          MU: '0.125'
+          KW: '20'
+        run: python -u dyn.py mu0125_kwp20 2>&1 | tee run_mu0125_kwp20.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part171/mu0125_kwp20; mkdir -p $OUT
+          cp mu0125_kwp20_history.jsonl mu0125_kwp20_params.json mu0125_kwp20_state.json run_mu0125_kwp20.log $OUT/ 2>/dev/null || true
+          python - <<'PYCODE'
+          import numpy as np
+          z = np.load('ck_mu0125_kwp20.npz'); np.save('../../resultats/part171/mu0125_kwp20/champ_final.npy', z['phi'].astype(np.float16))
+          PYCODE
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part171/mu0125_kwp20; git commit -q -m 'part171 mu0125_kwp20 : resultats' || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 25 + 5)); done
