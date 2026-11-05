@@ -1,0 +1,560 @@
+name: PEW part176 protection de la charge (barriere d'admissibilite, temoins sans barriere)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  x10s1p_b0:
+    name: part176 x10s1p_b0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '1'
+          KNOT_SIGN: '1'
+          BARRIER: '0'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s1p_b0 2>&1 | tee run_x10s1p_b0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s1p_b0; mkdir -p $OUT
+          cp x10s1p_b0_history.jsonl x10s1p_b0_params.json x10s1p_b0_state.json x10s1p_b0_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s1p_b0; git commit -q -m 'part176 x10s1p_b0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s1p_b1:
+    name: part176 x10s1p_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '1'
+          KNOT_SIGN: '1'
+          BARRIER: '1'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s1p_b1 2>&1 | tee run_x10s1p_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s1p_b1; mkdir -p $OUT
+          cp x10s1p_b1_history.jsonl x10s1p_b1_params.json x10s1p_b1_state.json x10s1p_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s1p_b1; git commit -q -m 'part176 x10s1p_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s2m_b0:
+    name: part176 x10s2m_b0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '2'
+          KNOT_SIGN: '-1'
+          BARRIER: '0'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s2m_b0 2>&1 | tee run_x10s2m_b0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s2m_b0; mkdir -p $OUT
+          cp x10s2m_b0_history.jsonl x10s2m_b0_params.json x10s2m_b0_state.json x10s2m_b0_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s2m_b0; git commit -q -m 'part176 x10s2m_b0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s2m_b1:
+    name: part176 x10s2m_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '2'
+          KNOT_SIGN: '-1'
+          BARRIER: '1'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s2m_b1 2>&1 | tee run_x10s2m_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s2m_b1; mkdir -p $OUT
+          cp x10s2m_b1_history.jsonl x10s2m_b1_params.json x10s2m_b1_state.json x10s2m_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s2m_b1; git commit -q -m 'part176 x10s2m_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s4p_b0:
+    name: part176 x10s4p_b0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '4'
+          KNOT_SIGN: '1'
+          BARRIER: '0'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s4p_b0 2>&1 | tee run_x10s4p_b0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s4p_b0; mkdir -p $OUT
+          cp x10s4p_b0_history.jsonl x10s4p_b0_params.json x10s4p_b0_state.json x10s4p_b0_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s4p_b0; git commit -q -m 'part176 x10s4p_b0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s4p_b1:
+    name: part176 x10s4p_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '4'
+          KNOT_SIGN: '1'
+          BARRIER: '1'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s4p_b1 2>&1 | tee run_x10s4p_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s4p_b1; mkdir -p $OUT
+          cp x10s4p_b1_history.jsonl x10s4p_b1_params.json x10s4p_b1_state.json x10s4p_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s4p_b1; git commit -q -m 'part176 x10s4p_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s11m_b0:
+    name: part176 x10s11m_b0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '11'
+          KNOT_SIGN: '-1'
+          BARRIER: '0'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s11m_b0 2>&1 | tee run_x10s11m_b0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s11m_b0; mkdir -p $OUT
+          cp x10s11m_b0_history.jsonl x10s11m_b0_params.json x10s11m_b0_state.json x10s11m_b0_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s11m_b0; git commit -q -m 'part176 x10s11m_b0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x10s11m_b1:
+    name: part176 x10s11m_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '10.0'
+          SEED: '11'
+          KNOT_SIGN: '-1'
+          BARRIER: '1'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x10s11m_b1 2>&1 | tee run_x10s11m_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x10s11m_b1; mkdir -p $OUT
+          cp x10s11m_b1_history.jsonl x10s11m_b1_params.json x10s11m_b1_state.json x10s11m_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x10s11m_b1; git commit -q -m 'part176 x10s11m_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x8s4p_b0:
+    name: part176 x8s4p_b0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '8.0'
+          SEED: '4'
+          KNOT_SIGN: '1'
+          BARRIER: '0'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x8s4p_b0 2>&1 | tee run_x8s4p_b0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x8s4p_b0; mkdir -p $OUT
+          cp x8s4p_b0_history.jsonl x8s4p_b0_params.json x8s4p_b0_state.json x8s4p_b0_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x8s4p_b0; git commit -q -m 'part176 x8s4p_b0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  x8s4p_b1:
+    name: part176 x8s4p_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0.05'
+          XI0: '8.0'
+          SEED: '4'
+          KNOT_SIGN: '1'
+          BARRIER: '1'
+          MODE: 'rad'
+          T_END: '40'
+        run: python -u dyn.py x8s4p_b1 2>&1 | tee run_x8s4p_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/x8s4p_b1; mkdir -p $OUT
+          cp x8s4p_b1_history.jsonl x8s4p_b1_params.json x8s4p_b1_state.json x8s4p_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/x8s4p_b1; git commit -q -m 'part176 x8s4p_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  derive_x10s1p_b1:
+    name: part176 derive_x10s1p_b1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          T0: '10'
+          DT: '0.0025'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          INIT: 'knot_in_chaos'
+          EPSB: '0.5'
+          CSTAR: '0.5'
+          CHECK: '10'
+          G0: '0'
+          XI0: '10.0'
+          SEED: '1'
+          KNOT_SIGN: '1'
+          BARRIER: '1'
+          MODE: 'none'
+          T_END: '12'
+        run: python -u dyn.py derive_x10s1p_b1 2>&1 | tee run_derive_x10s1p_b1.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part176/derive_x10s1p_b1; mkdir -p $OUT
+          cp derive_x10s1p_b1_history.jsonl derive_x10s1p_b1_params.json derive_x10s1p_b1_state.json derive_x10s1p_b1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part176/derive_x10s1p_b1; git commit -q -m 'part176 derive_x10s1p_b1 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
