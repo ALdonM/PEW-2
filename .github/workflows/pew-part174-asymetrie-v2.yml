@@ -1,0 +1,550 @@
+name: PEW part174 asymetrie v2 (degre exact, biais coupe a t=20, 4 graines)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  s1_kw0:
+    name: part174 s1_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '1'
+          KW: '0'
+        run: python -u dyn.py s1_kw0 2>&1 | tee run_s1_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s1_kw0; mkdir -p $OUT
+          cp s1_kw0_history.jsonl s1_kw0_params.json s1_kw0_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s1_kw0; git commit -q -m 'part174 s1_kw0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s1_kwp10:
+    name: part174 s1_kwp10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '1'
+          KW: '10'
+        run: python -u dyn.py s1_kwp10 2>&1 | tee run_s1_kwp10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s1_kwp10; mkdir -p $OUT
+          cp s1_kwp10_history.jsonl s1_kwp10_params.json s1_kwp10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s1_kwp10; git commit -q -m 'part174 s1_kwp10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s1_kwm10:
+    name: part174 s1_kwm10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '1'
+          KW: '-10'
+        run: python -u dyn.py s1_kwm10 2>&1 | tee run_s1_kwm10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s1_kwm10; mkdir -p $OUT
+          cp s1_kwm10_history.jsonl s1_kwm10_params.json s1_kwm10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s1_kwm10; git commit -q -m 'part174 s1_kwm10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s2_kw0:
+    name: part174 s2_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '2'
+          KW: '0'
+        run: python -u dyn.py s2_kw0 2>&1 | tee run_s2_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s2_kw0; mkdir -p $OUT
+          cp s2_kw0_history.jsonl s2_kw0_params.json s2_kw0_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s2_kw0; git commit -q -m 'part174 s2_kw0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s2_kwp10:
+    name: part174 s2_kwp10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '2'
+          KW: '10'
+        run: python -u dyn.py s2_kwp10 2>&1 | tee run_s2_kwp10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s2_kwp10; mkdir -p $OUT
+          cp s2_kwp10_history.jsonl s2_kwp10_params.json s2_kwp10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s2_kwp10; git commit -q -m 'part174 s2_kwp10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s2_kwm10:
+    name: part174 s2_kwm10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '2'
+          KW: '-10'
+        run: python -u dyn.py s2_kwm10 2>&1 | tee run_s2_kwm10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s2_kwm10; mkdir -p $OUT
+          cp s2_kwm10_history.jsonl s2_kwm10_params.json s2_kwm10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s2_kwm10; git commit -q -m 'part174 s2_kwm10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s3_kw0:
+    name: part174 s3_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '3'
+          KW: '0'
+        run: python -u dyn.py s3_kw0 2>&1 | tee run_s3_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s3_kw0; mkdir -p $OUT
+          cp s3_kw0_history.jsonl s3_kw0_params.json s3_kw0_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s3_kw0; git commit -q -m 'part174 s3_kw0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s3_kwp10:
+    name: part174 s3_kwp10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '3'
+          KW: '10'
+        run: python -u dyn.py s3_kwp10 2>&1 | tee run_s3_kwp10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s3_kwp10; mkdir -p $OUT
+          cp s3_kwp10_history.jsonl s3_kwp10_params.json s3_kwp10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s3_kwp10; git commit -q -m 'part174 s3_kwp10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s3_kwm10:
+    name: part174 s3_kwm10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '3'
+          KW: '-10'
+        run: python -u dyn.py s3_kwm10 2>&1 | tee run_s3_kwm10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s3_kwm10; mkdir -p $OUT
+          cp s3_kwm10_history.jsonl s3_kwm10_params.json s3_kwm10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s3_kwm10; git commit -q -m 'part174 s3_kwm10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s4_kw0:
+    name: part174 s4_kw0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '4'
+          KW: '0'
+        run: python -u dyn.py s4_kw0 2>&1 | tee run_s4_kw0.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s4_kw0; mkdir -p $OUT
+          cp s4_kw0_history.jsonl s4_kw0_params.json s4_kw0_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s4_kw0; git commit -q -m 'part174 s4_kw0 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s4_kwp10:
+    name: part174 s4_kwp10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '4'
+          KW: '10'
+        run: python -u dyn.py s4_kwp10 2>&1 | tee run_s4_kwp10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s4_kwp10; mkdir -p $OUT
+          cp s4_kwp10_history.jsonl s4_kwp10_params.json s4_kwp10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s4_kwp10; git commit -q -m 'part174 s4_kwp10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
+  s4_kwm10:
+    name: part174 s4_kwm10
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/asym3d_Z_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/asym3d_Z_v2/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          E0: '0.125'
+          MU: '0.375'
+          XI0: '6.0'
+          MODE: 'rad'
+          T0: '10'
+          T_END: '40'
+          T_OFF: '20'
+          DT: '0.0025'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '19800'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          SEED: '4'
+          KW: '-10'
+        run: python -u dyn.py s4_kwm10 2>&1 | tee run_s4_kwm10.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part174/s4_kwm10; mkdir -p $OUT
+          cp s4_kwm10_history.jsonl s4_kwm10_params.json s4_kwm10_state.json $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part174/s4_kwm10; git commit -q -m 'part174 s4_kwm10 : resultats' || exit 0
+          for i in $(seq 1 12); do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep $((RANDOM % 30 + 5)); done
