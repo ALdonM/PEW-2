@@ -77,6 +77,10 @@ if os.path.exists(ck):
     print("reprise à t =", t, flush=True)
 else:
     phi = random_field(N, h, xi0, 1.0, seed).astype(np.float64)
+    if INIT == 'knot':
+        from zlat import hopfion
+        phi = hopfion(N, h, env('RK', 6.0)).astype(np.float64)
+        if KNOT_SIGN < 0: phi = phi * np.array([1, -1, -1, -1])[:, None, None, None]
     if INIT == 'knot_in_chaos':   # produit de quaternions : degré du nœud (|Q| = 1) + degré du chaos
         from zlat import hopfion
         a_, b_ = hopfion(N, h, 6.0).astype(np.float64), phi
@@ -97,6 +101,8 @@ def measure(phi, v, t):
     Ql = ndimage.sum(q, lab, np.arange(1, nl + 1)) if nl else np.array([])
     o = np.argsort(-El)[:8] if nl else []
     cc = coss(phi); cmin = jnp.min(cc)
+    zm = zz.reshape(4, -1).mean(1); zm = zm / (np.linalg.norm(zm) + 1e-30)
+    core = int((np.einsum('a...,a->...', zz, zm) < 0).sum())
     return dict(t=round(t, 3), a=round(a, 4), Ek=round(float(jnp.sum(v**2)) * h**3, 2),
                 E2=round(E[0] / a**2, 2), E4=round(E[1] / a**4, 2), EV=round(E[2], 2),
                 Q=round(float(q.sum()), 3), Qabs=round(float(np.abs(q).sum()), 3),
@@ -105,7 +111,7 @@ def measure(phi, v, t):
                 clusters=[[round(float(El[i]), 1), round(float(Ql[i]), 2)] for i in o],
                 deg=degree(np.array(phi, dtype=np.float64)),
                 deg_bloc=degree(np.array(phi, dtype=np.float64).reshape(4, N//2, 2, N//2, 2, N//2, 2).mean((2, 4, 6))),
-                cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
+                core=core, cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
                 cos_min_run=round(float(RUNMIN[0]), 4),
                 Ebar=round(float(Pbar(phi)), 3), Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(Pbar(phi) if BARRIER else 0.0), 3))
 
