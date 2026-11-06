@@ -28,6 +28,11 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CHECK = env('CHECK', 10)
 NOEUDS = env('NOEUDS', 0)
+KC, G0R = env('KC', 0.0), env('G0R', G0)   # KC : coupure spectrale du bruit (0 = aucun filtre) ; G0R : friction pendant la pré-relaxation (t < t0 + TON)
+if KC > 0:
+    _k = 2 * np.pi * np.fft.fftfreq(N, h); _kr = 2 * np.pi * np.fft.rfftfreq(N, h)
+    KMASK = jnp.asarray((_k[:, None, None]**2 + _k[None, :, None]**2 + _kr[None, None, :]**2) <= KC**2)
+    print('filtre du bruit : fraction de modes conservés', float(np.mean(np.asarray(KMASK))), flush=True)
 TSTART, TQ, THOLD, TON = env('TSTART', 0.0), env('TQ', 0.0), env('THOLD', 5.0), env('TON', 0.0)   # bruit de Langevin (MODE lang)
 def T_of(t):
     if MODE != 'lang' or t < t0 + TON: return 0.0
@@ -68,7 +73,10 @@ gEw = jax.grad(Ew)
 
 def kick(v, damp, T, key):
     amp = jnp.sqrt(jnp.maximum((1.0 - damp**2) * T, 0.0) / (2.0 * h**3))
-    return v * damp + amp * jax.random.normal(key, v.shape, dtype=v.dtype)
+    n = jax.random.normal(key, v.shape, dtype=v.dtype)
+    if KC > 0:
+        n = jnp.fft.irfftn(jnp.fft.rfftn(n, axes=(1, 2, 3)) * KMASK[None], s=n.shape[1:], axes=(1, 2, 3)).astype(v.dtype)
+    return v * damp + amp * n
 
 @jax.jit
 def kdk(phi, v, acc, a_new, damp, dt, kw, T, key):
@@ -84,7 +92,7 @@ acc_of = jax.jit(lambda phi, a, kw: -0.5 * gEw(phi, a**-2, a**-4, kw) / h**3)
 
 _, _, parts, qd = make(h, mu, cF, d2)
 def a_of(t): return np.sqrt(t / t0) if MODE == 'rad' else 1.0
-def gam(t): return 1.5 / t if MODE == 'rad' else G0   # 'lang' et 'none' : friction constante G0
+def gam(t): return 1.5 / t if MODE == 'rad' else (G0R if t < t0 + TON else G0)   # 'lang' et 'none' : friction constante G0 (G0R pendant la pré-relaxation)
 
 ck, stf, hist = f"ck_{TAG}.npz", f"{TAG}_state.json", f"{TAG}_history.jsonl"
 if os.path.exists(ck):
@@ -103,7 +111,7 @@ else:
         a0, a1, a2, a3 = a_; b0, b1, b2, b3 = b_
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
     phi = jnp.array(phi.astype(np.float32)); v = jnp.zeros_like(phi); t = t0
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN), open(f"{TAG}_params.json", "w"))
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN), open(f"{TAG}_params.json", "w"))
 
 def measure(phi, v, t):
     a = a_of(t); E = np.array(parts(phi)); q = np.array(qd(phi)) * h**3
