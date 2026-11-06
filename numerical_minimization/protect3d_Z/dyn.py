@@ -28,6 +28,15 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CHECK = env('CHECK', 10)
 NOEUDS = env('NOEUDS', 0)
+TSTART, TQ, THOLD, TON = env('TSTART', 0.0), env('TQ', 0.0), env('THOLD', 5.0), env('TON', 0.0)   # bruit de Langevin (MODE lang)
+def T_of(t):
+    if MODE != 'lang' or t < t0 + TON: return 0.0
+    if TQ <= 0: return TSTART
+    if t < t0 + TON + THOLD: return TSTART
+    if env('TLAW', 'lin') == 'exp':
+        T = TSTART * np.exp(-(t - t0 - TON - THOLD) / TQ)
+        return T if T > 0.003 else 0.0
+    return TSTART * max(0.0, 1.0 - (t - t0 - TON - THOLD) / TQ)
 T_OFF = env('T_OFF', 20.0)
 from degre import degree, compte_noeuds   # potentiel chimique de Hopf (kappa * omega) en unités du modèle   # INIT = chaos | knot_in_chaos ; WARM : durée à dt/5 au départ
 d2, cF = 1e-3, 1.0 / (2 * e0**2)
@@ -57,20 +66,25 @@ def Ew(phi, w2, w4, kw):
     return h**3 * jnp.sum(w2 * g + w4 * f + p) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
 
+def kick(v, damp, T, key):
+    amp = jnp.sqrt(jnp.maximum((1.0 - damp**2) * T, 0.0) / (2.0 * h**3))
+    return v * damp + amp * jax.random.normal(key, v.shape, dtype=v.dtype)
+
 @jax.jit
-def kdk(phi, v, acc, a_new, damp, dt, kw):
+def kdk(phi, v, acc, a_new, damp, dt, kw, T, key):
     # saut-de-mouton (une seule évaluation du gradient par pas) avec friction exacte exp(-3H dt/2) de part et d'autre
-    v = v * damp + 0.5 * dt * acc
+    k1, k2 = jax.random.split(key)
+    v = kick(v, damp, T, k1) + 0.5 * dt * acc
     phi = phi + dt * v
     acc = -0.5 * gEw(phi, a_new**-2, a_new**-4, kw) / h**3
-    v = (v + 0.5 * dt * acc) * damp
+    v = kick(v + 0.5 * dt * acc, damp, T, k2)
     return phi, v, acc
 
 acc_of = jax.jit(lambda phi, a, kw: -0.5 * gEw(phi, a**-2, a**-4, kw) / h**3)
 
 _, _, parts, qd = make(h, mu, cF, d2)
 def a_of(t): return np.sqrt(t / t0) if MODE == 'rad' else 1.0
-def gam(t): return 1.5 / t if MODE == 'rad' else G0
+def gam(t): return 1.5 / t if MODE == 'rad' else G0   # 'lang' et 'none' : friction constante G0
 
 ck, stf, hist = f"ck_{TAG}.npz", f"{TAG}_state.json", f"{TAG}_history.jsonl"
 if os.path.exists(ck):
@@ -89,7 +103,7 @@ else:
         a0, a1, a2, a3 = a_; b0, b1, b2, b3 = b_
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
     phi = jnp.array(phi.astype(np.float32)); v = jnp.zeros_like(phi); t = t0
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN), open(f"{TAG}_params.json", "w"))
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN), open(f"{TAG}_params.json", "w"))
 
 def measure(phi, v, t):
     a = a_of(t); E = np.array(parts(phi)); q = np.array(qd(phi)) * h**3
@@ -113,12 +127,13 @@ def measure(phi, v, t):
                 deg=degree(np.array(phi, dtype=np.float64)),
                 deg_bloc=degree(np.array(phi, dtype=np.float64).reshape(4, N//2, 2, N//2, 2, N//2, 2).mean((2, 4, 6))),
                 noeuds=compte_noeuds(np.array(phi, dtype=np.float64)) if NOEUDS else None,
-                core=core, cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
+                T=round(T_of(t), 4), core=core, cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
                 cos_min_run=round(float(RUNMIN[0]), 4),
                 Ebar=round(float(Pbar(phi)), 3), Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(Pbar(phi) if BARRIER else 0.0), 3))
 
 def kw_of(t): return (KW / a_of(t)) if t < T_OFF else 0.0
 RUNMIN = [2.0]
+nstep_g = [int(round((t - t0) / dt * 1.0))]   # reproductible à la reprise (approximatif : la graine du bruit en dépend)
 acc = acc_of(phi, a_of(t), kw_of(t))
 w0 = time.time(); next_meas = t; next_snap = (np.floor(t / SNAP) + 1) * SNAP; finished = False
 with open(hist, "a") as H_:
@@ -135,7 +150,8 @@ with open(hist, "a") as H_:
         if time.time() - w0 > BUDGET: break
         dte = dt / 5 if t < t0 + WARM else dt
         tm = t + dte / 2
-        phi, v, acc = kdk(phi, v, acc, a_of(t + dte), float(np.exp(-gam(tm) * dte / 2)), dte, kw_of(t + dte))
+        key = jax.random.fold_in(jax.random.PRNGKey(10_000 + seed), nstep_g[0]); nstep_g[0] += 1
+        phi, v, acc = kdk(phi, v, acc, a_of(t + dte), float(np.exp(-gam(tm) * dte / 2)), dte, kw_of(t + dte), T_of(tm), key)
         t += dte; nstep = locals().get('nstep', 0) + 1
         if nstep % CHECK == 0: RUNMIN[0] = min(RUNMIN[0], float(cosmin_j(phi)))
         if nstep % 2000 == 0:
