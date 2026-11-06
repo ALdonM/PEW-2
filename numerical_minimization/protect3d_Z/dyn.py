@@ -27,8 +27,9 @@ KW = 0.0
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CHECK = env('CHECK', 10)
+NOEUDS = env('NOEUDS', 0)
 T_OFF = env('T_OFF', 20.0)
-from degre import degree   # potentiel chimique de Hopf (kappa * omega) en unités du modèle   # INIT = chaos | knot_in_chaos ; WARM : durée à dt/5 au départ
+from degre import degree, compte_noeuds   # potentiel chimique de Hopf (kappa * omega) en unités du modèle   # INIT = chaos | knot_in_chaos ; WARM : durée à dt/5 au départ
 d2, cF = 1e-3, 1.0 / (2 * e0**2)
 
 def Qlat(phi):
@@ -76,7 +77,7 @@ if os.path.exists(ck):
     z = np.load(ck); phi, v, t = jnp.array(z['phi']), jnp.array(z['v']), float(z['t'])
     print("reprise à t =", t, flush=True)
 else:
-    phi = random_field(N, h, xi0, 1.0, seed).astype(np.float64)
+    phi = random_field(N, h, xi0, env('RMS', 1.0), seed).astype(np.float64)
     if INIT == 'knot':
         from zlat import hopfion
         phi = hopfion(N, h, env('RK', 6.0)).astype(np.float64)
@@ -111,6 +112,7 @@ def measure(phi, v, t):
                 clusters=[[round(float(El[i]), 1), round(float(Ql[i]), 2)] for i in o],
                 deg=degree(np.array(phi, dtype=np.float64)),
                 deg_bloc=degree(np.array(phi, dtype=np.float64).reshape(4, N//2, 2, N//2, 2, N//2, 2).mean((2, 4, 6))),
+                noeuds=compte_noeuds(np.array(phi, dtype=np.float64)) if NOEUDS else None,
                 core=core, cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
                 cos_min_run=round(float(RUNMIN[0]), 4),
                 Ebar=round(float(Pbar(phi)), 3), Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(Pbar(phi) if BARRIER else 0.0), 3))

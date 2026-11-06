@@ -8,11 +8,11 @@ def parity(p):
         for j in range(i+1,3):
             if p[i]>p[j]: s=-s
     return s
-def degree(phi, zeta0=None):
+def degree(phi, zeta0=None, carte=False):
     z = phi / np.sqrt((phi**2).sum(0))
     if zeta0 is None:
         zeta0 = np.array([0.31, -0.52, 0.64, 0.47]); zeta0 /= np.linalg.norm(zeta0)
-    total = 0
+    total = 0; cmap = np.zeros(z.shape[1:], dtype=np.int32)
     for p in PERMS:
         # sommets : v0 = x, v1 = x+e_p0, v2 = v1+e_p1, v3 = v2+e_p2
         shifts=[(0,0,0)]; cur=[0,0,0]
@@ -28,7 +28,24 @@ def degree(phi, zeta0=None):
         hit = ok & (sol[:,:4]>=0).all(1) & (sol[:,4]>0)
         sgn = np.sign(np.linalg.det(V[hit]))
         total += parity(p)*sgn.sum()
+        if carte:
+            c = np.zeros(M, dtype=np.int32); c[hit] = (parity(p)*sgn).astype(np.int32); cmap += c.reshape(z.shape[1:])
+    if carte: return int(round(total)), cmap
     return int(round(total))
+
+def compte_noeuds(phi):
+    """Compte nœuds et anti-nœuds : préimages signées de l'antipode du vide moyen, sommées par région « retournée » (u·m < 0, dilatée d'une maille).
+    N'a de sens que si le fond est ordonné (order proche de 1)."""
+    from scipy import ndimage
+    z = phi / np.sqrt((phi**2).sum(0)); m = z.reshape(4, -1).mean(1); m = m / (np.linalg.norm(m) + 1e-30)
+    zt = -m + np.array([0.031, -0.017, 0.023, 0.011]); zt = zt / np.linalg.norm(zt)   # perturbation : évite une valeur dégénérée
+    tot, cmap = degree(phi, zt, carte=True)
+    inv = ndimage.binary_dilation(np.einsum('a...,a->...', z, m) < 0, iterations=1, structure=np.ones((3,3,3)))
+    lab, n = ndimage.label(inv, structure=np.ones((3,3,3)))
+    if n == 0: return dict(n_plus=0, n_moins=0, hors=int(cmap.sum()), charges=[])
+    s = ndimage.sum(cmap, lab, np.arange(1, n+1)).round().astype(int)
+    nz = s[s != 0]
+    return dict(n_plus=int((nz > 0).sum()), n_moins=int((nz < 0).sum()), hors=int(cmap[lab == 0].sum()), charges=sorted(nz.tolist())[:20])
 if __name__ == "__main__":
     import sys
     for f in sys.argv[1:]:
