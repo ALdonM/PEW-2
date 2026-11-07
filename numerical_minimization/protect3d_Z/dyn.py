@@ -28,7 +28,14 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CHECK = env('CHECK', 10)
 NOEUDS = env('NOEUDS', 0)
-EINJ, INIT_FILE = env('EINJ', 0.0), env('INIT_FILE', '')   # part180 : énergie cinétique injectée une fois à t0+TON (spectre filtré |k|<=KC), état initial lu dans un fichier .npy (INIT=file)
+EINJ, INIT_FILE = env('EINJ', 0.0), env('INIT_FILE', '')
+NB = env('NB', N)   # part180b : réseau de base du fichier d'entrée et du tirage du bruit (NB < N : interpolation spectrale, même champ physique à h/2)
+def pad_fourier(F, M):
+    """F : spectre (4,n,n,n) d'un champ réel sur un réseau n^3 ; renvoie le champ réel sur le réseau M^3 (même champ continu, mode de Nyquist supprimé)."""
+    n = F.shape[1]; G = np.zeros((4, M, M, M), dtype=complex)
+    i = np.array([k for k in range(n) if k != n // 2]); j = np.where(i < n // 2, i, i + (M - n))
+    G[:, j[:, None, None], j[None, :, None], j[None, None, :]] = F[:, i[:, None, None], i[None, :, None], i[None, None, :]]
+    return np.fft.ifftn(G, axes=(1, 2, 3)).real * (M / n)**3   # part180 : énergie cinétique injectée une fois à t0+TON (spectre filtré |k|<=KC), état initial lu dans un fichier .npy (INIT=file)
 KC, G0R = env('KC', 0.0), env('G0R', G0)   # KC : coupure spectrale du bruit (0 = aucun filtre) ; G0R : friction pendant la pré-relaxation (t < t0 + TON)
 if KC > 0:
     _k = 2 * np.pi * np.fft.fftfreq(N, h); _kr = 2 * np.pi * np.fft.rfftfreq(N, h)
@@ -103,6 +110,7 @@ else:
     phi = random_field(N, h, xi0, env('RMS', 1.0), seed).astype(np.float64)
     if INIT == 'file':
         phi = np.load(INIT_FILE).astype(np.float64)
+        if NB != N: phi = pad_fourier(np.fft.fftn(phi, axes=(1, 2, 3)), N)
     if INIT == 'knot':
         from zlat import hopfion
         phi = hopfion(N, h, env('RK', 6.0)).astype(np.float64)
@@ -114,7 +122,7 @@ else:
         a0, a1, a2, a3 = a_; b0, b1, b2, b3 = b_
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
     phi = jnp.array(phi.astype(np.float32)); v = jnp.zeros_like(phi); t = t0
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE), open(f"{TAG}_params.json", "w"))
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB), open(f"{TAG}_params.json", "w"))
 
 def measure(phi, v, t):
     a = a_of(t); E = np.array(parts(phi)); q = np.array(qd(phi)) * h**3
@@ -161,10 +169,20 @@ with open(hist, "a") as H_:
         if t >= T_END: finished = True; break
         if time.time() - w0 > BUDGET: break
         if not injected and t >= t0 + TON - 1e-9:
-            nj = jax.random.normal(jax.random.PRNGKey(20_000 + seed), v.shape, dtype=v.dtype)
-            if KC > 0:
-                nj = jnp.fft.irfftn(jnp.fft.rfftn(nj, axes=(1, 2, 3)) * KMASK[None], s=nj.shape[1:], axes=(1, 2, 3)).astype(v.dtype)
-            nj = nj * jnp.sqrt(EINJ / (jnp.sum(nj**2) * h**3))
+            if NB != N:
+                hb = h * N / NB
+                nb = np.asarray(jax.random.normal(jax.random.PRNGKey(20_000 + seed), (4, NB, NB, NB), dtype=jnp.float32), dtype=np.float64)
+                kb = 2 * np.pi * np.fft.fftfreq(NB, hb)
+                Fb = np.fft.fftn(nb, axes=(1, 2, 3))
+                if KC > 0: Fb = Fb * ((kb[:, None, None]**2 + kb[None, :, None]**2 + kb[None, None, :]**2) <= KC**2)[None]
+                nb = np.fft.ifftn(Fb, axes=(1, 2, 3)).real
+                nb *= np.sqrt(EINJ / (np.sum(nb**2) * hb**3))
+                nj = jnp.asarray(pad_fourier(np.fft.fftn(nb, axes=(1, 2, 3)), N).astype(np.float32))
+            else:
+                nj = jax.random.normal(jax.random.PRNGKey(20_000 + seed), v.shape, dtype=v.dtype)
+                if KC > 0:
+                    nj = jnp.fft.irfftn(jnp.fft.rfftn(nj, axes=(1, 2, 3)) * KMASK[None], s=nj.shape[1:], axes=(1, 2, 3)).astype(v.dtype)
+                nj = nj * jnp.sqrt(EINJ / (jnp.sum(nj**2) * h**3))
             v = v + nj; injected = True
             print('injection : Ek ajoutée =', float(jnp.sum(nj**2)) * h**3, ' à t =', t, flush=True)
         dte = dt / 5 if t < t0 + WARM else dt
