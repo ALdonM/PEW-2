@@ -1,0 +1,7 @@
+Les commits des chunks 2 de part179 ont été perdus par un conflit de rebase (add/add) :
+le chunk 2 démarre depuis le commit de lancement, sans le commit du chunk 1 déjà poussé.
+Les historiques du chunk 2 ont été récupérés dans les journaux d'exécution (lignes JSON affichées à l'écran)
+et sont dans *_history_chunk2_from_log.jsonl. Les champs finaux (champ_final.npy) du chunk 2 sont perdus :
+seuls les historiques sont disponibles. Les états *_state.json du dépôt datent du chunk 1.
+Correctif pour les prochains workflows : git checkout de la branche main à jour au début de chaque chunk,
+ou git pull --rebase -X theirs.
