@@ -1,0 +1,3310 @@
+name: PEW part180c seuil a h/2 energies elevees et graines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  hk15_e8770_s1_c1:
+    name: part180c hk15_e8770_s1 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s1_c2:
+    name: part180c hk15_e8770_s1 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s1_c1
+    if: always() && needs.hk15_e8770_s1_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s1_c3:
+    name: part180c hk15_e8770_s1 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s1_c2
+    if: always() && needs.hk15_e8770_s1_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s1_c4:
+    name: part180c hk15_e8770_s1 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s1_c3
+    if: always() && needs.hk15_e8770_s1_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s1_c5:
+    name: part180c hk15_e8770_s1 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s1_c4
+    if: always() && needs.hk15_e8770_s1_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s1_c6:
+    name: part180c hk15_e8770_s1 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s1_c5
+    if: always() && needs.hk15_e8770_s1_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+          key: p180c-hk15_e8770_s1-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s1 2>&1 | tee run_p180c_hk15_e8770_s1_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s1-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s1; mkdir -p $OUT
+          cp p180c_hk15_e8770_s1_history.jsonl p180c_hk15_e8770_s1_params.json p180c_hk15_e8770_s1_state.json p180c_hk15_e8770_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s1; git commit -q -m 'part180c hk15_e8770_s1 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c1:
+    name: part180c hk15_e26300_s1 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c2:
+    name: part180c hk15_e26300_s1 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e26300_s1_c1
+    if: always() && needs.hk15_e26300_s1_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c3:
+    name: part180c hk15_e26300_s1 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e26300_s1_c2
+    if: always() && needs.hk15_e26300_s1_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c4:
+    name: part180c hk15_e26300_s1 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e26300_s1_c3
+    if: always() && needs.hk15_e26300_s1_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c5:
+    name: part180c hk15_e26300_s1 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e26300_s1_c4
+    if: always() && needs.hk15_e26300_s1_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e26300_s1_c6:
+    name: part180c hk15_e26300_s1 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e26300_s1_c5
+    if: always() && needs.hk15_e26300_s1_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+          key: p180c-hk15_e26300_s1-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e26300_s1 2>&1 | tee run_p180c_hk15_e26300_s1_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e26300_s1-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e26300_s1; mkdir -p $OUT
+          cp p180c_hk15_e26300_s1_history.jsonl p180c_hk15_e26300_s1_params.json p180c_hk15_e26300_s1_state.json p180c_hk15_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e26300_s1; git commit -q -m 'part180c hk15_e26300_s1 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c1:
+    name: part180c hk6_e26300_s1 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c2:
+    name: part180c hk6_e26300_s1 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk6_e26300_s1_c1
+    if: always() && needs.hk6_e26300_s1_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c3:
+    name: part180c hk6_e26300_s1 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk6_e26300_s1_c2
+    if: always() && needs.hk6_e26300_s1_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c4:
+    name: part180c hk6_e26300_s1 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk6_e26300_s1_c3
+    if: always() && needs.hk6_e26300_s1_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c5:
+    name: part180c hk6_e26300_s1 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk6_e26300_s1_c4
+    if: always() && needs.hk6_e26300_s1_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk6_e26300_s1_c6:
+    name: part180c hk6_e26300_s1 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk6_e26300_s1_c5
+    if: always() && needs.hk6_e26300_s1_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk6_e26300_s1.npz
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+          key: p180c-hk6_e26300_s1-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk6_e26300_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '1'
+          EINJ: '26300'
+          KC: '6.0'
+          NB: '64'
+        run: python -u dyn.py p180c_hk6_e26300_s1 2>&1 | tee run_p180c_hk6_e26300_s1_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk6_e26300_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk6_e26300_s1-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_params.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_state.json
+            numerical_minimization/protect3d_Z/p180c_hk6_e26300_s1_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk6_e26300_s1; mkdir -p $OUT
+          cp p180c_hk6_e26300_s1_history.jsonl p180c_hk6_e26300_s1_params.json p180c_hk6_e26300_s1_state.json p180c_hk6_e26300_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk6_e26300_s1; git commit -q -m 'part180c hk6_e26300_s1 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c1:
+    name: part180c hk15_e2630_s2 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c2:
+    name: part180c hk15_e2630_s2 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s2_c1
+    if: always() && needs.hk15_e2630_s2_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c3:
+    name: part180c hk15_e2630_s2 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s2_c2
+    if: always() && needs.hk15_e2630_s2_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c4:
+    name: part180c hk15_e2630_s2 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s2_c3
+    if: always() && needs.hk15_e2630_s2_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c5:
+    name: part180c hk15_e2630_s2 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s2_c4
+    if: always() && needs.hk15_e2630_s2_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s2_c6:
+    name: part180c hk15_e2630_s2 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s2_c5
+    if: always() && needs.hk15_e2630_s2_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+          key: p180c-hk15_e2630_s2-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s2 2>&1 | tee run_p180c_hk15_e2630_s2_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s2-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s2; mkdir -p $OUT
+          cp p180c_hk15_e2630_s2_history.jsonl p180c_hk15_e2630_s2_params.json p180c_hk15_e2630_s2_state.json p180c_hk15_e2630_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s2; git commit -q -m 'part180c hk15_e2630_s2 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c1:
+    name: part180c hk15_e2630_s3 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c2:
+    name: part180c hk15_e2630_s3 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s3_c1
+    if: always() && needs.hk15_e2630_s3_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c3:
+    name: part180c hk15_e2630_s3 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s3_c2
+    if: always() && needs.hk15_e2630_s3_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c4:
+    name: part180c hk15_e2630_s3 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s3_c3
+    if: always() && needs.hk15_e2630_s3_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c5:
+    name: part180c hk15_e2630_s3 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s3_c4
+    if: always() && needs.hk15_e2630_s3_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e2630_s3_c6:
+    name: part180c hk15_e2630_s3 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e2630_s3_c5
+    if: always() && needs.hk15_e2630_s3_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e2630_s3.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+          key: p180c-hk15_e2630_s3-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e2630_s3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '3'
+          EINJ: '2630'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e2630_s3 2>&1 | tee run_p180c_hk15_e2630_s3_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e2630_s3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e2630_s3-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e2630_s3_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e2630_s3; mkdir -p $OUT
+          cp p180c_hk15_e2630_s3_history.jsonl p180c_hk15_e2630_s3_params.json p180c_hk15_e2630_s3_state.json p180c_hk15_e2630_s3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e2630_s3; git commit -q -m 'part180c hk15_e2630_s3 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c1:
+    name: part180c hk15_e8770_s2 chunk 1/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c1
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c2:
+    name: part180c hk15_e8770_s2 chunk 2/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s2_c1
+    if: always() && needs.hk15_e8770_s2_c1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c2
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c3:
+    name: part180c hk15_e8770_s2 chunk 3/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s2_c2
+    if: always() && needs.hk15_e8770_s2_c2.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c3.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c3
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c4:
+    name: part180c hk15_e8770_s2 chunk 4/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s2_c3
+    if: always() && needs.hk15_e8770_s2_c3.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c4-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c4.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c4
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c5:
+    name: part180c hk15_e8770_s2 chunk 5/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s2_c4
+    if: always() && needs.hk15_e8770_s2_c4.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c5-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c5.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c5
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  hk15_e8770_s2_c6:
+    name: part180c hk15_e8770_s2 chunk 6/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: hk15_e8770_s2_c5
+    if: always() && needs.hk15_e8770_s2_c5.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p180c_hk15_e8770_s2.npz
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+          key: p180c-hk15_e8770_s2-c6-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p180c-hk15_e8770_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run or resume
+        env:
+          MODE: 'lang'
+          G0: '0.0'
+          G0R: '0.0'
+          MU: '0.375'
+          E0: '0.25'
+          N: '128'
+          H: '0.25'
+          T0: '10'
+          DT: '0.00125'
+          SNAP: '1000'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          TON: '2'
+          T_END: '24'
+          MEAS: '0.5'
+          NOEUDS: '0'
+          TSTART: '0.0'
+          TQ: '0'
+          SEED: '2'
+          EINJ: '8770'
+          KC: '1.5'
+          NB: '64'
+        run: python -u dyn.py p180c_hk15_e8770_s2 2>&1 | tee run_p180c_hk15_e8770_s2_c6.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p180c_hk15_e8770_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Sauvegarde en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p180c_hk15_e8770_s2-c6
+          path: |
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_params.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_state.json
+            numerical_minimization/protect3d_Z/p180c_hk15_e8770_s2_champ_final.npy
+          if-no-files-found: ignore
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part180c/p180c_hk15_e8770_s2; mkdir -p $OUT
+          cp p180c_hk15_e8770_s2_history.jsonl p180c_hk15_e8770_s2_params.json p180c_hk15_e8770_s2_state.json p180c_hk15_e8770_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part180c/p180c_hk15_e8770_s2; git commit -q -m 'part180c hk15_e8770_s2 chunk 6 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
