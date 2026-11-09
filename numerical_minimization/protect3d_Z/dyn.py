@@ -124,16 +124,19 @@ else:
     phi = jnp.array(phi.astype(np.float32)); v = jnp.zeros_like(phi); t = t0
     json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB), open(f"{TAG}_params.json", "w"))
 
+PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") else []   # part181 : projection de la densité d'énergie sur le plan xy à chaque mesure (float16)
 def measure(phi, v, t):
     a = a_of(t); E = np.array(parts(phi)); q = np.array(qd(phi)) * h**3
     r = np.sqrt(np.array(jnp.sum(phi**2, 0))); zz = np.array(phi) / r
     g, f, p = energy_density(phi, h, mu, cF, d2)
     e = np.array(g / a**2 + f / a**4 + p) * h**3
     es = ndimage.gaussian_filter(e, 2, mode='wrap')
+    PROJ.append(e.sum(2).astype(np.float16)); np.save(f"{TAG}_proj.npy", np.array(PROJ))
     lab, nl = ndimage.label(es > 5 * es.mean(), structure=np.ones((3, 3, 3)))
     El = ndimage.sum(e, lab, np.arange(1, nl + 1)) if nl else np.array([])
     Ql = ndimage.sum(q, lab, np.arange(1, nl + 1)) if nl else np.array([])
     o = np.argsort(-El)[:8] if nl else []
+    com = ndimage.center_of_mass(e, lab, [int(i) + 1 for i in o]) if nl else []   # part181 : centres des amas (mailles)
     cc = coss(phi); cmin = jnp.min(cc)
     zm = zz.reshape(4, -1).mean(1); zm = zm / (np.linalg.norm(zm) + 1e-30)
     core = int((np.einsum('a...,a->...', zz, zm) < 0).sum())
@@ -143,6 +146,7 @@ def measure(phi, v, t):
                 rho_min=round(float(r.min()), 3), rho_med=round(float(np.median(r)), 3),
                 order=round(float(np.linalg.norm(zz.reshape(4, -1).mean(1))), 4),
                 clusters=[[round(float(El[i]), 1), round(float(Ql[i]), 2)] for i in o],
+                centres=[[round(float(c) * h, 2) for c in cm] for cm in com],
                 deg=degree(np.array(phi, dtype=np.float64)),
                 deg_bloc=degree(np.array(phi, dtype=np.float64).reshape(4, N//2, 2, N//2, 2, N//2, 2).mean((2, 4, 6))),
                 noeuds=compte_noeuds(np.array(phi, dtype=np.float64)) if NOEUDS else None,
