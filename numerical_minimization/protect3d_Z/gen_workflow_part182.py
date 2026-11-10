@@ -1,4 +1,4 @@
-"""Génère .github/workflows/pew-part182-paires.yml : contrôle de part181 : h/2 (N=256, NB=128) et instantanés 3D à h=0,5."""
+"""Génère .github/workflows/pew-part182-paires.yml : contrôle de part181 : h/2 (N=192, NB=128) et instantanés 3D à h=0,5."""
 import sys
 # (tag, orient, sep_mailles, opp)  -- sep en mailles (h = 0,5 : 24 -> 12 u, 40 -> 20 u)
 # (tag, orient, sep_mailles_N128, opp, N, H, DT, NB, T_END, nch, snap)
@@ -6,7 +6,7 @@ runs = []
 for o in ("pi_x", "pi_z", "pi2_x"):
     runs.append((f"h05snap_same_{o}_s24", o, 24, 0, 128, 0.5, 0.0025, 128, 40, 2, 2.5))
 for o, opp, te in (("pi_x", 0, 28), ("pi_z", 0, 28), ("beta0", 0, 28), ("pi_x", 1, 20)):
-    runs.append((f"h025_{'opp' if opp else 'same'}_{o}_s24", o, 24, opp, 256, 0.25, 0.00125, 128, te, 5, 1000))
+    runs.append((f"h033_{'opp' if opp else 'same'}_{o}_s24", o, 24, opp, 192, 0.3333333333, 0.0016666667, 128, te, 5, 1000))
 ENV = {"MODE": "lang", "G0": "0.0", "G0R": "0.0", "MU": "0.375", "E0": "0.25", "N": "128", "H": "0.5", "T0": "10", "DT": "0.0025",
        "SNAP": "1000", "TIME_BUDGET": "19000", "JAX_PLATFORM_NAME": "cpu", "OMP_NUM_THREADS": "4", "BARRIER": "0", "INIT": "file",
        "TON": "0", "T_END": "40", "MEAS": "0.5", "NOEUDS": "0",
@@ -14,7 +14,7 @@ ENV = {"MODE": "lang", "G0": "0.0", "G0R": "0.0", "MU": "0.375", "E0": "0.25", "
 def job(tag, o, sep, opp, N, H, DT, NB, TE, nch, snap, c):
     full = f"p182_{tag}"
     env = dict(ENV, EINJ='0', KC='0', INIT_FILE=f'pair_{tag}.npy', N=str(N), H=str(H), DT=str(DT), NB=str(NB), T_END=str(TE), SNAP=str(snap))
-    big = N > 128
+    big = N > 128   # pas de champ_final dans le depot au-dela de 128
     envs = "\n".join(f"          {k}: '{v}'" for k, v in env.items())
     needs = f"    needs: {tag}_c{c-1}\n    if: always() && needs.{tag}_c{c-1}.outputs.finished == 'false'\n" if c > 1 else ""
     return f"""  {tag}_c{c}:
@@ -88,7 +88,7 @@ def job(tag, o, sep, opp, N, H, DT, NB, TE, nch, snap, c):
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
 """
-out = ["name: PEW part182 paires de noeuds - controle h/2 et instantanes 3D\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n  actions: read\n\njobs:\n"]
+out = ["name: PEW part182 paires de noeuds - controle h plus fin et instantanes 3D\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: write\n  actions: read\n\njobs:\n"]
 for r in runs:
     for c in range(1, r[9] + 1): out.append(job(*r, c))
 open(".github/workflows/pew-part182-paires.yml", "w").write("".join(out))

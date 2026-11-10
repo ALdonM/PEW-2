@@ -1,4 +1,4 @@
-name: PEW part182 paires de noeuds - controle h/2 et instantanes 3D
+name: PEW part182 paires de noeuds - controle h plus fin et instantanes 3D
 
 on:
   workflow_dispatch:
@@ -584,8 +584,8 @@ jobs:
           git add resultats/part182/p182_h05snap_same_pi2_x_s24; git commit -q -m 'part182 h05snap_same_pi2_x_s24 chunk 2 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_x_s24_c1:
-    name: part182 h025_same_pi_x_s24 chunk 1/5
+  h033_same_pi_x_s24_c1:
+    name: part182 h033_same_pi_x_s24 chunk 1/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     outputs:
@@ -606,17 +606,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-          key: p182-h025_same_pi_x_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+          key: p182-h033_same_pi_x_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_x_s24-
+            p182-h033_same_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_x_s24.npy 24 pi_x 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_x_s24.npy 24 pi_x 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -624,10 +624,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -643,48 +643,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_x_s24 2>&1 | tee run_p182_h025_same_pi_x_s24_c1.log
+        run: python -u dyn.py p182_h033_same_pi_x_s24 2>&1 | tee run_p182_h033_same_pi_x_s24_c1.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_x_s24-c1
+          name: p182_h033_same_pi_x_s24-c1
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_x_s24_history.jsonl p182_h025_same_pi_x_s24_params.json p182_h025_same_pi_x_s24_state.json p182_h025_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_x_s24_history.jsonl p182_h033_same_pi_x_s24_params.json p182_h033_same_pi_x_s24_state.json p182_h033_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_x_s24; git commit -q -m 'part182 h025_same_pi_x_s24 chunk 1 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_x_s24; git commit -q -m 'part182 h033_same_pi_x_s24 chunk 1 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_x_s24_c2:
-    name: part182 h025_same_pi_x_s24 chunk 2/5
+  h033_same_pi_x_s24_c2:
+    name: part182 h033_same_pi_x_s24 chunk 2/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_x_s24_c1
-    if: always() && needs.h025_same_pi_x_s24_c1.outputs.finished == 'false'
+    needs: h033_same_pi_x_s24_c1
+    if: always() && needs.h033_same_pi_x_s24_c1.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -703,17 +703,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-          key: p182-h025_same_pi_x_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+          key: p182-h033_same_pi_x_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_x_s24-
+            p182-h033_same_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_x_s24.npy 24 pi_x 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_x_s24.npy 24 pi_x 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -721,10 +721,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -740,48 +740,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_x_s24 2>&1 | tee run_p182_h025_same_pi_x_s24_c2.log
+        run: python -u dyn.py p182_h033_same_pi_x_s24 2>&1 | tee run_p182_h033_same_pi_x_s24_c2.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_x_s24-c2
+          name: p182_h033_same_pi_x_s24-c2
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_x_s24_history.jsonl p182_h025_same_pi_x_s24_params.json p182_h025_same_pi_x_s24_state.json p182_h025_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_x_s24_history.jsonl p182_h033_same_pi_x_s24_params.json p182_h033_same_pi_x_s24_state.json p182_h033_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_x_s24; git commit -q -m 'part182 h025_same_pi_x_s24 chunk 2 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_x_s24; git commit -q -m 'part182 h033_same_pi_x_s24 chunk 2 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_x_s24_c3:
-    name: part182 h025_same_pi_x_s24 chunk 3/5
+  h033_same_pi_x_s24_c3:
+    name: part182 h033_same_pi_x_s24 chunk 3/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_x_s24_c2
-    if: always() && needs.h025_same_pi_x_s24_c2.outputs.finished == 'false'
+    needs: h033_same_pi_x_s24_c2
+    if: always() && needs.h033_same_pi_x_s24_c2.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -800,17 +800,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-          key: p182-h025_same_pi_x_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+          key: p182-h033_same_pi_x_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_x_s24-
+            p182-h033_same_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_x_s24.npy 24 pi_x 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_x_s24.npy 24 pi_x 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -818,10 +818,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -837,48 +837,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_x_s24 2>&1 | tee run_p182_h025_same_pi_x_s24_c3.log
+        run: python -u dyn.py p182_h033_same_pi_x_s24 2>&1 | tee run_p182_h033_same_pi_x_s24_c3.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_x_s24-c3
+          name: p182_h033_same_pi_x_s24-c3
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_x_s24_history.jsonl p182_h025_same_pi_x_s24_params.json p182_h025_same_pi_x_s24_state.json p182_h025_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_x_s24_history.jsonl p182_h033_same_pi_x_s24_params.json p182_h033_same_pi_x_s24_state.json p182_h033_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_x_s24; git commit -q -m 'part182 h025_same_pi_x_s24 chunk 3 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_x_s24; git commit -q -m 'part182 h033_same_pi_x_s24 chunk 3 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_x_s24_c4:
-    name: part182 h025_same_pi_x_s24 chunk 4/5
+  h033_same_pi_x_s24_c4:
+    name: part182 h033_same_pi_x_s24 chunk 4/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_x_s24_c3
-    if: always() && needs.h025_same_pi_x_s24_c3.outputs.finished == 'false'
+    needs: h033_same_pi_x_s24_c3
+    if: always() && needs.h033_same_pi_x_s24_c3.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -897,17 +897,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-          key: p182-h025_same_pi_x_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+          key: p182-h033_same_pi_x_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_x_s24-
+            p182-h033_same_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_x_s24.npy 24 pi_x 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_x_s24.npy 24 pi_x 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -915,10 +915,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -934,48 +934,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_x_s24 2>&1 | tee run_p182_h025_same_pi_x_s24_c4.log
+        run: python -u dyn.py p182_h033_same_pi_x_s24 2>&1 | tee run_p182_h033_same_pi_x_s24_c4.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_x_s24-c4
+          name: p182_h033_same_pi_x_s24-c4
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_x_s24_history.jsonl p182_h025_same_pi_x_s24_params.json p182_h025_same_pi_x_s24_state.json p182_h025_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_x_s24_history.jsonl p182_h033_same_pi_x_s24_params.json p182_h033_same_pi_x_s24_state.json p182_h033_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_x_s24; git commit -q -m 'part182 h025_same_pi_x_s24 chunk 4 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_x_s24; git commit -q -m 'part182 h033_same_pi_x_s24 chunk 4 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_x_s24_c5:
-    name: part182 h025_same_pi_x_s24 chunk 5/5
+  h033_same_pi_x_s24_c5:
+    name: part182 h033_same_pi_x_s24 chunk 5/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_x_s24_c4
-    if: always() && needs.h025_same_pi_x_s24_c4.outputs.finished == 'false'
+    needs: h033_same_pi_x_s24_c4
+    if: always() && needs.h033_same_pi_x_s24_c4.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -994,17 +994,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-          key: p182-h025_same_pi_x_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+          key: p182-h033_same_pi_x_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_x_s24-
+            p182-h033_same_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_x_s24.npy 24 pi_x 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_x_s24.npy 24 pi_x 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1012,10 +1012,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1031,44 +1031,44 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_x_s24 2>&1 | tee run_p182_h025_same_pi_x_s24_c5.log
+        run: python -u dyn.py p182_h033_same_pi_x_s24 2>&1 | tee run_p182_h033_same_pi_x_s24_c5.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_x_s24-c5
+          name: p182_h033_same_pi_x_s24-c5
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_x_s24_history.jsonl p182_h025_same_pi_x_s24_params.json p182_h025_same_pi_x_s24_state.json p182_h025_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_x_s24_history.jsonl p182_h033_same_pi_x_s24_params.json p182_h033_same_pi_x_s24_state.json p182_h033_same_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_x_s24; git commit -q -m 'part182 h025_same_pi_x_s24 chunk 5 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_x_s24; git commit -q -m 'part182 h033_same_pi_x_s24 chunk 5 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_z_s24_c1:
-    name: part182 h025_same_pi_z_s24 chunk 1/5
+  h033_same_pi_z_s24_c1:
+    name: part182 h033_same_pi_z_s24 chunk 1/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     outputs:
@@ -1089,17 +1089,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_z_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-          key: p182-h025_same_pi_z_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_z_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+          key: p182-h033_same_pi_z_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_z_s24-
+            p182-h033_same_pi_z_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_z_s24.npy 24 pi_z 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_z_s24.npy 24 pi_z 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1107,10 +1107,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1126,48 +1126,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_z_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_z_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_z_s24 2>&1 | tee run_p182_h025_same_pi_z_s24_c1.log
+        run: python -u dyn.py p182_h033_same_pi_z_s24 2>&1 | tee run_p182_h033_same_pi_z_s24_c1.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_z_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_z_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_z_s24-c1
+          name: p182_h033_same_pi_z_s24-c1
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_z_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_z_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_z_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_z_s24_history.jsonl p182_h025_same_pi_z_s24_params.json p182_h025_same_pi_z_s24_state.json p182_h025_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_z_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_z_s24_history.jsonl p182_h033_same_pi_z_s24_params.json p182_h033_same_pi_z_s24_state.json p182_h033_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_z_s24; git commit -q -m 'part182 h025_same_pi_z_s24 chunk 1 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_z_s24; git commit -q -m 'part182 h033_same_pi_z_s24 chunk 1 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_z_s24_c2:
-    name: part182 h025_same_pi_z_s24 chunk 2/5
+  h033_same_pi_z_s24_c2:
+    name: part182 h033_same_pi_z_s24 chunk 2/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_z_s24_c1
-    if: always() && needs.h025_same_pi_z_s24_c1.outputs.finished == 'false'
+    needs: h033_same_pi_z_s24_c1
+    if: always() && needs.h033_same_pi_z_s24_c1.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1186,17 +1186,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_z_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-          key: p182-h025_same_pi_z_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_z_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+          key: p182-h033_same_pi_z_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_z_s24-
+            p182-h033_same_pi_z_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_z_s24.npy 24 pi_z 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_z_s24.npy 24 pi_z 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1204,10 +1204,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1223,48 +1223,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_z_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_z_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_z_s24 2>&1 | tee run_p182_h025_same_pi_z_s24_c2.log
+        run: python -u dyn.py p182_h033_same_pi_z_s24 2>&1 | tee run_p182_h033_same_pi_z_s24_c2.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_z_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_z_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_z_s24-c2
+          name: p182_h033_same_pi_z_s24-c2
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_z_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_z_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_z_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_z_s24_history.jsonl p182_h025_same_pi_z_s24_params.json p182_h025_same_pi_z_s24_state.json p182_h025_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_z_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_z_s24_history.jsonl p182_h033_same_pi_z_s24_params.json p182_h033_same_pi_z_s24_state.json p182_h033_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_z_s24; git commit -q -m 'part182 h025_same_pi_z_s24 chunk 2 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_z_s24; git commit -q -m 'part182 h033_same_pi_z_s24 chunk 2 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_z_s24_c3:
-    name: part182 h025_same_pi_z_s24 chunk 3/5
+  h033_same_pi_z_s24_c3:
+    name: part182 h033_same_pi_z_s24 chunk 3/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_z_s24_c2
-    if: always() && needs.h025_same_pi_z_s24_c2.outputs.finished == 'false'
+    needs: h033_same_pi_z_s24_c2
+    if: always() && needs.h033_same_pi_z_s24_c2.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1283,17 +1283,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_z_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-          key: p182-h025_same_pi_z_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_z_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+          key: p182-h033_same_pi_z_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_z_s24-
+            p182-h033_same_pi_z_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_z_s24.npy 24 pi_z 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_z_s24.npy 24 pi_z 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1301,10 +1301,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1320,48 +1320,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_z_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_z_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_z_s24 2>&1 | tee run_p182_h025_same_pi_z_s24_c3.log
+        run: python -u dyn.py p182_h033_same_pi_z_s24 2>&1 | tee run_p182_h033_same_pi_z_s24_c3.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_z_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_z_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_z_s24-c3
+          name: p182_h033_same_pi_z_s24-c3
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_z_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_z_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_z_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_z_s24_history.jsonl p182_h025_same_pi_z_s24_params.json p182_h025_same_pi_z_s24_state.json p182_h025_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_z_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_z_s24_history.jsonl p182_h033_same_pi_z_s24_params.json p182_h033_same_pi_z_s24_state.json p182_h033_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_z_s24; git commit -q -m 'part182 h025_same_pi_z_s24 chunk 3 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_z_s24; git commit -q -m 'part182 h033_same_pi_z_s24 chunk 3 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_z_s24_c4:
-    name: part182 h025_same_pi_z_s24 chunk 4/5
+  h033_same_pi_z_s24_c4:
+    name: part182 h033_same_pi_z_s24 chunk 4/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_z_s24_c3
-    if: always() && needs.h025_same_pi_z_s24_c3.outputs.finished == 'false'
+    needs: h033_same_pi_z_s24_c3
+    if: always() && needs.h033_same_pi_z_s24_c3.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1380,17 +1380,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_z_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-          key: p182-h025_same_pi_z_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_z_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+          key: p182-h033_same_pi_z_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_z_s24-
+            p182-h033_same_pi_z_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_z_s24.npy 24 pi_z 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_z_s24.npy 24 pi_z 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1398,10 +1398,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1417,48 +1417,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_z_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_z_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_z_s24 2>&1 | tee run_p182_h025_same_pi_z_s24_c4.log
+        run: python -u dyn.py p182_h033_same_pi_z_s24 2>&1 | tee run_p182_h033_same_pi_z_s24_c4.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_z_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_z_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_z_s24-c4
+          name: p182_h033_same_pi_z_s24-c4
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_z_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_z_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_z_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_z_s24_history.jsonl p182_h025_same_pi_z_s24_params.json p182_h025_same_pi_z_s24_state.json p182_h025_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_z_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_z_s24_history.jsonl p182_h033_same_pi_z_s24_params.json p182_h033_same_pi_z_s24_state.json p182_h033_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_z_s24; git commit -q -m 'part182 h025_same_pi_z_s24 chunk 4 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_z_s24; git commit -q -m 'part182 h033_same_pi_z_s24 chunk 4 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_pi_z_s24_c5:
-    name: part182 h025_same_pi_z_s24 chunk 5/5
+  h033_same_pi_z_s24_c5:
+    name: part182 h033_same_pi_z_s24 chunk 5/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_pi_z_s24_c4
-    if: always() && needs.h025_same_pi_z_s24_c4.outputs.finished == 'false'
+    needs: h033_same_pi_z_s24_c4
+    if: always() && needs.h033_same_pi_z_s24_c4.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1477,17 +1477,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_pi_z_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-          key: p182-h025_same_pi_z_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_pi_z_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+          key: p182-h033_same_pi_z_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_pi_z_s24-
+            p182-h033_same_pi_z_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_pi_z_s24.npy 24 pi_z 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_pi_z_s24.npy 24 pi_z 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1495,10 +1495,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1514,44 +1514,44 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_pi_z_s24.npy'
+          INIT_FILE: 'pair_h033_same_pi_z_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_pi_z_s24 2>&1 | tee run_p182_h025_same_pi_z_s24_c5.log
+        run: python -u dyn.py p182_h033_same_pi_z_s24 2>&1 | tee run_p182_h033_same_pi_z_s24_c5.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_pi_z_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_pi_z_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_pi_z_s24-c5
+          name: p182_h033_same_pi_z_s24-c5
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_pi_z_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_pi_z_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_pi_z_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_pi_z_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_pi_z_s24; mkdir -p $OUT
-          cp p182_h025_same_pi_z_s24_history.jsonl p182_h025_same_pi_z_s24_params.json p182_h025_same_pi_z_s24_state.json p182_h025_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_pi_z_s24; mkdir -p $OUT
+          cp p182_h033_same_pi_z_s24_history.jsonl p182_h033_same_pi_z_s24_params.json p182_h033_same_pi_z_s24_state.json p182_h033_same_pi_z_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_pi_z_s24; git commit -q -m 'part182 h025_same_pi_z_s24 chunk 5 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_pi_z_s24; git commit -q -m 'part182 h033_same_pi_z_s24 chunk 5 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_beta0_s24_c1:
-    name: part182 h025_same_beta0_s24 chunk 1/5
+  h033_same_beta0_s24_c1:
+    name: part182 h033_same_beta0_s24 chunk 1/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     outputs:
@@ -1572,17 +1572,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_beta0_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-          key: p182-h025_same_beta0_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_beta0_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+          key: p182-h033_same_beta0_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_beta0_s24-
+            p182-h033_same_beta0_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_beta0_s24.npy 24 beta0 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_beta0_s24.npy 24 beta0 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1590,10 +1590,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1609,48 +1609,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_beta0_s24.npy'
+          INIT_FILE: 'pair_h033_same_beta0_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_beta0_s24 2>&1 | tee run_p182_h025_same_beta0_s24_c1.log
+        run: python -u dyn.py p182_h033_same_beta0_s24 2>&1 | tee run_p182_h033_same_beta0_s24_c1.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_beta0_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_beta0_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_beta0_s24-c1
+          name: p182_h033_same_beta0_s24-c1
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_beta0_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_beta0_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_beta0_s24; mkdir -p $OUT
-          cp p182_h025_same_beta0_s24_history.jsonl p182_h025_same_beta0_s24_params.json p182_h025_same_beta0_s24_state.json p182_h025_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_beta0_s24; mkdir -p $OUT
+          cp p182_h033_same_beta0_s24_history.jsonl p182_h033_same_beta0_s24_params.json p182_h033_same_beta0_s24_state.json p182_h033_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_beta0_s24; git commit -q -m 'part182 h025_same_beta0_s24 chunk 1 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_beta0_s24; git commit -q -m 'part182 h033_same_beta0_s24 chunk 1 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_beta0_s24_c2:
-    name: part182 h025_same_beta0_s24 chunk 2/5
+  h033_same_beta0_s24_c2:
+    name: part182 h033_same_beta0_s24 chunk 2/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_beta0_s24_c1
-    if: always() && needs.h025_same_beta0_s24_c1.outputs.finished == 'false'
+    needs: h033_same_beta0_s24_c1
+    if: always() && needs.h033_same_beta0_s24_c1.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1669,17 +1669,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_beta0_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-          key: p182-h025_same_beta0_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_beta0_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+          key: p182-h033_same_beta0_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_beta0_s24-
+            p182-h033_same_beta0_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_beta0_s24.npy 24 beta0 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_beta0_s24.npy 24 beta0 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1687,10 +1687,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1706,48 +1706,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_beta0_s24.npy'
+          INIT_FILE: 'pair_h033_same_beta0_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_beta0_s24 2>&1 | tee run_p182_h025_same_beta0_s24_c2.log
+        run: python -u dyn.py p182_h033_same_beta0_s24 2>&1 | tee run_p182_h033_same_beta0_s24_c2.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_beta0_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_beta0_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_beta0_s24-c2
+          name: p182_h033_same_beta0_s24-c2
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_beta0_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_beta0_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_beta0_s24; mkdir -p $OUT
-          cp p182_h025_same_beta0_s24_history.jsonl p182_h025_same_beta0_s24_params.json p182_h025_same_beta0_s24_state.json p182_h025_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_beta0_s24; mkdir -p $OUT
+          cp p182_h033_same_beta0_s24_history.jsonl p182_h033_same_beta0_s24_params.json p182_h033_same_beta0_s24_state.json p182_h033_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_beta0_s24; git commit -q -m 'part182 h025_same_beta0_s24 chunk 2 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_beta0_s24; git commit -q -m 'part182 h033_same_beta0_s24 chunk 2 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_beta0_s24_c3:
-    name: part182 h025_same_beta0_s24 chunk 3/5
+  h033_same_beta0_s24_c3:
+    name: part182 h033_same_beta0_s24 chunk 3/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_beta0_s24_c2
-    if: always() && needs.h025_same_beta0_s24_c2.outputs.finished == 'false'
+    needs: h033_same_beta0_s24_c2
+    if: always() && needs.h033_same_beta0_s24_c2.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1766,17 +1766,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_beta0_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-          key: p182-h025_same_beta0_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_beta0_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+          key: p182-h033_same_beta0_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_beta0_s24-
+            p182-h033_same_beta0_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_beta0_s24.npy 24 beta0 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_beta0_s24.npy 24 beta0 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1784,10 +1784,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1803,48 +1803,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_beta0_s24.npy'
+          INIT_FILE: 'pair_h033_same_beta0_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_beta0_s24 2>&1 | tee run_p182_h025_same_beta0_s24_c3.log
+        run: python -u dyn.py p182_h033_same_beta0_s24 2>&1 | tee run_p182_h033_same_beta0_s24_c3.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_beta0_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_beta0_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_beta0_s24-c3
+          name: p182_h033_same_beta0_s24-c3
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_beta0_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_beta0_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_beta0_s24; mkdir -p $OUT
-          cp p182_h025_same_beta0_s24_history.jsonl p182_h025_same_beta0_s24_params.json p182_h025_same_beta0_s24_state.json p182_h025_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_beta0_s24; mkdir -p $OUT
+          cp p182_h033_same_beta0_s24_history.jsonl p182_h033_same_beta0_s24_params.json p182_h033_same_beta0_s24_state.json p182_h033_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_beta0_s24; git commit -q -m 'part182 h025_same_beta0_s24 chunk 3 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_beta0_s24; git commit -q -m 'part182 h033_same_beta0_s24 chunk 3 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_beta0_s24_c4:
-    name: part182 h025_same_beta0_s24 chunk 4/5
+  h033_same_beta0_s24_c4:
+    name: part182 h033_same_beta0_s24 chunk 4/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_beta0_s24_c3
-    if: always() && needs.h025_same_beta0_s24_c3.outputs.finished == 'false'
+    needs: h033_same_beta0_s24_c3
+    if: always() && needs.h033_same_beta0_s24_c3.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1863,17 +1863,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_beta0_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-          key: p182-h025_same_beta0_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_beta0_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+          key: p182-h033_same_beta0_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_beta0_s24-
+            p182-h033_same_beta0_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_beta0_s24.npy 24 beta0 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_beta0_s24.npy 24 beta0 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1881,10 +1881,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1900,48 +1900,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_beta0_s24.npy'
+          INIT_FILE: 'pair_h033_same_beta0_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_beta0_s24 2>&1 | tee run_p182_h025_same_beta0_s24_c4.log
+        run: python -u dyn.py p182_h033_same_beta0_s24 2>&1 | tee run_p182_h033_same_beta0_s24_c4.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_beta0_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_beta0_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_beta0_s24-c4
+          name: p182_h033_same_beta0_s24-c4
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_beta0_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_beta0_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_beta0_s24; mkdir -p $OUT
-          cp p182_h025_same_beta0_s24_history.jsonl p182_h025_same_beta0_s24_params.json p182_h025_same_beta0_s24_state.json p182_h025_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_beta0_s24; mkdir -p $OUT
+          cp p182_h033_same_beta0_s24_history.jsonl p182_h033_same_beta0_s24_params.json p182_h033_same_beta0_s24_state.json p182_h033_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_beta0_s24; git commit -q -m 'part182 h025_same_beta0_s24 chunk 4 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_beta0_s24; git commit -q -m 'part182 h033_same_beta0_s24 chunk 4 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_same_beta0_s24_c5:
-    name: part182 h025_same_beta0_s24 chunk 5/5
+  h033_same_beta0_s24_c5:
+    name: part182 h033_same_beta0_s24 chunk 5/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_same_beta0_s24_c4
-    if: always() && needs.h025_same_beta0_s24_c4.outputs.finished == 'false'
+    needs: h033_same_beta0_s24_c4
+    if: always() && needs.h033_same_beta0_s24_c4.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -1960,17 +1960,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_same_beta0_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-          key: p182-h025_same_beta0_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_same_beta0_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+          key: p182-h033_same_beta0_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_same_beta0_s24-
+            p182-h033_same_beta0_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_same_beta0_s24.npy 24 beta0 0
+        run: python ../pairs_Z/make_pair.py pair_h033_same_beta0_s24.npy 24 beta0 0
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -1978,10 +1978,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -1997,44 +1997,44 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_same_beta0_s24.npy'
+          INIT_FILE: 'pair_h033_same_beta0_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_same_beta0_s24 2>&1 | tee run_p182_h025_same_beta0_s24_c5.log
+        run: python -u dyn.py p182_h033_same_beta0_s24 2>&1 | tee run_p182_h033_same_beta0_s24_c5.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_same_beta0_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_same_beta0_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_same_beta0_s24-c5
+          name: p182_h033_same_beta0_s24-c5
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_same_beta0_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_same_beta0_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_same_beta0_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_same_beta0_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_same_beta0_s24; mkdir -p $OUT
-          cp p182_h025_same_beta0_s24_history.jsonl p182_h025_same_beta0_s24_params.json p182_h025_same_beta0_s24_state.json p182_h025_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_same_beta0_s24; mkdir -p $OUT
+          cp p182_h033_same_beta0_s24_history.jsonl p182_h033_same_beta0_s24_params.json p182_h033_same_beta0_s24_state.json p182_h033_same_beta0_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_same_beta0_s24; git commit -q -m 'part182 h025_same_beta0_s24 chunk 5 : resultats' || exit 0
+          git add resultats/part182/p182_h033_same_beta0_s24; git commit -q -m 'part182 h033_same_beta0_s24 chunk 5 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_opp_pi_x_s24_c1:
-    name: part182 h025_opp_pi_x_s24 chunk 1/5
+  h033_opp_pi_x_s24_c1:
+    name: part182 h033_opp_pi_x_s24 chunk 1/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     outputs:
@@ -2055,17 +2055,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_opp_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-          key: p182-h025_opp_pi_x_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_opp_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+          key: p182-h033_opp_pi_x_s24-c1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_opp_pi_x_s24-
+            p182-h033_opp_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_opp_pi_x_s24.npy 24 pi_x 1
+        run: python ../pairs_Z/make_pair.py pair_h033_opp_pi_x_s24.npy 24 pi_x 1
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -2073,10 +2073,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -2092,48 +2092,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_opp_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_opp_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_opp_pi_x_s24 2>&1 | tee run_p182_h025_opp_pi_x_s24_c1.log
+        run: python -u dyn.py p182_h033_opp_pi_x_s24 2>&1 | tee run_p182_h033_opp_pi_x_s24_c1.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_opp_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_opp_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_opp_pi_x_s24-c1
+          name: p182_h033_opp_pi_x_s24-c1
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_opp_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_opp_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_opp_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_opp_pi_x_s24_history.jsonl p182_h025_opp_pi_x_s24_params.json p182_h025_opp_pi_x_s24_state.json p182_h025_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_opp_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_opp_pi_x_s24_history.jsonl p182_h033_opp_pi_x_s24_params.json p182_h033_opp_pi_x_s24_state.json p182_h033_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_opp_pi_x_s24; git commit -q -m 'part182 h025_opp_pi_x_s24 chunk 1 : resultats' || exit 0
+          git add resultats/part182/p182_h033_opp_pi_x_s24; git commit -q -m 'part182 h033_opp_pi_x_s24 chunk 1 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_opp_pi_x_s24_c2:
-    name: part182 h025_opp_pi_x_s24 chunk 2/5
+  h033_opp_pi_x_s24_c2:
+    name: part182 h033_opp_pi_x_s24 chunk 2/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_opp_pi_x_s24_c1
-    if: always() && needs.h025_opp_pi_x_s24_c1.outputs.finished == 'false'
+    needs: h033_opp_pi_x_s24_c1
+    if: always() && needs.h033_opp_pi_x_s24_c1.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -2152,17 +2152,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_opp_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-          key: p182-h025_opp_pi_x_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_opp_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+          key: p182-h033_opp_pi_x_s24-c2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_opp_pi_x_s24-
+            p182-h033_opp_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_opp_pi_x_s24.npy 24 pi_x 1
+        run: python ../pairs_Z/make_pair.py pair_h033_opp_pi_x_s24.npy 24 pi_x 1
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -2170,10 +2170,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -2189,48 +2189,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_opp_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_opp_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_opp_pi_x_s24 2>&1 | tee run_p182_h025_opp_pi_x_s24_c2.log
+        run: python -u dyn.py p182_h033_opp_pi_x_s24 2>&1 | tee run_p182_h033_opp_pi_x_s24_c2.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_opp_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_opp_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_opp_pi_x_s24-c2
+          name: p182_h033_opp_pi_x_s24-c2
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_opp_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_opp_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_opp_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_opp_pi_x_s24_history.jsonl p182_h025_opp_pi_x_s24_params.json p182_h025_opp_pi_x_s24_state.json p182_h025_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_opp_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_opp_pi_x_s24_history.jsonl p182_h033_opp_pi_x_s24_params.json p182_h033_opp_pi_x_s24_state.json p182_h033_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_opp_pi_x_s24; git commit -q -m 'part182 h025_opp_pi_x_s24 chunk 2 : resultats' || exit 0
+          git add resultats/part182/p182_h033_opp_pi_x_s24; git commit -q -m 'part182 h033_opp_pi_x_s24 chunk 2 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_opp_pi_x_s24_c3:
-    name: part182 h025_opp_pi_x_s24 chunk 3/5
+  h033_opp_pi_x_s24_c3:
+    name: part182 h033_opp_pi_x_s24 chunk 3/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_opp_pi_x_s24_c2
-    if: always() && needs.h025_opp_pi_x_s24_c2.outputs.finished == 'false'
+    needs: h033_opp_pi_x_s24_c2
+    if: always() && needs.h033_opp_pi_x_s24_c2.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -2249,17 +2249,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_opp_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-          key: p182-h025_opp_pi_x_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_opp_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+          key: p182-h033_opp_pi_x_s24-c3-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_opp_pi_x_s24-
+            p182-h033_opp_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_opp_pi_x_s24.npy 24 pi_x 1
+        run: python ../pairs_Z/make_pair.py pair_h033_opp_pi_x_s24.npy 24 pi_x 1
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -2267,10 +2267,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -2286,48 +2286,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_opp_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_opp_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_opp_pi_x_s24 2>&1 | tee run_p182_h025_opp_pi_x_s24_c3.log
+        run: python -u dyn.py p182_h033_opp_pi_x_s24 2>&1 | tee run_p182_h033_opp_pi_x_s24_c3.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_opp_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_opp_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_opp_pi_x_s24-c3
+          name: p182_h033_opp_pi_x_s24-c3
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_opp_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_opp_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_opp_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_opp_pi_x_s24_history.jsonl p182_h025_opp_pi_x_s24_params.json p182_h025_opp_pi_x_s24_state.json p182_h025_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_opp_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_opp_pi_x_s24_history.jsonl p182_h033_opp_pi_x_s24_params.json p182_h033_opp_pi_x_s24_state.json p182_h033_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_opp_pi_x_s24; git commit -q -m 'part182 h025_opp_pi_x_s24 chunk 3 : resultats' || exit 0
+          git add resultats/part182/p182_h033_opp_pi_x_s24; git commit -q -m 'part182 h033_opp_pi_x_s24 chunk 3 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_opp_pi_x_s24_c4:
-    name: part182 h025_opp_pi_x_s24 chunk 4/5
+  h033_opp_pi_x_s24_c4:
+    name: part182 h033_opp_pi_x_s24 chunk 4/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_opp_pi_x_s24_c3
-    if: always() && needs.h025_opp_pi_x_s24_c3.outputs.finished == 'false'
+    needs: h033_opp_pi_x_s24_c3
+    if: always() && needs.h033_opp_pi_x_s24_c3.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -2346,17 +2346,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_opp_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-          key: p182-h025_opp_pi_x_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_opp_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+          key: p182-h033_opp_pi_x_s24-c4-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_opp_pi_x_s24-
+            p182-h033_opp_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_opp_pi_x_s24.npy 24 pi_x 1
+        run: python ../pairs_Z/make_pair.py pair_h033_opp_pi_x_s24.npy 24 pi_x 1
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -2364,10 +2364,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -2383,48 +2383,48 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_opp_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_opp_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_opp_pi_x_s24 2>&1 | tee run_p182_h025_opp_pi_x_s24_c4.log
+        run: python -u dyn.py p182_h033_opp_pi_x_s24 2>&1 | tee run_p182_h033_opp_pi_x_s24_c4.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_opp_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_opp_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_opp_pi_x_s24-c4
+          name: p182_h033_opp_pi_x_s24-c4
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_opp_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_opp_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_opp_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_opp_pi_x_s24_history.jsonl p182_h025_opp_pi_x_s24_params.json p182_h025_opp_pi_x_s24_state.json p182_h025_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_opp_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_opp_pi_x_s24_history.jsonl p182_h033_opp_pi_x_s24_params.json p182_h033_opp_pi_x_s24_state.json p182_h033_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_opp_pi_x_s24; git commit -q -m 'part182 h025_opp_pi_x_s24 chunk 4 : resultats' || exit 0
+          git add resultats/part182/p182_h033_opp_pi_x_s24; git commit -q -m 'part182 h033_opp_pi_x_s24 chunk 4 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
-  h025_opp_pi_x_s24_c5:
-    name: part182 h025_opp_pi_x_s24 chunk 5/5
+  h033_opp_pi_x_s24_c5:
+    name: part182 h033_opp_pi_x_s24 chunk 5/5
     runs-on: ubuntu-24.04
     timeout-minutes: 355
-    needs: h025_opp_pi_x_s24_c4
-    if: always() && needs.h025_opp_pi_x_s24_c4.outputs.finished == 'false'
+    needs: h033_opp_pi_x_s24_c4
+    if: always() && needs.h033_opp_pi_x_s24_c4.outputs.finished == 'false'
     outputs:
       finished: ${{ steps.check_done.outputs.finished }}
     defaults:
@@ -2443,17 +2443,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            numerical_minimization/protect3d_Z/ck_p182_h025_opp_pi_x_s24.npz
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-          key: p182-h025_opp_pi_x_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
+            numerical_minimization/protect3d_Z/ck_p182_h033_opp_pi_x_s24.npz
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+          key: p182-h033_opp_pi_x_s24-c5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            p182-h025_opp_pi_x_s24-
+            p182-h033_opp_pi_x_s24-
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Fabrique la paire initiale
-        run: python ../pairs_Z/make_pair.py pair_h025_opp_pi_x_s24.npy 24 pi_x 1
+        run: python ../pairs_Z/make_pair.py pair_h033_opp_pi_x_s24.npy 24 pi_x 1
       - name: Run or resume
         env:
           MODE: 'lang'
@@ -2461,10 +2461,10 @@ jobs:
           G0R: '0.0'
           MU: '0.375'
           E0: '0.25'
-          N: '256'
-          H: '0.25'
+          N: '192'
+          H: '0.3333333333'
           T0: '10'
-          DT: '0.00125'
+          DT: '0.0016666667'
           SNAP: '1000'
           TIME_BUDGET: '19000'
           JAX_PLATFORM_NAME: 'cpu'
@@ -2480,39 +2480,39 @@ jobs:
           SEED: '1'
           EINJ: '0'
           KC: '0'
-          INIT_FILE: 'pair_h025_opp_pi_x_s24.npy'
+          INIT_FILE: 'pair_h033_opp_pi_x_s24.npy'
           NB: '128'
-        run: python -u dyn.py p182_h025_opp_pi_x_s24 2>&1 | tee run_p182_h025_opp_pi_x_s24_c5.log
+        run: python -u dyn.py p182_h033_opp_pi_x_s24 2>&1 | tee run_p182_h033_opp_pi_x_s24_c5.log
       - name: Check whether finished
         id: check_done
         shell: bash
         run: |
           python - <<'PYCODE'
           import json, os
-          st = json.load(open('p182_h025_opp_pi_x_s24_state.json')); print(st)
+          st = json.load(open('p182_h033_opp_pi_x_s24_state.json')); print(st)
           open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
           PYCODE
       - name: Sauvegarde en artefact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: p182_h025_opp_pi_x_s24-c5
+          name: p182_h033_opp_pi_x_s24-c5
           path: |
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_history.jsonl
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_params.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_state.json
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_champ_final.npy
-            numerical_minimization/protect3d_Z/p182_h025_opp_pi_x_s24_proj.npy
-            numerical_minimization/protect3d_Z/snap_p182_h025_opp_pi_x_s24_t*.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_history.jsonl
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_params.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_state.json
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_champ_final.npy
+            numerical_minimization/protect3d_Z/p182_h033_opp_pi_x_s24_proj.npy
+            numerical_minimization/protect3d_Z/snap_p182_h033_opp_pi_x_s24_t*.npy
           if-no-files-found: ignore
       - name: Commit results to resultats/
         if: always()
         continue-on-error: true
         shell: bash
         run: |
-          OUT=../../resultats/part182/p182_h025_opp_pi_x_s24; mkdir -p $OUT
-          cp p182_h025_opp_pi_x_s24_history.jsonl p182_h025_opp_pi_x_s24_params.json p182_h025_opp_pi_x_s24_state.json p182_h025_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
+          OUT=../../resultats/part182/p182_h033_opp_pi_x_s24; mkdir -p $OUT
+          cp p182_h033_opp_pi_x_s24_history.jsonl p182_h033_opp_pi_x_s24_params.json p182_h033_opp_pi_x_s24_state.json p182_h033_opp_pi_x_s24_proj.npy $OUT/; true 2>/dev/null || true
           cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resultats/part182/p182_h025_opp_pi_x_s24; git commit -q -m 'part182 h025_opp_pi_x_s24 chunk 5 : resultats' || exit 0
+          git add resultats/part182/p182_h033_opp_pi_x_s24; git commit -q -m 'part182 h033_opp_pi_x_s24 chunk 5 : resultats' || exit 0
           ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
