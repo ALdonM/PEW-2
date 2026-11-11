@@ -1,0 +1,2 @@
+{"file": "snap_p182_h05snap_same_pi_x_s24_t0028.npy", "t": 28, "gmax": 0.198, "p1": [29.0, 32.0, 32.0], "nloc": 1, "inertia_eig": [4.58, 11.62, 12.53], "long_axis": [-1.0, -0.0, -0.0], "ncells": 11006}
+{"file": "snap_p182_h05snap_same_pi_x_s24_t0030.npy", "t": 30, "gmax": 0.189, "p1": [33.5, 32.0, 32.0], "nloc": 2, "g2_over_g1": 0.985, "sep": [-4.0, -0.5, -0.5], "sep_x": -4.0, "sep_perp_x": 0.71, "sep_norm": 4.06, "inertia_eig": [4.82, 11.7, 13.49], "long_axis": [-1.0, -0.0, -0.0], "ncells": 11772}
