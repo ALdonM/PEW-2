@@ -1,3 +1,6 @@
 {"file": "snap_p182_h05snap_same_pi2_x_s24_t0028.npy", "t": 28, "gmax": 0.201, "p1": [30.5, 31.0, 32.5], "nloc": 1, "inertia_eig": [4.3, 11.48, 12.79], "long_axis": [0.38, -0.92, -0.1], "ncells": 10710}
 {"file": "snap_p182_h05snap_same_pi2_x_s24_t0030.npy", "t": 30, "gmax": 0.183, "p1": [31.0, 30.0, 32.5], "nloc": 1, "inertia_eig": [5.11, 13.07, 13.73], "long_axis": [0.85, -0.52, 0.1], "ncells": 12910}
 {"file": "snap_p182_h05snap_same_pi2_x_s24_t0033.npy", "t": 33, "gmax": 0.18, "p1": [31.5, 29.5, 32.5], "nloc": 1, "inertia_eig": [5.37, 13.22, 13.82], "long_axis": [0.91, -0.4, 0.14], "ncells": 13355}
+{"file": "snap_p182_h05snap_same_pi2_x_s24_t0035.npy", "t": 35, "gmax": 0.183, "p1": [31.0, 30.0, 32.5], "nloc": 1, "inertia_eig": [4.89, 12.96, 13.39], "long_axis": [0.65, -0.76, 0.02], "ncells": 12394}
+{"file": "snap_p182_h05snap_same_pi2_x_s24_t0038.npy", "t": 38, "gmax": 0.179, "p1": [31.0, 30.0, 32.5], "nloc": 1, "inertia_eig": [5.11, 13.21, 13.78], "long_axis": [0.2, -0.97, -0.14], "ncells": 13033}
+{"file": "snap_p182_h05snap_same_pi2_x_s24_t0040.npy", "t": 40, "gmax": 0.186, "p1": [31.0, 30.0, 32.5], "nloc": 1, "inertia_eig": [4.74, 12.53, 13.21], "long_axis": [-0.09, 0.98, 0.18], "ncells": 11958}
