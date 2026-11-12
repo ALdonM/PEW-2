@@ -13,13 +13,15 @@ def rot(n, al):   # rotation de n autour de e3 de l'angle al (n_perp -> e^{i al}
     return jnp.stack([n[0] * c - n[1] * s, n[0] * s + n[1] * c, n[2]])
 def plaq(th, i, j):   # F_ij au site x (plaquette x, x+i, x+i+j, x+j)
     return (th[i] + jnp.roll(th[j], -1, axis=i) - jnp.roll(th[i], -1, axis=j) - th[j]) / h**2
+sq = lambda z: z.real**2 + z.imag**2   # |z|^2 sans gradient singulier en 0
 def energy(phi, th, nu, g2):
     c1, c2 = phi[0] + 1j * phi[1], phi[2] + 1j * phi[3]
     sh = lambda f, a: jnp.roll(f, -1, axis=a)
     grad = 0.0
     for a in range(3):
-        grad = grad + jnp.abs(sh(c1, a) - c1)**2 / h**2 + jnp.abs(jnp.exp(-1j * th[a]) * sh(c2, a) - c2)**2 / h**2
-    n = nvec(phi); r2 = jnp.sum(phi**2, axis=0)
+        grad = grad + sq(sh(c1, a) - c1) / h**2 + sq(jnp.exp(-1j * th[a]) * sh(c2, a) - c2) / h**2
+    r2 = jnp.sum(phi**2, axis=0); a_, b_, c_, d_ = phi
+    n = jnp.stack([2 * (a_ * c_ + b_ * d_), 2 * (a_ * d_ - b_ * c_), a_**2 + b_**2 - c_**2 - d_**2]) / (r2 + 1e-6)   # garde-fou numérique près de rho=0 (n non défini)
     # différences covariantes de n : avant (transport du voisin x+a vers x), arrière
     Df = [(rot(jnp.roll(n, -1, axis=1 + a), -th[a][None][0]) - n) / h for a in range(3)]
     Db = [(n - rot(jnp.roll(n, 1, axis=1 + a), jnp.roll(th[a], 1, axis=a))) / h for a in range(3)]
@@ -37,7 +39,7 @@ def energy(phi, th, nu, g2):
                 Om = jnp.sum(n * cross(Di, Dj), axis=0) + (n3m - 1.0) * F
                 fad = fad + 0.25 * Om**2
         B2 = B2 + Fp**2
-    pot = mu**2 * (r2 + 1.0 / (r2 + d2) - 2.0) + 2 * nu**2 * jnp.abs(c2)**2
+    pot = mu**2 * (r2 + 1.0 / (r2 + d2) - 2.0) + 2 * nu**2 * sq(c2)
     return h**3 * jnp.sum(grad + cF * fad + pot + (0.5 / g2) * B2 if g2 > 0 else grad + cF * fad + pot)
 gE = jax.jit(jax.grad(energy, argnums=(0, 1)), static_argnums=(2, 3))
 def accs(phi, th, nu, g2):
@@ -56,6 +58,61 @@ if sys.argv[1] == 'check':
     # fermeture de Omega (div B_eff -> 0 quand h->0) : champ lisse
     for hh in (0.5, 0.25):
         pass
+elif sys.argv[1] == 'relax':   # relaxe un nœud isolé (N=48) et le sauvegarde : python jauge.py relax NU FICHIER
+    nu = float(sys.argv[2]); dt = 0.02; p = jnp.array(hopfion(N, h, 6.0)); t = jnp.zeros((3, N, N, N), dtype=p.dtype); v = jnp.zeros_like(p)
+    a, _ = accs(p, t, nu, 0.0); g = np.exp(-0.5 * dt)
+    for i in range(int(20 / dt)):
+        v = v * g + 0.5 * dt * a; p = p + dt * v; a, _ = accs(p, t, nu, 0.0); v = (v + 0.5 * dt * a) * g
+    np.save(sys.argv[3], np.array(p)); print('relaxé, E =', float(energy(p, t, nu, 0.0)))
+elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (SQ, SJ dans {opp, same}) ; nécessite RELAXED=fichier.npy ; N=NBIG=80
+    from zlat import energy_density
+    nu, g2, om, TEND, TAG, SQ, SJ = float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), sys.argv[6], sys.argv[7], sys.argv[8]
+    dt = float(os.environ.get('DT', 0.02)); CS = 2.0; NB = 48; SEP = int(os.environ.get('SEPC', 12))   # demi-séparation en mailles (12 -> 6 unités)
+    k1 = np.load(os.environ['RELAXED'])
+    def embed(k, shift, refl):
+        big = np.zeros((4, N, N, N), dtype=np.float32); big[0] = 1.0; o = (N - NB) // 2
+        big[:, o:o+NB, o:o+NB, o:o+NB] = k
+        if refl: big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
+        return np.roll(big, shift, axis=1)
+    A = embed(k1, -SEP, False); B = embed(k1, +SEP, SQ == 'opp')
+    a0, a1, a2, a3 = A; b0, b1, b2, b3 = B   # produit de quaternions (comme dyn.py)
+    p = jnp.array(np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0]).astype(np.float32))
+    xx = x_(N); X, Y, Zc = np.meshgrid(xx, xx, xx, indexing='ij'); R0 = np.sqrt(X**2 + Y**2 + Zc**2)
+    c1x, c2x = (-SEP) * h, SEP * h   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
+    w1 = np.exp(-(np.sqrt((X - c1x)**2 + Y**2 + Zc**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + Y**2 + Zc**2) / 8.0)**4)
+    s1, s2 = om, (om if SJ == 'same' else -om)
+    wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
+    v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
+    t = jnp.zeros((3, N, N, N), dtype=p.dtype); w = jnp.zeros_like(t)
+    kk = 2 * np.pi * np.fft.fftfreq(N, h); lap = -sum((2 - 2 * np.cos(a_ * h)) / h**2 for a_ in np.meshgrid(kk, kk, kk, indexing='ij'))
+    def poisson(rhs):
+        f = np.fft.fftn(np.array(rhs)); lp = lap.copy(); lp[0, 0, 0] = 1.0; f = f / lp; f[0, 0, 0] = 0
+        return jnp.array(np.fft.ifftn(f).real)
+    qd = lambda p, v: p[2] * v[3] - p[3] * v[2]
+    q = qd(p, v); psi = poisson(g2 * CS * (q - q.mean())); w = jnp.stack([jnp.roll(psi, -1, axis=a_) - psi for a_ in range(3)])
+    @jax.jit
+    def kdk(p, t, v, w, a, b):
+        v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
+        a, b = accs(p, t, nu, g2); return p, t, v + 0.5 * dt * a, w + 0.5 * dt * b, a, b
+    a, b = accs(p, t, nu, g2)
+    Qh = lambda p: float(h**3 * jnp.sum(jnp.linalg.det(jnp.moveaxis(jnp.stack([p / jnp.sqrt(jnp.sum(p**2, 0))] + [(jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), -1, k_) - jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1)))) / (2 * np.pi**2))
+    def Qa(p):
+        u = p / jnp.sqrt(jnp.sum(p**2, 0) + 1e-12)
+        M = jnp.moveaxis(jnp.stack([u] + [(jnp.roll(u, -1, k_) - jnp.roll(u, 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1))
+        return float(h**3 * jnp.sum(jnp.abs(jnp.linalg.det(M))) / (2 * np.pi**2))
+    left = jnp.asarray(X < 0); Rjx = jnp.asarray(R0 > 16.0)
+    for i in range(int(TEND / dt) + 1):
+        if i % int(1.0 / dt) == 0:
+            q = qd(p, v); gd, fd, pd = energy_density(p, h, mu, cF, d2); e = h**3 * (gd + fd + pd + jnp.sum(v**2, 0))
+            gg = jnp.asarray(gd); 
+            def cen(m):
+                ww = jnp.where(m, gg, 0.0); ww = jnp.where(ww > 0.5 * ww.max(), ww, 0.0)
+                return float(jnp.sum(ww * jnp.asarray(X)) / jnp.sum(ww))
+            rec = dict(t=round(i * dt, 2), Q=round(Qh(p), 3), Qabs=round(Qa(p), 3), qL=round(float(h**3 * jnp.sum(q * left)), 2), qR=round(float(h**3 * jnp.sum(q * ~left)), 2),
+                       xL=round(cen(left), 2), xR=round(cen(~left), 2), Etot=round(float(jnp.sum(e)), 2), Eext=round(float(jnp.sum(e * Rjx)), 2),
+                       Ekin=round(float(h**3 * jnp.sum(jnp.sum(v**2, 0))), 2), Z2=round(float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), 1))
+            print(json.dumps(rec), flush=True)
+        p, t, v, w, a, b = kdk(p, t, v, w, a, b)
 elif sys.argv[1] in ('run', 'gauss'):
     nu, g2 = float(sys.argv[2]), float(sys.argv[3]); dt = float(os.environ.get('DT', 0.02)); CS = float(os.environ.get('CS', 2.0))
     xx = x_(N); R = np.sqrt(sum(a**2 for a in np.meshgrid(xx, xx, xx, indexing='ij')))
