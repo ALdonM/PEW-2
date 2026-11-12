@@ -100,7 +100,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         u = p / jnp.sqrt(jnp.sum(p**2, 0) + 1e-12)
         M = jnp.moveaxis(jnp.stack([u] + [(jnp.roll(u, -1, k_) - jnp.roll(u, 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1))
         return float(h**3 * jnp.sum(jnp.abs(jnp.linalg.det(M))) / (2 * np.pi**2))
-    left = jnp.asarray(X < 0); Rjx = jnp.asarray(R0 > 16.0)
+    left = jnp.asarray(X < 0); Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
     for i in range(int(TEND / dt) + 1):
         if i % int(1.0 / dt) == 0:
             q = qd(p, v); gd, fd, pd = energy_density(p, h, mu, cF, d2); e = h**3 * (gd + fd + pd + jnp.sum(v**2, 0))
