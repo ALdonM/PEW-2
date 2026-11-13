@@ -1,0 +1,63 @@
+name: PEW part184e paires Q opposees, axe x vs diagonale, N=112 T=45 (lobes 3D)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  paires:
+    name: part184e ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: H1_diag_Qopp_Jopp_T45, ori: diag, sq: opp, sj: opp,  nu: '0.12', om: '0.08', dt: '0.02', tend: '45'}
+          - {tag: H3_diag_Qopp_sansJ_T45, ori: diag, sq: opp, sj: same, nu: '0.12', om: '0.0', dt: '0.02', tend: '45'}
+          - {tag: K1_x_Qopp_Jopp_T45, ori: x, sq: opp, sj: opp,  nu: '0.12', om: '0.08', dt: '0.02', tend: '45'}
+          - {tag: K3_x_Qopp_sansJ_T45, ori: x, sq: opp, sj: same, nu: '0.12', om: '0.0', dt: '0.02', tend: '45'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Relaxe un noeud isole (N=48)
+        env:
+          N: '48'
+        run: python jauge.py relax ${{ matrix.nu }} relaxed.npy
+      - name: Paire (N=96, separation 20)
+        env:
+          N: '112'
+          SEPC: '20'
+          SEPD: '14'
+          ORIENT: ${{ matrix.ori }}
+          REXT: '22'
+          RELAXED: relaxed.npy
+          DT: ${{ matrix.dt }}
+        run: python jauge.py pair ${{ matrix.nu }} 0.005 ${{ matrix.om }} ${{ matrix.tend }} ${{ matrix.tag }} ${{ matrix.sq }} ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive le journal dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184e_T45
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log numerical_minimization/protect3d_Z/${{ matrix.tag }}_proj.npy resultats/part184/gh_part184e_T45/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184e_T45
+          git commit -m "part184e paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBcwjjMSGxvefBTrWg" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done

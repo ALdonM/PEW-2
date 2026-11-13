@@ -69,17 +69,21 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     nu, g2, om, TEND, TAG, SQ, SJ = float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), sys.argv[6], sys.argv[7], sys.argv[8]
     dt = float(os.environ.get('DT', 0.02)); CS = 2.0; NB = 48; SEP = int(os.environ.get('SEPC', 12))   # demi-séparation en mailles (12 -> 6 unités)
     k1 = np.load(os.environ['RELAXED'])
+    ORI = os.environ.get('ORIENT', 'x'); SEPD = int(os.environ.get('SEPD', 14))   # ORIENT=diag : paire le long de (1,1,0)/sqrt2, SEPD mailles par axe
+    ux, uy = (1.0, 0.0) if ORI == 'x' else (2**-0.5, 2**-0.5)
     def embed(k, shift, refl):
         big = np.zeros((4, N, N, N), dtype=np.float32); big[0] = 1.0; o = (N - NB) // 2
         big[:, o:o+NB, o:o+NB, o:o+NB] = k
         if refl: big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
+        if ORI == 'diag': return np.roll(np.roll(big, shift, axis=1), shift, axis=2)
         return np.roll(big, shift, axis=1)
+    if ORI == 'diag': SEP = SEPD
     A = embed(k1, -SEP, False); B = embed(k1, +SEP, SQ == 'opp')
     a0, a1, a2, a3 = A; b0, b1, b2, b3 = B   # produit de quaternions (comme dyn.py)
     p = jnp.array(np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0]).astype(np.float32))
     xx = x_(N); X, Y, Zc = np.meshgrid(xx, xx, xx, indexing='ij'); R0 = np.sqrt(X**2 + Y**2 + Zc**2)
-    c1x, c2x = (-SEP) * h, SEP * h   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
-    w1 = np.exp(-(np.sqrt((X - c1x)**2 + Y**2 + Zc**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + Y**2 + Zc**2) / 8.0)**4)
+    c1x, c2x = (-SEP) * h, SEP * h; c1y, c2y = (c1x, c2x) if ORI == 'diag' else (0.0, 0.0)   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
+    w1 = np.exp(-(np.sqrt((X - c1x)**2 + (Y - c1y)**2 + Zc**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + (Y - c2y)**2 + Zc**2) / 8.0)**4)
     s1, s2 = om, (om if SJ == 'same' else -om)
     wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
@@ -103,19 +107,26 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     PROJ = []; ang = np.arctan2(Y[:, :, 0], X[:, :, 0]); rr = np.sqrt(X[:, :, 0]**2 + Y[:, :, 0]**2)
     ann = (rr > float(os.environ.get('RA1', 12.0))) & (rr < float(os.environ.get('RA2', 22.0)))
     sect = (((ang + np.pi) / (2 * np.pi) * 16).astype(int) % 16)
-    left = jnp.asarray(X < 0); Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
+    S = X * ux + Y * uy; left = jnp.asarray(S < 0)
+    wv2 = (-uy * X + ux * Y); rn = np.maximum(R0, 1e-9); cth = S / rn; phi = np.arctan2(wv2, Zc)   # polaire / azimut autour de l'axe de la paire
+    shell = (R0 > float(os.environ.get('RA1', 12.0))) & (R0 < float(os.environ.get('RA2', 22.0)))
+    pb = np.clip(((cth + 1) / 2 * 8).astype(int), 0, 7); ab = ((phi + np.pi) / (2 * np.pi) * 12).astype(int) % 12; eq = np.abs(cth) < 0.5; Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
     for i in range(int(TEND / dt) + 1):
         if i % int(1.0 / dt) == 0:
             q = qd(p, v); gd, fd, pd = energy_density(p, h, mu, cF, d2); e = h**3 * (gd + fd + pd + jnp.sum(v**2, 0))
             gg = jnp.asarray(gd); 
             def cen(m):
                 ww = jnp.where(m, gg, 0.0); ww = jnp.where(ww > 0.5 * ww.max(), ww, 0.0)
-                return float(jnp.sum(ww * jnp.asarray(X)) / jnp.sum(ww))
+                return float(jnp.sum(ww * jnp.asarray(S)) / jnp.sum(ww))
             rec = dict(t=round(i * dt, 2), Q=round(Qh(p), 3), Qabs=round(Qa(p), 3), qL=round(float(h**3 * jnp.sum(q * left)), 2), qR=round(float(h**3 * jnp.sum(q * ~left)), 2),
                        xL=round(cen(left), 2), xR=round(cen(~left), 2), Etot=round(float(jnp.sum(e)), 2), Eext=round(float(jnp.sum(e * Rjx)), 2),
                        Ekin=round(float(h**3 * jnp.sum(jnp.sum(v**2, 0))), 2), Z2=round(float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), 1))
             e2 = np.array(e.sum(axis=2)); PROJ.append(e2.astype(np.float16))
             rec['sect16'] = [round(float(e2[ann & (sect == k_)].sum()), 2) for k_ in range(16)]
+            e3 = np.array(e); ez = e3[:, :, N // 2 - 1:N // 2 + 1].sum(2)
+            rec['sect16_z0'] = [round(float(ez[ann & (sect == k_)].sum()), 2) for k_ in range(16)]
+            rec['polar8'] = [round(float(e3[shell & (pb == k_)].sum()), 2) for k_ in range(8)]
+            rec['azi12_eq'] = [round(float(e3[shell & eq & (ab == k_)].sum()), 2) for k_ in range(12)]
             print(json.dumps(rec), flush=True)
         p, t, v, w, a, b = kdk(p, t, v, w, a, b)
     np.save(TAG + '_proj.npy', np.array(PROJ))
