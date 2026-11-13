@@ -100,6 +100,9 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         u = p / jnp.sqrt(jnp.sum(p**2, 0) + 1e-12)
         M = jnp.moveaxis(jnp.stack([u] + [(jnp.roll(u, -1, k_) - jnp.roll(u, 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1))
         return float(h**3 * jnp.sum(jnp.abs(jnp.linalg.det(M))) / (2 * np.pi**2))
+    PROJ = []; ang = np.arctan2(Y[:, :, 0], X[:, :, 0]); rr = np.sqrt(X[:, :, 0]**2 + Y[:, :, 0]**2)
+    ann = (rr > float(os.environ.get('RA1', 12.0))) & (rr < float(os.environ.get('RA2', 22.0)))
+    sect = (((ang + np.pi) / (2 * np.pi) * 16).astype(int) % 16)
     left = jnp.asarray(X < 0); Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
     for i in range(int(TEND / dt) + 1):
         if i % int(1.0 / dt) == 0:
@@ -111,8 +114,11 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
             rec = dict(t=round(i * dt, 2), Q=round(Qh(p), 3), Qabs=round(Qa(p), 3), qL=round(float(h**3 * jnp.sum(q * left)), 2), qR=round(float(h**3 * jnp.sum(q * ~left)), 2),
                        xL=round(cen(left), 2), xR=round(cen(~left), 2), Etot=round(float(jnp.sum(e)), 2), Eext=round(float(jnp.sum(e * Rjx)), 2),
                        Ekin=round(float(h**3 * jnp.sum(jnp.sum(v**2, 0))), 2), Z2=round(float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), 1))
+            e2 = np.array(e.sum(axis=2)); PROJ.append(e2.astype(np.float16))
+            rec['sect16'] = [round(float(e2[ann & (sect == k_)].sum()), 2) for k_ in range(16)]
             print(json.dumps(rec), flush=True)
         p, t, v, w, a, b = kdk(p, t, v, w, a, b)
+    np.save(TAG + '_proj.npy', np.array(PROJ))
 elif sys.argv[1] in ('run', 'gauss'):
     nu, g2 = float(sys.argv[2]), float(sys.argv[3]); dt = float(os.environ.get('DT', 0.02)); CS = float(os.environ.get('CS', 2.0))
     xx = x_(N); R = np.sqrt(sum(a**2 for a in np.meshgrid(xx, xx, xx, indexing='ij')))
