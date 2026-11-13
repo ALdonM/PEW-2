@@ -74,7 +74,8 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     def embed(k, shift, refl):
         big = np.zeros((4, N, N, N), dtype=np.float32); big[0] = 1.0; o = (N - NB) // 2
         big[:, o:o+NB, o:o+NB, o:o+NB] = k
-        if refl: big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
+        if refl and not (ORI == 'diag' and os.environ.get('MIRROR', 'x') == 'axis'): big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
+        if refl and ORI == 'diag' and os.environ.get('MIRROR', 'x') == 'axis': big = np.transpose(big[:, ::-1, ::-1], (0, 2, 1, 3)); big = np.ascontiguousarray(big)   # (x,y)->(-y,-x) : miroir par rapport au plan perpendiculaire à l'axe de la paire (annule la réflexion x précédente)
         if ORI == 'diag': return np.roll(np.roll(big, shift, axis=1), shift, axis=2)
         return np.roll(big, shift, axis=1)
     if ORI == 'diag': SEP = SEPD
