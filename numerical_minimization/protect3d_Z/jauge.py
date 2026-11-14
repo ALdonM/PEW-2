@@ -88,6 +88,11 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     s1, s2 = om, (om if SJ == 'same' else -om)
     wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
+    if os.environ.get('CANCEL_PZ', '0') == '1':   # part184h : annule l'impulsion axiale Pz de chaque nœud (boost le long de z) pour séparer spin et orbital
+        dz = 0.5 * (jnp.roll(p, -1, axis=3) - jnp.roll(p, 1, axis=3)) / h
+        for mk in (jnp.asarray(X < 0), jnp.asarray(X >= 0)):
+            PzM = h**3 * jnp.sum(-2 * jnp.sum(v * dz, 0) * mk); Kz = h**3 * jnp.sum(jnp.sum(dz**2, 0) * mk)
+            v = v + (PzM / (2 * Kz)) * dz * mk
     t = jnp.zeros((3, N, N, N), dtype=p.dtype); w = jnp.zeros_like(t)
     kk = 2 * np.pi * np.fft.fftfreq(N, h); lap = -sum((2 - 2 * np.cos(a_ * h)) / h**2 for a_ in np.meshgrid(kk, kk, kk, indexing='ij'))
     def poisson(rhs):
@@ -141,6 +146,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
             Pm_, Sg_ = momentum(p, t, v, w, g2) if g2 > 0 else (momentum(p, t, v, w, 1.0)[0], 0 * p[:3])
             Lm_, Lg_ = Lvec(Pm_), Lvec(Sg_)
             rec['L'] = [round(float(h**3 * jnp.sum(Lm_[k_])), 2) for k_ in range(3)]; rec['Lg'] = [round(float(h**3 * jnp.sum(Lg_[k_])), 2) for k_ in range(3)]
+            rec['Pg'] = [round(float(h**3 * jnp.sum(Sg_[k_])), 3) for k_ in range(3)]; rec['PzLR'] = [round(float(h**3 * jnp.sum(Pm_[2] * left)), 2), round(float(h**3 * jnp.sum(Pm_[2] * ~left)), 2)]
             rec['Lz_in'] = round(float(h**3 * jnp.sum(Lm_[2] * Rin)), 2); rec['Pm'] = [round(float(h**3 * jnp.sum(Pm_[k_])), 3) for k_ in range(3)]
             rec['Econs'] = round(float(energy(p, t, nu, g2) + h**3 * jnp.sum(v**2) + (jnp.sum(w**2) * h / (2 * g2) if g2 > 0 else 0.0)), 2)
             ee = np.array(e); es = ee[shell].sum() + 1e-12
