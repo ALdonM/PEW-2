@@ -5,7 +5,7 @@ Dynamique : phi'' = -dE/dphi /(2 h^3) ; theta'' = -(g2/h) dE/dtheta.   [D] modè
 usage : python jauge.py check | python jauge.py run NU G2 OMEGA TEND TAG"""
 import os, sys, json, time, numpy as np, jax, jax.numpy as jnp
 from zlat import nvec, cross, hopfion
-N, h, mu, e0, d2 = int(os.environ.get('N', 48)), 0.5, 0.375, 0.25, 1e-3; cF = 1 / (2 * e0**2)
+N, h, mu, e0, d2 = int(os.environ.get('N', 48)), float(os.environ.get('H', 0.5)), 0.375, 0.25, 1e-3; cF = 1 / (2 * e0**2)
 fwd1 = lambda f, a: jnp.roll(f, -1, axis=1 + a)       # f(x+e_a)
 bwd1 = lambda f, a: jnp.roll(f, 1, axis=1 + a)        # f(x-e_a)
 def rot(n, al):   # rotation de n autour de e3 de l'angle al (n_perp -> e^{i al} n_perp)
@@ -67,7 +67,7 @@ elif sys.argv[1] == 'relax':   # relaxe un nœud isolé (N=48) et le sauvegarde 
 elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (SQ, SJ dans {opp, same}) ; nécessite RELAXED=fichier.npy ; N=NBIG=80
     from zlat import energy_density
     nu, g2, om, TEND, TAG, SQ, SJ = float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), sys.argv[6], sys.argv[7], sys.argv[8]
-    dt = float(os.environ.get('DT', 0.02)); CS = 2.0; NB = 48; SEP = int(os.environ.get('SEPC', 12))   # demi-séparation en mailles (12 -> 6 unités)
+    dt = float(os.environ.get('DT', 0.02)); CS = 2.0; NB = int(os.environ.get('NB', 48)); SEP = int(os.environ.get('SEPC', 12))   # demi-séparation en mailles (12 -> 6 unités)
     k1 = np.load(os.environ['RELAXED'])
     ORI = os.environ.get('ORIENT', 'x'); SEPD = int(os.environ.get('SEPD', 14))   # ORIENT=diag : paire le long de (1,1,0)/sqrt2, SEPD mailles par axe
     ux, uy = (1.0, 0.0) if ORI == 'x' else (2**-0.5, 2**-0.5)
