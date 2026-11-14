@@ -85,7 +85,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     xx = x_(N); X, Y, Zc = np.meshgrid(xx, xx, xx, indexing='ij'); R0 = np.sqrt(X**2 + Y**2 + Zc**2)
     c1x, c2x = (-SEP) * h, SEP * h; c1y, c2y = (c1x, c2x) if ORI == 'diag' else (0.0, 0.0)   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
     w1 = np.exp(-(np.sqrt((X - c1x)**2 + (Y - c1y)**2 + Zc**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + (Y - c2y)**2 + Zc**2) / 8.0)**4)
-    s1, s2 = om, (om if SJ == 'same' else -om)
+    s1, s2 = om, (om if SJ == 'same' else (0.0 if SJ == 'one' else -om))   # 'one' : seul le nœud A tourne
     wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
     if os.environ.get('CANCEL_PZ', '0') == '1':   # part184h : annule l'impulsion axiale Pz de chaque nœud (boost le long de z) pour séparer spin et orbital
