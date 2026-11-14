@@ -1,4 +1,4 @@
-name: PEW part184h impulsion axiale annulee (CANCEL_PZ) : separation spin / orbital, omega 0.2-0.3 (paire sur x, N=96 T=38)
+name: PEW part184h impulsion axiale annulee (CANCEL_PZ), separation spin et orbital, omega 0.2-0.3 (paire sur x, N=96 T=38)
 
 on:
   workflow_dispatch:
