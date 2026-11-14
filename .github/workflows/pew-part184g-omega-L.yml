@@ -1,0 +1,62 @@
+name: PEW part184g omega et g2 plus grands, moment cinetique spatial, energie conservee (paire sur x, N=96 T=38)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  paires:
+    name: part184g ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: P1_om02_g002_Jopp,  sj: opp,  om: '0.2', g2: '0.02', sq: opp, nu: '0.12', dt: '0.02', tend: '38'}
+          - {tag: P2_om02_g002_Jsame, sj: same, om: '0.2', g2: '0.02', sq: opp, nu: '0.12', dt: '0.02', tend: '38'}
+          - {tag: P3_om0_g002_sansJ,  sj: same, om: '0.0', g2: '0.02', sq: opp, nu: '0.12', dt: '0.02', tend: '38'}
+          - {tag: P4_om03_g002_Jopp,  sj: opp,  om: '0.3', g2: '0.02', sq: opp, nu: '0.12', dt: '0.02', tend: '38'}
+          - {tag: P5_om03_g002_Jsame, sj: same, om: '0.3', g2: '0.02', sq: opp, nu: '0.12', dt: '0.02', tend: '38'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Relaxe un noeud isole (N=48)
+        env:
+          N: '48'
+        run: python jauge.py relax ${{ matrix.nu }} relaxed.npy
+      - name: Paire (N=96, separation 20)
+        env:
+          N: '96'
+          SEPC: '20'
+          REXT: '22'
+          RELAXED: relaxed.npy
+          DT: ${{ matrix.dt }}
+        run: python jauge.py pair ${{ matrix.nu }} ${{ matrix.g2 }} ${{ matrix.om }} ${{ matrix.tend }} ${{ matrix.tag }} ${{ matrix.sq }} ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive le journal dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184g
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log numerical_minimization/protect3d_Z/${{ matrix.tag }}_proj.npy resultats/part184/gh_part184g/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184g
+          git commit -m "part184g paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBcwjjMSGxvefBTrWg" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done

@@ -112,6 +112,21 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     wv2 = (-uy * X + ux * Y); rn = np.maximum(R0, 1e-9); cth = S / rn; phi = np.arctan2(wv2, Zc)   # polaire / azimut autour de l'axe de la paire
     shell = (R0 > float(os.environ.get('RA1', 12.0))) & (R0 < float(os.environ.get('RA2', 22.0)))
     pb = np.clip(((cth + 1) / 2 * 8).astype(int), 0, 7); ab = ((phi + np.pi) / (2 * np.pi) * 12).astype(int) % 12; eq = np.abs(cth) < 0.5; Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
+    # --- part184g : moment cinétique spatial, énergie conservée complète, harmoniques (axe de la paire = (ux,uy,0)) ---
+    def momentum(p, t, v, w, g2):
+        c1, c2 = p[0] + 1j * p[1], p[2] + 1j * p[3]; v1, v2 = v[0] + 1j * v[1], v[2] + 1j * v[3]
+        Pm = []
+        for a_ in range(3):
+            d1 = 0.5 * (jnp.roll(c1, -1, a_) - jnp.roll(c1, 1, a_)) / h
+            Df = (jnp.exp(-1j * t[a_]) * jnp.roll(c2, -1, a_) - c2) / h; Db = (c2 - jnp.exp(1j * jnp.roll(t[a_], 1, a_)) * jnp.roll(c2, 1, a_)) / h
+            Pm.append(-2 * (jnp.real(jnp.conj(v1) * d1) + jnp.real(jnp.conj(v2) * 0.5 * (Df + Db))))
+        E_ = [-w[a_] / h for a_ in range(3)]; B_ = [plaq(t, 1, 2), plaq(t, 2, 0), plaq(t, 0, 1)]
+        Sg = [(E_[1] * B_[2] - E_[2] * B_[1]) / g2, (E_[2] * B_[0] - E_[0] * B_[2]) / g2, (E_[0] * B_[1] - E_[1] * B_[0]) / g2]
+        return jnp.stack(Pm), jnp.stack(Sg)
+    Xj, Yj, Zj = jnp.asarray(X), jnp.asarray(Y), jnp.asarray(Zc)
+    Lvec = lambda P_: jnp.stack([Yj * P_[2] - Zj * P_[1], Zj * P_[0] - Xj * P_[2], Xj * P_[1] - Yj * P_[0]])
+    from numpy.polynomial import legendre as _lg
+    Rin = jnp.asarray(R0 < 12.0)
     for i in range(int(TEND / dt) + 1):
         if i % int(1.0 / dt) == 0:
             q = qd(p, v); gd, fd, pd = energy_density(p, h, mu, cF, d2); e = h**3 * (gd + fd + pd + jnp.sum(v**2, 0))
@@ -123,6 +138,15 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
                        xL=round(cen(left), 2), xR=round(cen(~left), 2), Etot=round(float(jnp.sum(e)), 2), Eext=round(float(jnp.sum(e * Rjx)), 2),
                        Ekin=round(float(h**3 * jnp.sum(jnp.sum(v**2, 0))), 2), Z2=round(float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), 1))
             e2 = np.array(e.sum(axis=2)); PROJ.append(e2.astype(np.float16))
+            Pm_, Sg_ = momentum(p, t, v, w, g2) if g2 > 0 else (momentum(p, t, v, w, 1.0)[0], 0 * p[:3])
+            Lm_, Lg_ = Lvec(Pm_), Lvec(Sg_)
+            rec['L'] = [round(float(h**3 * jnp.sum(Lm_[k_])), 2) for k_ in range(3)]; rec['Lg'] = [round(float(h**3 * jnp.sum(Lg_[k_])), 2) for k_ in range(3)]
+            rec['Lz_in'] = round(float(h**3 * jnp.sum(Lm_[2] * Rin)), 2); rec['Pm'] = [round(float(h**3 * jnp.sum(Pm_[k_])), 3) for k_ in range(3)]
+            rec['Econs'] = round(float(energy(p, t, nu, g2) + h**3 * jnp.sum(v**2) + (jnp.sum(w**2) * h / (2 * g2) if g2 > 0 else 0.0)), 2)
+            ee = np.array(e); es = ee[shell].sum() + 1e-12
+            rec['leg'] = [round(float((ee[shell] * _lg.legval(cth[shell], [0] * l_ + [1])).sum() / es), 3) for l_ in range(5)]
+            eqm = shell & eq; ese = ee[eqm].sum() + 1e-12
+            rec['azim'] = [round(float(abs((ee[eqm] * np.exp(1j * m_ * phi[eqm])).sum()) / ese), 3) for m_ in range(1, 5)]
             rec['sect16'] = [round(float(e2[ann & (sect == k_)].sum()), 2) for k_ in range(16)]
             e3 = np.array(e); ez = e3[:, :, N // 2 - 1:N // 2 + 1].sum(2)
             rec['sect16_z0'] = [round(float(ez[ann & (sect == k_)].sum()), 2) for k_ in range(16)]
