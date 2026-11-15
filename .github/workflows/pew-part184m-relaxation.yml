@@ -1,4 +1,4 @@
-name: PEW part184m noeud seul, relaxation plus longue : stationnarite (N=96 T=24)
+name: PEW part184m noeud seul relaxation plus longue stationnarite (N=96 T=24)
 
 on:
   workflow_dispatch:
