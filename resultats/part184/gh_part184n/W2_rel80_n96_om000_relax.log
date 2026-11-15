@@ -1,0 +1,10 @@
+relax t=0 E=1164.618 rms_force=2.988e-02 Z2=1077.6 Ekin=0.155
+relax t=10 E=923.018 rms_force=1.074e-03 Z2=1152.0 Ekin=0.619
+relax t=20 E=918.078 rms_force=4.676e-04 Z2=1295.8 Ekin=0.111
+relax t=30 E=916.870 rms_force=2.676e-04 Z2=1384.1 Ekin=0.035
+relax t=40 E=916.438 rms_force=1.705e-04 Z2=1439.4 Ekin=0.014
+relax t=50 E=916.253 rms_force=1.165e-04 Z2=1474.7 Ekin=0.006
+relax t=60 E=916.162 rms_force=8.396e-05 Z2=1497.4 Ekin=0.003
+relax t=70 E=916.114 rms_force=6.325e-05 Z2=1512.3 Ekin=0.002
+relax final rms_force=4.936e-05 Z2=1522.1
+relaxé, E = 916.0852661132812
