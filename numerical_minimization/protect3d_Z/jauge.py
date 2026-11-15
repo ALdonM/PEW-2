@@ -5,7 +5,7 @@ Dynamique : phi'' = -dE/dphi /(2 h^3) ; theta'' = -(g2/h) dE/dtheta.   [D] modè
 usage : python jauge.py check | python jauge.py run NU G2 OMEGA TEND TAG"""
 import os, sys, json, time, numpy as np, jax, jax.numpy as jnp
 from zlat import nvec, cross, hopfion
-N, h, mu, e0, d2 = int(os.environ.get('N', 48)), float(os.environ.get('H', 0.5)), 0.375, 0.25, 1e-3; cF = 1 / (2 * e0**2)
+N, h, mu, e0, d2 = int(os.environ.get('N', 48)), float(os.environ.get('H', 0.5)), 0.375, 0.25, float(os.environ.get('D2', 1e-3)); cF = 1 / (2 * e0**2)
 fwd1 = lambda f, a: jnp.roll(f, -1, axis=1 + a)       # f(x+e_a)
 bwd1 = lambda f, a: jnp.roll(f, 1, axis=1 + a)        # f(x-e_a)
 def rot(n, al):   # rotation de n autour de e3 de l'angle al (n_perp -> e^{i al} n_perp)
@@ -21,7 +21,7 @@ def energy(phi, th, nu, g2):
     for a in range(3):
         grad = grad + sq(sh(c1, a) - c1) / h**2 + sq(jnp.exp(-1j * th[a]) * sh(c2, a) - c2) / h**2
     r2 = jnp.sum(phi**2, axis=0); a_, b_, c_, d_ = phi
-    n = jnp.stack([2 * (a_ * c_ + b_ * d_), 2 * (a_ * d_ - b_ * c_), a_**2 + b_**2 - c_**2 - d_**2]) / (r2 + 1e-6)   # garde-fou numérique près de rho=0 (n non défini)
+    n = jnp.stack([2 * (a_ * c_ + b_ * d_), 2 * (a_ * d_ - b_ * c_), a_**2 + b_**2 - c_**2 - d_**2]) / (r2 + float(os.environ.get('GUARD', 1e-6)))   # garde-fou numérique près de rho=0 (n non défini)
     # différences covariantes de n : avant (transport du voisin x+a vers x), arrière
     Df = [(rot(jnp.roll(n, -1, axis=1 + a), -th[a][None][0]) - n) / h for a in range(3)]
     Db = [(n - rot(jnp.roll(n, 1, axis=1 + a), jnp.roll(th[a], 1, axis=a))) / h for a in range(3)]
