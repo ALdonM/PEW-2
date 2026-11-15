@@ -80,6 +80,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         return np.roll(big, shift, axis=1)
     if ORI == 'diag': SEP = SEPD
     A = embed(k1, -SEP, False); B = embed(k1, +SEP, SQ == 'opp')
+    if os.environ.get('SINGLE', '0') == '1': B = np.zeros_like(B); B[0] = 1.0   # un seul nœud (A) ; B = vide (quaternion unité)
     a0, a1, a2, a3 = A; b0, b1, b2, b3 = B   # produit de quaternions (comme dyn.py)
     p = jnp.array(np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0]).astype(np.float32))
     xx = x_(N); X, Y, Zc = np.meshgrid(xx, xx, xx, indexing='ij'); R0 = np.sqrt(X**2 + Y**2 + Zc**2)
@@ -113,6 +114,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     PROJ = []; ang = np.arctan2(Y[:, :, 0], X[:, :, 0]); rr = np.sqrt(X[:, :, 0]**2 + Y[:, :, 0]**2)
     ann = (rr > float(os.environ.get('RA1', 12.0))) & (rr < float(os.environ.get('RA2', 22.0)))
     sect = (((ang + np.pi) / (2 * np.pi) * 16).astype(int) % 16)
+    bA = jnp.asarray(((X - c1x)**2 + (Y - c1y)**2 + Zc**2) < 64.0); bB = jnp.asarray(((X - c2x)**2 + (Y - c2y)**2 + Zc**2) < 64.0)   # boules de rayon 8 autour des centres
     S = X * ux + Y * uy; left = jnp.asarray(S < 0)
     wv2 = (-uy * X + ux * Y); rn = np.maximum(R0, 1e-9); cth = S / rn; phi = np.arctan2(wv2, Zc)   # polaire / azimut autour de l'axe de la paire
     shell = (R0 > float(os.environ.get('RA1', 12.0))) & (R0 < float(os.environ.get('RA2', 22.0)))
@@ -146,6 +148,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
             Pm_, Sg_ = momentum(p, t, v, w, g2) if g2 > 0 else (momentum(p, t, v, w, 1.0)[0], 0 * p[:3])
             Lm_, Lg_ = Lvec(Pm_), Lvec(Sg_)
             rec['L'] = [round(float(h**3 * jnp.sum(Lm_[k_])), 2) for k_ in range(3)]; rec['Lg'] = [round(float(h**3 * jnp.sum(Lg_[k_])), 2) for k_ in range(3)]
+            rec['JA'] = round(float(h**3 * jnp.sum(q * bA)), 2); rec['JB'] = round(float(h**3 * jnp.sum(q * bB)), 2); rec['Z2A'] = round(float(h**3 * jnp.sum((p[2]**2 + p[3]**2) * bA)), 1); rec['EA'] = round(float(jnp.sum(e * bA)), 2)
             rec['Pg'] = [round(float(h**3 * jnp.sum(Sg_[k_])), 3) for k_ in range(3)]; rec['PzLR'] = [round(float(h**3 * jnp.sum(Pm_[2] * left)), 2), round(float(h**3 * jnp.sum(Pm_[2] * ~left)), 2)]
             rec['Lz_in'] = round(float(h**3 * jnp.sum(Lm_[2] * Rin)), 2); rec['Pm'] = [round(float(h**3 * jnp.sum(Pm_[k_])), 3) for k_ in range(3)]
             rec['Econs'] = round(float(energy(p, t, nu, g2) + h**3 * jnp.sum(v**2) + (jnp.sum(w**2) * h / (2 * g2) if g2 > 0 else 0.0)), 2)
