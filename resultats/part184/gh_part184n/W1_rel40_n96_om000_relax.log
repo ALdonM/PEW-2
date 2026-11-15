@@ -1,0 +1,6 @@
+relax t=0 E=1164.618 rms_force=2.988e-02 Z2=1077.6 Ekin=0.155
+relax t=10 E=923.018 rms_force=1.074e-03 Z2=1152.0 Ekin=0.619
+relax t=20 E=918.078 rms_force=4.676e-04 Z2=1295.8 Ekin=0.111
+relax t=30 E=916.870 rms_force=2.676e-04 Z2=1384.1 Ekin=0.035
+relax final rms_force=1.707e-04 Z2=1439.3
+relaxé, E = 916.4385986328125
