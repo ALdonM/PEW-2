@@ -60,9 +60,12 @@ if sys.argv[1] == 'check':
         pass
 elif sys.argv[1] == 'relax':   # relaxe un nœud isolé (N=48) et le sauvegarde : python jauge.py relax NU FICHIER
     nu = float(sys.argv[2]); dt = 0.02; p = jnp.array(hopfion(N, h, 6.0)); t = jnp.zeros((3, N, N, N), dtype=p.dtype); v = jnp.zeros_like(p)
-    a, _ = accs(p, t, nu, 0.0); g = np.exp(-0.5 * dt)
-    for i in range(int(20 / dt)):
-        v = v * g + 0.5 * dt * a; p = p + dt * v; a, _ = accs(p, t, nu, 0.0); v = (v + 0.5 * dt * a) * g
+    a, _ = accs(p, t, nu, 0.0); g = np.exp(-float(os.environ.get('RELG', 0.5)) * dt); RELT = float(os.environ.get('RELT', 20))   # part184m : durée et friction de relaxation réglables (défaut = ancien comportement)
+    step = jax.jit(lambda p, v, a: (lambda v1: (lambda p1: (lambda a1: (p1, (v1 + 0.5 * dt * a1[0]) * g, a1[0]))(accs(p1, t, nu, 0.0)))(p + dt * v1))(v * g + 0.5 * dt * a))
+    for i in range(int(RELT / dt)):
+        p, v, a = step(p, v, a)
+        if i % int(10 / dt) == 0: print('relax t=%.0f E=%.3f rms_force=%.3e Z2=%.1f Ekin=%.3f' % (i * dt, float(energy(p, t, nu, 0.0)), float(jnp.sqrt(jnp.mean(a**2))), float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), float(h**3 * jnp.sum(v**2))), flush=True)
+    print('relax final rms_force=%.3e Z2=%.1f' % (float(jnp.sqrt(jnp.mean(a**2))), float(h**3 * jnp.sum(p[2]**2 + p[3]**2))), flush=True)
     np.save(sys.argv[3], np.array(p)); print('relaxé, E =', float(energy(p, t, nu, 0.0)))
 elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (SQ, SJ dans {opp, same}) ; nécessite RELAXED=fichier.npy ; N=NBIG=80
     from zlat import energy_density

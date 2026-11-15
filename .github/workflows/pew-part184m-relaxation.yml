@@ -1,0 +1,70 @@
+name: PEW part184m noeud seul, relaxation plus longue : stationnarite (N=96 T=24)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  paires:
+    name: part184m ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: V1_rel020_n48, h: '0.5', n: '96', nrel: '48', nb: '48', relt: '20', sepc: '20', dt: '0.02', g2: '0', om: '0.0', sj: one, sq: opp, nu: '0.12', tend: '24', d2: '0.001', guard: '1e-6', rext: '22', ra1: '12', ra2: '22'}
+          - {tag: V2_rel100_n48, h: '0.5', n: '96', nrel: '48', nb: '48', relt: '100', sepc: '20', dt: '0.02', g2: '0', om: '0.0', sj: one, sq: opp, nu: '0.12', tend: '24', d2: '0.001', guard: '1e-6', rext: '22', ra1: '12', ra2: '22'}
+          - {tag: V3_rel300_n48, h: '0.5', n: '96', nrel: '48', nb: '48', relt: '300', sepc: '20', dt: '0.02', g2: '0', om: '0.0', sj: one, sq: opp, nu: '0.12', tend: '24', d2: '0.001', guard: '1e-6', rext: '22', ra1: '12', ra2: '22'}
+          - {tag: V4_rel300_n64, h: '0.5', n: '96', nrel: '64', nb: '64', relt: '300', sepc: '20', dt: '0.02', g2: '0', om: '0.0', sj: one, sq: opp, nu: '0.12', tend: '24', d2: '0.001', guard: '1e-6', rext: '22', ra1: '12', ra2: '22'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Relaxe un noeud isole
+        env:
+          N: ${{ matrix.nrel }}
+          H: ${{ matrix.h }}
+          RELT: ${{ matrix.relt }}
+        run: python jauge.py relax ${{ matrix.nu }} relaxed.npy | tee ${{ matrix.tag }}_relax.log
+      - name: Paire (resolution)
+        env:
+          N: ${{ matrix.n }}
+          H: ${{ matrix.h }}
+          NB: ${{ matrix.nb }}
+          SEPC: ${{ matrix.sepc }}
+          REXT: ${{ matrix.rext }}
+          RA1: ${{ matrix.ra1 }}
+          RA2: ${{ matrix.ra2 }}
+          SINGLE: '1'
+          D2: ${{ matrix.d2 }}
+          GUARD: ${{ matrix.guard }}
+          RELAXED: relaxed.npy
+          DT: ${{ matrix.dt }}
+        run: python jauge.py pair ${{ matrix.nu }} ${{ matrix.g2 }} ${{ matrix.om }} ${{ matrix.tend }} ${{ matrix.tag }} ${{ matrix.sq }} ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive le journal dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184m
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log numerical_minimization/protect3d_Z/${{ matrix.tag }}_relax.log numerical_minimization/protect3d_Z/${{ matrix.tag }}_proj.npy resultats/part184/gh_part184m/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184m
+          git commit -m "part184m paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBcwjjMSGxvefBTrWg" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
