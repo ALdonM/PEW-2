@@ -73,12 +73,14 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     dt = float(os.environ.get('DT', 0.02)); CS = 2.0; NB = int(os.environ.get('NB', 48)); SEP = int(os.environ.get('SEPC', 12))   # demi-séparation en mailles (12 -> 6 unités)
     k1 = np.load(os.environ['RELAXED'])
     ORI = os.environ.get('ORIENT', 'x'); SEPD = int(os.environ.get('SEPD', 14))   # ORIENT=diag : paire le long de (1,1,0)/sqrt2, SEPD mailles par axe
-    ux, uy = (1.0, 0.0) if ORI == 'x' else (2**-0.5, 2**-0.5)
+    ux, uy = (1.0, 0.0) if ORI in ('x', 'z') else (2**-0.5, 2**-0.5)
     def embed(k, shift, refl):
         big = np.zeros((4, N, N, N), dtype=np.float32); big[0] = 1.0; o = (N - NB) // 2
         big[:, o:o+NB, o:o+NB, o:o+NB] = k
-        if refl and not (ORI == 'diag' and os.environ.get('MIRROR', 'x') == 'axis'): big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
+        if refl and ORI == 'z': big = np.ascontiguousarray(big[:, :, :, ::-1])   # part184r : paire le long de z (axe du spin), miroir z -> -z
+        elif refl and not (ORI == 'diag' and os.environ.get('MIRROR', 'x') == 'axis'): big = big[:, ::-1]                       # réflexion x -> -x (grille symétrique) : Q -> -Q exactement
         if refl and ORI == 'diag' and os.environ.get('MIRROR', 'x') == 'axis': big = np.transpose(big[:, ::-1, ::-1], (0, 2, 1, 3)); big = np.ascontiguousarray(big)   # (x,y)->(-y,-x) : miroir par rapport au plan perpendiculaire à l'axe de la paire (annule la réflexion x précédente)
+        if ORI == 'z': return np.roll(big, shift, axis=3)
         if ORI == 'diag': return np.roll(np.roll(big, shift, axis=1), shift, axis=2)
         return np.roll(big, shift, axis=1)
     if ORI == 'diag': SEP = SEPD
@@ -87,8 +89,8 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     a0, a1, a2, a3 = A; b0, b1, b2, b3 = B   # produit de quaternions (comme dyn.py)
     p = jnp.array(np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0]).astype(np.float32))
     xx = x_(N); X, Y, Zc = np.meshgrid(xx, xx, xx, indexing='ij'); R0 = np.sqrt(X**2 + Y**2 + Zc**2)
-    c1x, c2x = (-SEP) * h, SEP * h; c1y, c2y = (c1x, c2x) if ORI == 'diag' else (0.0, 0.0)   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
-    w1 = np.exp(-(np.sqrt((X - c1x)**2 + (Y - c1y)**2 + Zc**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + (Y - c2y)**2 + Zc**2) / 8.0)**4)
+    c1x, c2x = ((-SEP) * h, SEP * h) if ORI != 'z' else (0.0, 0.0); c1y, c2y = (c1x, c2x) if ORI == 'diag' else (0.0, 0.0); c1z, c2z = ((-SEP) * h, SEP * h) if ORI == 'z' else (0.0, 0.0)   # centres initiaux (la grille centrée sur 0 est décalée d'une demi-maille ; erreur négligeable)
+    w1 = np.exp(-(np.sqrt((X - c1x)**2 + (Y - c1y)**2 + (Zc - c1z)**2) / 8.0)**4); w2 = np.exp(-(np.sqrt((X - c2x)**2 + (Y - c2y)**2 + (Zc - c2z)**2) / 8.0)**4)
     s1, s2 = om, (om if SJ == 'same' else (0.0 if SJ == 'one' else -om))   # 'one' : seul le nœud A tourne
     wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
@@ -117,8 +119,8 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     PROJ = []; ang = np.arctan2(Y[:, :, 0], X[:, :, 0]); rr = np.sqrt(X[:, :, 0]**2 + Y[:, :, 0]**2)
     ann = (rr > float(os.environ.get('RA1', 12.0))) & (rr < float(os.environ.get('RA2', 22.0)))
     sect = (((ang + np.pi) / (2 * np.pi) * 16).astype(int) % 16)
-    bA = jnp.asarray(((X - c1x)**2 + (Y - c1y)**2 + Zc**2) < 64.0); bB = jnp.asarray(((X - c2x)**2 + (Y - c2y)**2 + Zc**2) < 64.0)   # boules de rayon 8 autour des centres
-    S = X * ux + Y * uy; left = jnp.asarray(S < 0)
+    bA = jnp.asarray(((X - c1x)**2 + (Y - c1y)**2 + (Zc - c1z)**2) < 64.0); bB = jnp.asarray(((X - c2x)**2 + (Y - c2y)**2 + (Zc - c2z)**2) < 64.0)   # boules de rayon 8 autour des centres
+    S = (Zc if ORI == 'z' else X * ux + Y * uy); left = jnp.asarray(S < 0)
     wv2 = (-uy * X + ux * Y); rn = np.maximum(R0, 1e-9); cth = S / rn; phi = np.arctan2(wv2, Zc)   # polaire / azimut autour de l'axe de la paire
     shell = (R0 > float(os.environ.get('RA1', 12.0))) & (R0 < float(os.environ.get('RA2', 22.0)))
     pb = np.clip(((cth + 1) / 2 * 8).astype(int), 0, 7); ab = ((phi + np.pi) / (2 * np.pi) * 12).astype(int) % 12; eq = np.abs(cth) < 0.5; Rjx = jnp.asarray(R0 > float(os.environ.get('REXT', 16.0)))
