@@ -96,7 +96,8 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
     if os.environ.get('CANCEL_PZ', '0') == '1':   # part184h : annule l'impulsion axiale Pz de chaque nœud (boost le long de z) pour séparer spin et orbital
         dz = 0.5 * (jnp.roll(p, -1, axis=3) - jnp.roll(p, 1, axis=3)) / h
-        for mk in (jnp.asarray(X < 0), jnp.asarray(X >= 0)):
+        CX = Zc if ORI == 'z' else X   # coordonnée le long de l'axe de la paire
+        for mk in (jnp.asarray(CX < 0), jnp.asarray(CX >= 0)):
             PzM = h**3 * jnp.sum(-2 * jnp.sum(v * dz, 0) * mk); Kz = h**3 * jnp.sum(jnp.sum(dz**2, 0) * mk)
             v = v + (PzM / (2 * Kz)) * dz * mk
     t = jnp.zeros((3, N, N, N), dtype=p.dtype); w = jnp.zeros_like(t)
