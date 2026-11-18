@@ -1,0 +1,118 @@
+name: PEW part184w potentiel d interaction statique en fonction de la distance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  relaxe:
+    name: relaxation N=96
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - name: Relaxe un noeud isole N=96 (120 unites)
+        env:
+          N: '96'
+          H: '0.5'
+          RELT: '120'
+        run: python jauge.py relax 0.12 relaxed.npy | tee relax.log
+      - name: Archive le journal de relaxation
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184w
+          cp numerical_minimization/protect3d_Z/relax.log resultats/part184/gh_part184w/relax_N96.log
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184w
+          git commit -m "part184w : journal de relaxation N=96
+
+          Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBJ7QYur7BNLAidNKZ" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relaxed
+          path: numerical_minimization/protect3d_Z/relaxed.npy
+  potentiel:
+    name: part184w ${{ matrix.tag }}
+    needs: relaxe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: P1_z_om000, g2: '0.02', om: '0.0', sj: opp, ori: z, cpz: '0'}
+          - {tag: P2_z_par, g2: '0.02', om: '0.25', sj: same, ori: z, cpz: '1'}
+          - {tag: P3_z_anti, g2: '0.02', om: '0.25', sj: opp, ori: z, cpz: '1'}
+          - {tag: P4_x_om000, g2: '0.02', om: '0.0', sj: opp, ori: x, cpz: '0'}
+          - {tag: P5_x_par, g2: '0.02', om: '0.25', sj: opp, ori: x, cpz: '1'}
+          - {tag: P6_x_anti, g2: '0.02', om: '0.25', sj: same, ori: x, cpz: '1'}
+          - {tag: P7_z_par_g0, g2: '0.0', om: '0.25', sj: same, ori: z, cpz: '1'}
+          - {tag: P8_z_anti_g0, g2: '0.0', om: '0.25', sj: opp, ori: z, cpz: '1'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: relaxed
+          path: numerical_minimization/protect3d_Z
+      - name: Energie initiale (TEND=0) du noeud seul puis de la paire a chaque separation
+        env:
+          N: '96'
+          H: '0.5'
+          NB: '96'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          RELAXED: relaxed.npy
+          DT: '0.02'
+          ORIENT: ${{ matrix.ori }}
+          CANCEL_PZ: ${{ matrix.cpz }}
+        run: |
+          for S in 4 6 8 10 12 14 16 18 20 22 24; do
+            echo "== SINGLE SEPC=$S" | tee -a ${{ matrix.tag }}.log
+            SINGLE=1 SEPC=$S python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 0 single opp one | grep '^{' | tee -a ${{ matrix.tag }}.log
+            echo "== PAIR SEPC=$S" | tee -a ${{ matrix.tag }}.log
+            SEPC=$S python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 0 pair opp ${{ matrix.sj }} | grep '^{' | tee -a ${{ matrix.tag }}.log
+          done
+      - name: Archive le journal dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184w
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184w/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184w
+          git commit -m "part184w potentiel ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBJ7QYur7BNLAidNKZ" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
