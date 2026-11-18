@@ -38,7 +38,7 @@ jobs:
       - name: Mesure du champ de depart (wk_T0, float16, L=32)
         run: |
           python halo_mesure.py ../../resultats/part179/wk_T0/wk_T0_champ_final.npy --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 \
-            --tag wk_T0_depart --ref 319.47,527.94,28.88 --out halo_wk_T0_depart.json | tee halo_wk_T0_depart.log
+            --tag wk_T0_depart --ref 319.47,527.94,28.88 --out halo_wk_T0_depart_${{ matrix.tag }}.json | tee halo_wk_T0_depart_${{ matrix.tag }}.log
       - name: Relaxation (float64, L-BFGS-B) depuis wk_T0 place au centre d'une boite N^3
         run: |
           python halo_relax.py --in ../../resultats/part179/wk_T0/wk_T0_champ_final.npy --N ${{ matrix.n }} --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 \
@@ -61,12 +61,19 @@ jobs:
         run: |
           mkdir -p resultats/part187
           cp numerical_minimization/protect3d_Z/relaxe_${{ matrix.tag }}.log numerical_minimization/protect3d_Z/halo_${{ matrix.tag }}.log numerical_minimization/protect3d_Z/halo_${{ matrix.tag }}.json resultats/part187/ || true
-          cp numerical_minimization/protect3d_Z/halo_wk_T0_depart.log numerical_minimization/protect3d_Z/halo_wk_T0_depart.json resultats/part187/ || true
+          cp numerical_minimization/protect3d_Z/halo_wk_T0_depart_${{ matrix.tag }}.log numerical_minimization/protect3d_Z/halo_wk_T0_depart_${{ matrix.tag }}.json resultats/part187/ || true
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
           git add resultats/part187
+          if git diff --cached --quiet; then echo "rien a archiver"; exit 0; fi
           git commit -m "part187 halo ${{ matrix.tag }} : journaux et mesures
 
           Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
-          Claude-Session: https://claude.ai/code/session_012qTVdDvagm9nsLTXYZ7x2G" || exit 0
-          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+          Claude-Session: https://claude.ai/code/session_012qTVdDvagm9nsLTXYZ7x2G"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 20 + 5))
+          done
+          if [ "$ok" != 1 ]; then echo "ECHEC du push apres 6 essais"; exit 1; fi

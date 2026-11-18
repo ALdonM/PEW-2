@@ -33,6 +33,22 @@ def embed_centre(phi, N):
     return out
 
 
+def tourne(phi, axe, deg):
+    """Rotation spatiale (rotation des coordonnees seulement, indices internes du doublet inchanges)
+    du champ phi (4,N,N,N) autour de son centre, par interpolation cubique. Donne une autre
+    configuration de meme charge de Hopf (rotation continue) ; sert a tester la memoire de l'axe initial."""
+    from scipy.ndimage import affine_transform
+    ax = np.asarray(axe, dtype=float); ax /= np.linalg.norm(ax)
+    t = np.radians(deg); K = np.array([[0, -ax[2], ax[1]], [ax[2], 0, -ax[0]], [-ax[1], ax[0], 0]])
+    R = np.eye(3) + np.sin(t) * K + (1 - np.cos(t)) * (K @ K)
+    M = R.T  # coordonnee d'entree = R^-1 (x - c) + c
+    c = (np.array(phi.shape[1:]) - 1) / 2.0
+    off = c - M @ c
+    out = np.stack([affine_transform(phi[i].astype(np.float64), M, offset=off, order=3, mode="nearest") for i in range(4)])
+    out[:, 0, :, :] = out[:, :, 0, :] = out[:, :, :, 0] = 0  # bords : retour au vide (1,0,0,0) ci-dessous
+    return out.astype(np.float32)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="inp", required=True)
@@ -45,6 +61,7 @@ def main():
     ap.add_argument("--save", type=int, default=500)
     ap.add_argument("--out", required=True)
     ap.add_argument("--no-degree", action="store_true")
+    ap.add_argument("--rot", default="", help="ax,ay,az,angle_deg : rotation spatiale du noeud avant relaxation (test de memoire de l'axe)")
     ap.add_argument("--x64", type=int, default=1, help="1 : energie et gradient en float64 (recommande : en float32 L-BFGS-B s'arrete sur le bruit d'arrondi, ~1e-7 E)")
     a = ap.parse_args()
     jax.config.update("jax_enable_x64", bool(a.x64))
@@ -55,6 +72,12 @@ def main():
         start = phi0.astype(np.float32)  # float16 -> float32 sans perte
     else:
         start = embed_centre(phi0, a.N)
+    if a.rot:
+        v = [float(x) for x in a.rot.split(",")]
+        start = tourne(start, v[:3], v[3])
+        start[:, 0, :, :] = start[:, :, 0, :] = start[:, :, :, 0] = 0
+        start[0, 0, :, :] = start[0, :, 0, :] = start[0, :, :, 0] = 1.0  # vide sur les faces
+        print("depart tourne :", a.rot, flush=True)
     shape = start.shape
     cF = 1.0 / (2 * a.e0 ** 2)
     Ej, gE, parts, qdens = make(a.h, a.mu, cF, a.d2)
