@@ -49,7 +49,7 @@ def job(tag, extra, c, NCH):
 {guard}      - name: Run or resume
         env:
 {envs}
-        run: python -u dyn186d.py {full} 2>&1 | tee run_{full}_r{c}.log
+        run: python -u dyn186c.py {full} 2>&1 | tee run_{full}_r{c}.log
       - name: Check whether finished
         id: check_done
         shell: bash

@@ -68,7 +68,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r1.log
+        run: python -u dyn186c.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -153,7 +153,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r2.log
+        run: python -u dyn186c.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -238,7 +238,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r3.log
+        run: python -u dyn186c.py p186d_A_t4_s1 2>&1 | tee run_p186d_A_t4_s1_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -319,7 +319,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r1.log
+        run: python -u dyn186c.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -404,7 +404,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r2.log
+        run: python -u dyn186c.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -489,7 +489,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r3.log
+        run: python -u dyn186c.py p186d_A_t4_s2 2>&1 | tee run_p186d_A_t4_s2_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -570,7 +570,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r1.log
+        run: python -u dyn186c.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -655,7 +655,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r2.log
+        run: python -u dyn186c.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -740,7 +740,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r3.log
+        run: python -u dyn186c.py p186d_A_t8_s1 2>&1 | tee run_p186d_A_t8_s1_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -821,7 +821,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r1.log
+        run: python -u dyn186c.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -906,7 +906,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r2.log
+        run: python -u dyn186c.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -991,7 +991,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '2'
-        run: python -u dyn186d.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r3.log
+        run: python -u dyn186c.py p186d_A_t8_s2 2>&1 | tee run_p186d_A_t8_s2_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1072,7 +1072,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r1.log
+        run: python -u dyn186c.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1157,7 +1157,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r2.log
+        run: python -u dyn186c.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1242,7 +1242,7 @@ jobs:
           XI0: '4'
           T_END: '32'
           SEED: '1'
-        run: python -u dyn186d.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r3.log
+        run: python -u dyn186c.py p186d_A_ctl_s1 2>&1 | tee run_p186d_A_ctl_s1_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1323,7 +1323,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r1.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r1.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1408,7 +1408,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r2.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r2.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1493,7 +1493,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r3.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r3.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1578,7 +1578,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r4.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r4.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1663,7 +1663,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r5.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r5.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1748,7 +1748,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r6.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r6.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1833,7 +1833,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r7.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r7.log
       - name: Check whether finished
         id: check_done
         shell: bash
@@ -1918,7 +1918,7 @@ jobs:
           XI0: '8'
           T_END: '64'
           SEED: '1'
-        run: python -u dyn186d.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r8.log
+        run: python -u dyn186c.py p186d_B_t8_s1 2>&1 | tee run_p186d_B_t8_s1_r8.log
       - name: Check whether finished
         id: check_done
         shell: bash
