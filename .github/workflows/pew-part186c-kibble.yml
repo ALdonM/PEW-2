@@ -1,0 +1,1322 @@
+name: PEW part186c trempe a la Kibble (champ aleatoire a l echelle de l horizon, expansion)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  exp_t2_s1_r1:
+    name: part186c exp_t2_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t2_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_proj.npy
+          key: p186c-exp_t2_s1-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t2_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '2'
+          XI0: '2'
+          T_END: '16'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t2_s1 2>&1 | tee run_p186c_exp_t2_s1_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t2_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t2_s1; mkdir -p $OUT
+          cp p186c_exp_t2_s1_history.jsonl p186c_exp_t2_s1_params.json p186c_exp_t2_s1_state.json p186c_exp_t2_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t2_s1; git commit -q -m 'part186c exp_t2_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t2_s1_r2:
+    name: part186c exp_t2_s1 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t2_s1_r1
+    if: always() && needs.exp_t2_s1_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t2_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s1_proj.npy
+          key: p186c-exp_t2_s1-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t2_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t2_s1.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '2'
+          XI0: '2'
+          T_END: '16'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t2_s1 2>&1 | tee run_p186c_exp_t2_s1_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t2_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t2_s1; mkdir -p $OUT
+          cp p186c_exp_t2_s1_history.jsonl p186c_exp_t2_s1_params.json p186c_exp_t2_s1_state.json p186c_exp_t2_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t2_s1; git commit -q -m 'part186c exp_t2_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t2_s2_r1:
+    name: part186c exp_t2_s2 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t2_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_proj.npy
+          key: p186c-exp_t2_s2-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t2_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '2'
+          XI0: '2'
+          T_END: '16'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t2_s2 2>&1 | tee run_p186c_exp_t2_s2_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t2_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t2_s2; mkdir -p $OUT
+          cp p186c_exp_t2_s2_history.jsonl p186c_exp_t2_s2_params.json p186c_exp_t2_s2_state.json p186c_exp_t2_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t2_s2; git commit -q -m 'part186c exp_t2_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t2_s2_r2:
+    name: part186c exp_t2_s2 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t2_s2_r1
+    if: always() && needs.exp_t2_s2_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t2_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t2_s2_proj.npy
+          key: p186c-exp_t2_s2-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t2_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t2_s2.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '2'
+          XI0: '2'
+          T_END: '16'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t2_s2 2>&1 | tee run_p186c_exp_t2_s2_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t2_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t2_s2; mkdir -p $OUT
+          cp p186c_exp_t2_s2_history.jsonl p186c_exp_t2_s2_params.json p186c_exp_t2_s2_state.json p186c_exp_t2_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t2_s2; git commit -q -m 'part186c exp_t2_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t4_s1_r1:
+    name: part186c exp_t4_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t4_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_proj.npy
+          key: p186c-exp_t4_s1-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t4_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '4'
+          XI0: '4'
+          T_END: '32'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t4_s1 2>&1 | tee run_p186c_exp_t4_s1_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t4_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t4_s1; mkdir -p $OUT
+          cp p186c_exp_t4_s1_history.jsonl p186c_exp_t4_s1_params.json p186c_exp_t4_s1_state.json p186c_exp_t4_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t4_s1; git commit -q -m 'part186c exp_t4_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t4_s1_r2:
+    name: part186c exp_t4_s1 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t4_s1_r1
+    if: always() && needs.exp_t4_s1_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t4_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s1_proj.npy
+          key: p186c-exp_t4_s1-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t4_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t4_s1.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '4'
+          XI0: '4'
+          T_END: '32'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t4_s1 2>&1 | tee run_p186c_exp_t4_s1_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t4_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t4_s1; mkdir -p $OUT
+          cp p186c_exp_t4_s1_history.jsonl p186c_exp_t4_s1_params.json p186c_exp_t4_s1_state.json p186c_exp_t4_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t4_s1; git commit -q -m 'part186c exp_t4_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t4_s2_r1:
+    name: part186c exp_t4_s2 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t4_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_proj.npy
+          key: p186c-exp_t4_s2-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t4_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '4'
+          XI0: '4'
+          T_END: '32'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t4_s2 2>&1 | tee run_p186c_exp_t4_s2_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t4_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t4_s2; mkdir -p $OUT
+          cp p186c_exp_t4_s2_history.jsonl p186c_exp_t4_s2_params.json p186c_exp_t4_s2_state.json p186c_exp_t4_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t4_s2; git commit -q -m 'part186c exp_t4_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t4_s2_r2:
+    name: part186c exp_t4_s2 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t4_s2_r1
+    if: always() && needs.exp_t4_s2_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t4_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t4_s2_proj.npy
+          key: p186c-exp_t4_s2-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t4_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t4_s2.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '4'
+          XI0: '4'
+          T_END: '32'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t4_s2 2>&1 | tee run_p186c_exp_t4_s2_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t4_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t4_s2; mkdir -p $OUT
+          cp p186c_exp_t4_s2_history.jsonl p186c_exp_t4_s2_params.json p186c_exp_t4_s2_state.json p186c_exp_t4_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t4_s2; git commit -q -m 'part186c exp_t4_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t8_s1_r1:
+    name: part186c exp_t8_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t8_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_proj.npy
+          key: p186c-exp_t8_s1-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t8_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '8'
+          XI0: '8'
+          T_END: '64'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t8_s1 2>&1 | tee run_p186c_exp_t8_s1_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t8_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t8_s1; mkdir -p $OUT
+          cp p186c_exp_t8_s1_history.jsonl p186c_exp_t8_s1_params.json p186c_exp_t8_s1_state.json p186c_exp_t8_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t8_s1; git commit -q -m 'part186c exp_t8_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t8_s1_r2:
+    name: part186c exp_t8_s1 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t8_s1_r1
+    if: always() && needs.exp_t8_s1_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t8_s1.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s1_proj.npy
+          key: p186c-exp_t8_s1-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t8_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t8_s1.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '8'
+          XI0: '8'
+          T_END: '64'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_exp_t8_s1 2>&1 | tee run_p186c_exp_t8_s1_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t8_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t8_s1; mkdir -p $OUT
+          cp p186c_exp_t8_s1_history.jsonl p186c_exp_t8_s1_params.json p186c_exp_t8_s1_state.json p186c_exp_t8_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t8_s1; git commit -q -m 'part186c exp_t8_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t8_s2_r1:
+    name: part186c exp_t8_s2 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t8_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_proj.npy
+          key: p186c-exp_t8_s2-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t8_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '8'
+          XI0: '8'
+          T_END: '64'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t8_s2 2>&1 | tee run_p186c_exp_t8_s2_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t8_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t8_s2; mkdir -p $OUT
+          cp p186c_exp_t8_s2_history.jsonl p186c_exp_t8_s2_params.json p186c_exp_t8_s2_state.json p186c_exp_t8_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t8_s2; git commit -q -m 'part186c exp_t8_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  exp_t8_s2_r2:
+    name: part186c exp_t8_s2 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: exp_t8_s2_r1
+    if: always() && needs.exp_t8_s2_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_exp_t8_s2.npz
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_exp_t8_s2_proj.npy
+          key: p186c-exp_t8_s2-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-exp_t8_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_exp_t8_s2.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '8'
+          XI0: '8'
+          T_END: '64'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_exp_t8_s2 2>&1 | tee run_p186c_exp_t8_s2_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_exp_t8_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_exp_t8_s2; mkdir -p $OUT
+          cp p186c_exp_t8_s2_history.jsonl p186c_exp_t8_s2_params.json p186c_exp_t8_s2_state.json p186c_exp_t8_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_exp_t8_s2; git commit -q -m 'part186c exp_t8_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  ctl_s1_r1:
+    name: part186c ctl_s1 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_ctl_s1.npz
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_proj.npy
+          key: p186c-ctl_s1-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-ctl_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '1000000'
+          XI0: '4'
+          T_END: '32'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_ctl_s1 2>&1 | tee run_p186c_ctl_s1_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_ctl_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_ctl_s1; mkdir -p $OUT
+          cp p186c_ctl_s1_history.jsonl p186c_ctl_s1_params.json p186c_ctl_s1_state.json p186c_ctl_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_ctl_s1; git commit -q -m 'part186c ctl_s1 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  ctl_s1_r2:
+    name: part186c ctl_s1 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: ctl_s1_r1
+    if: always() && needs.ctl_s1_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_ctl_s1.npz
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_params.json
+            numerical_minimization/protect3d_Z/p186c_ctl_s1_proj.npy
+          key: p186c-ctl_s1-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-ctl_s1-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_ctl_s1.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '1000000'
+          XI0: '4'
+          T_END: '32'
+          SEED: '1'
+        run: python -u dyn186c.py p186c_ctl_s1 2>&1 | tee run_p186c_ctl_s1_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_ctl_s1_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_ctl_s1; mkdir -p $OUT
+          cp p186c_ctl_s1_history.jsonl p186c_ctl_s1_params.json p186c_ctl_s1_state.json p186c_ctl_s1_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_ctl_s1; git commit -q -m 'part186c ctl_s1 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  ctl_s2_r1:
+    name: part186c ctl_s2 chunk 1/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_ctl_s2.npz
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_proj.npy
+          key: p186c-ctl_s2-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-ctl_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '1000000'
+          XI0: '4'
+          T_END: '32'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_ctl_s2 2>&1 | tee run_p186c_ctl_s2_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_ctl_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_ctl_s2; mkdir -p $OUT
+          cp p186c_ctl_s2_history.jsonl p186c_ctl_s2_params.json p186c_ctl_s2_state.json p186c_ctl_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_ctl_s2; git commit -q -m 'part186c ctl_s2 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  ctl_s2_r2:
+    name: part186c ctl_s2 chunk 2/2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: ctl_s2_r1
+    if: always() && needs.ctl_s2_r1.outputs.finished == 'false'
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p186c_ctl_s2.npz
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_history.jsonl
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_params.json
+            numerical_minimization/protect3d_Z/p186c_ctl_s2_proj.npy
+          key: p186c-ctl_s2-r2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p186c-ctl_s2-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Garde-fou - le checkpoint doit exister
+        run: test -f ck_p186c_ctl_s2.npz || (echo "CHECKPOINT ABSENT"; exit 1)
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          NORM: '1'
+          INIT: 'chaos'
+          MU: '0.375'
+          E0: '0.25'
+          N: '64'
+          H: '0.5'
+          DT: '0.0025'
+          T0: '0'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MEAS: '1.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '1'
+          KC: '0'
+          TC0: '1000000'
+          XI0: '4'
+          T_END: '32'
+          SEED: '2'
+        run: python -u dyn186c.py p186c_ctl_s2 2>&1 | tee run_p186c_ctl_s2_r2.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p186c_ctl_s2_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part186c/p186c_ctl_s2; mkdir -p $OUT
+          cp p186c_ctl_s2_history.jsonl p186c_ctl_s2_params.json p186c_ctl_s2_state.json p186c_ctl_s2_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part186c/p186c_ctl_s2; git commit -q -m 'part186c ctl_s2 chunk 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
