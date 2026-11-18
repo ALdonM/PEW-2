@@ -1,0 +1,127 @@
+name: PEW part184x noeuds stationnaires en rotation sous le seuil de masse
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  relaxe:
+    name: relaxation N=96 omrel ${{ matrix.omrel }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {rel: R000, omrel: '0.0'}
+          - {rel: R010, omrel: '0.10'}
+          - {rel: R014, omrel: '0.14'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - name: Relaxation dans le referentiel tournant
+        env:
+          N: '96'
+          H: '0.5'
+          RELT: '120'
+          OMREL: ${{ matrix.omrel }}
+        run: python jauge.py relax 0.12 relaxed.npy | tee relax_${{ matrix.rel }}.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relaxed_${{ matrix.rel }}
+          path: numerical_minimization/protect3d_Z/relaxed.npy
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184x
+          cp numerical_minimization/protect3d_Z/relax_${{ matrix.rel }}.log resultats/part184/gh_part184x/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184x
+          git commit -m "part184x relaxation ${{ matrix.rel }} : journal
+
+          Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBJ7QYur7BNLAidNKZ" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  paires:
+    name: part184x ${{ matrix.tag }}
+    needs: relaxe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: X_z_om000, rel: R000, om: '0.0', sj: opp, ori: z, single: '0', g2: '0.02'}
+          - {tag: X_x_om000, rel: R000, om: '0.0', sj: opp, ori: x, single: '0', g2: '0.02'}
+          - {tag: X_z_par_om010, rel: R010, om: '0.10', sj: same, ori: z, single: '0', g2: '0.02'}
+          - {tag: X_z_anti_om010, rel: R010, om: '0.10', sj: opp, ori: z, single: '0', g2: '0.02'}
+          - {tag: X_x_par_om010, rel: R010, om: '0.10', sj: opp, ori: x, single: '0', g2: '0.02'}
+          - {tag: X_x_anti_om010, rel: R010, om: '0.10', sj: same, ori: x, single: '0', g2: '0.02'}
+          - {tag: X_z_par_om014, rel: R014, om: '0.14', sj: same, ori: z, single: '0', g2: '0.02'}
+          - {tag: X_z_anti_om014, rel: R014, om: '0.14', sj: opp, ori: z, single: '0', g2: '0.02'}
+          - {tag: X_x_par_om014, rel: R014, om: '0.14', sj: opp, ori: x, single: '0', g2: '0.02'}
+          - {tag: X_x_anti_om014, rel: R014, om: '0.14', sj: same, ori: x, single: '0', g2: '0.02'}
+          - {tag: X_single_om010, rel: R010, om: '0.10', sj: one, ori: z, single: '1', g2: '0.02'}
+          - {tag: X_single_om014, rel: R014, om: '0.14', sj: one, ori: z, single: '1', g2: '0.02'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: relaxed_${{ matrix.rel }}
+          path: numerical_minimization/protect3d_Z
+      - name: Paire (noeuds stationnaires en rotation, vitesse = derivee du produit)
+        env:
+          N: '96'
+          H: '0.5'
+          NB: '96'
+          SEPC: '20'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          RELAXED: relaxed.npy
+          DT: '0.02'
+          ORIENT: ${{ matrix.ori }}
+          VPROD: '1'
+          SINGLE: ${{ matrix.single }}
+        run: python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 60 ${{ matrix.tag }} opp ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184x
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184x/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184x
+          git commit -m "part184x paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBJ7QYur7BNLAidNKZ" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done

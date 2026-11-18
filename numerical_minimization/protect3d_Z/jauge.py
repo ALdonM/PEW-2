@@ -61,11 +61,15 @@ if sys.argv[1] == 'check':
 elif sys.argv[1] == 'relax':   # relaxe un nœud isolé (N=48) et le sauvegarde : python jauge.py relax NU FICHIER
     nu = float(sys.argv[2]); dt = 0.02; p = jnp.array(np.load(os.environ['RELIN']) if os.environ.get('RELIN') else hopfion(N, h, 6.0));   # RELIN : reprend une relaxation à partir d'un fichier (part184v)
     t = jnp.zeros((3, N, N, N), dtype=p.dtype); v = jnp.zeros_like(p)
-    a, _ = accs(p, t, nu, 0.0); g = np.exp(-float(os.environ.get('RELG', 0.5)) * dt); RELT = float(os.environ.get('RELT', 20))   # part184m : durée et friction de relaxation réglables (défaut = ancien comportement)
-    step = jax.jit(lambda p, v, a: (lambda v1: (lambda p1: (lambda a1: (p1, (v1 + 0.5 * dt * a1[0]) * g, a1[0]))(accs(p1, t, nu, 0.0)))(p + dt * v1))(v * g + 0.5 * dt * a))
+    OMR = float(os.environ.get('OMREL', 0.0))   # part184x : relaxation dans le référentiel tournant (phase de Z2 à vitesse OMR) : on minimise V - OMR^2 I, I = h^3 sum|Z2|^2 (force centrifuge OMR^2 Z2)
+    facc = lambda p: (accs(p, t, nu, 0.0)[0] + OMR**2 * jnp.stack([0 * p[0], 0 * p[1], p[2], p[3]]),)
+    a = facc(p)[0]; g = np.exp(-float(os.environ.get('RELG', 0.5)) * dt); RELT = float(os.environ.get('RELT', 20))   # part184m : durée et friction de relaxation réglables (défaut = ancien comportement)
+    step = jax.jit(lambda p, v, a: (lambda v1: (lambda p1: (lambda a1: (p1, (v1 + 0.5 * dt * a1[0]) * g, a1[0]))(facc(p1)))(p + dt * v1))(v * g + 0.5 * dt * a))
     for i in range(int(RELT / dt)):
         p, v, a = step(p, v, a)
-        if i % int(10 / dt) == 0: print('relax t=%.0f E=%.3f rms_force=%.3e Z2=%.1f Ekin=%.3f' % (i * dt, float(energy(p, t, nu, 0.0)), float(jnp.sqrt(jnp.mean(a**2))), float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), float(h**3 * jnp.sum(v**2))), flush=True)
+        if i % int(10 / dt) == 0:
+            I_ = float(h**3 * jnp.sum(p[2]**2 + p[3]**2)); V_ = float(energy(p, t, nu, 0.0))
+            print('relax t=%.0f E=%.3f rms_force=%.3e Z2=%.1f Ekin=%.3f omrel=%.3f V-om2I=%.3f E_rot=V+om2I=%.3f J=2omI=%.2f' % (i * dt, V_, float(jnp.sqrt(jnp.mean(a**2))), I_, float(h**3 * jnp.sum(v**2)), OMR, V_ - OMR**2 * I_, V_ + OMR**2 * I_, 2 * OMR * I_), flush=True)
     print('relax final rms_force=%.3e Z2=%.1f' % (float(jnp.sqrt(jnp.mean(a**2))), float(h**3 * jnp.sum(p[2]**2 + p[3]**2))), flush=True)
     np.save(sys.argv[3], np.array(p)); print('relaxé, E =', float(energy(p, t, nu, 0.0)))
 elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (SQ, SJ dans {opp, same}) ; nécessite RELAXED=fichier.npy ; N=NBIG=80
@@ -96,6 +100,10 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     s1, s2 = om, (om if SJ == 'same' else (0.0 if SJ == 'one' else -om))   # 'one' : seul le nœud A tourne
     wgt = jnp.array((s1 * w1 + s2 * w2).astype(np.float32))[None]
     v = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) * wgt
+    if os.environ.get('VPROD', '0') == '1':   # part184x : vitesse = dérivée exacte du produit A.B quand A tourne à s1 et B à s2 (rotation globale de la phase de Z2, sans masque)
+        qp = lambda X, Y: np.stack([X[0]*Y[0]-X[1]*Y[1]-X[2]*Y[2]-X[3]*Y[3], X[0]*Y[1]+X[1]*Y[0]+X[2]*Y[3]-X[3]*Y[2], X[0]*Y[2]-X[1]*Y[3]+X[2]*Y[0]+X[3]*Y[1], X[0]*Y[3]+X[1]*Y[2]-X[2]*Y[1]+X[3]*Y[0]])
+        Ad = s1 * np.stack([0 * A[0], 0 * A[1], -A[3], A[2]]); Bd = s2 * np.stack([0 * B[0], 0 * B[1], -B[3], B[2]])
+        v = jnp.array((qp(Ad, B) + qp(A, Bd)).astype(np.float32))
     if os.environ.get('CANCEL_PZ', '0') == '1':   # part184h : annule l'impulsion axiale Pz de chaque nœud (boost le long de z) pour séparer spin et orbital
         dz = 0.5 * (jnp.roll(p, -1, axis=3) - jnp.roll(p, 1, axis=3)) / h
         CX = Zc if ORI == 'z' else (X + Zc if ORI == 'xz' else X)   # coordonnée le long de l'axe de la paire
