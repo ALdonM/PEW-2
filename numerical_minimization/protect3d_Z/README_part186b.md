@@ -1,0 +1,8 @@
+# README part186b — relâchement lent, départ au nœud relaxé — STATUT : lancé le 18/11/2026
+
+Pourquoi : part186 (relâchement en 3 unités, nœuds non relaxés) a perdu la charge après le relâchement, par saut de réseau (cos_min < 0, ρ_min ≈ 0,25–0,3), y compris pour un nœud seul ; le témoin sans contraction la gardait. Voir notes part176b/178/179/180 : le nœud se perd toujours par saut de réseau quand il est comprimé à l'échelle de la maille ; la convergence en h n'est pas établie (part180b).
+Hypothèse testée : à a = 0,5 le rayon d'équilibre comobile double (E4 ∝ a⁻⁴, E2 ∝ a⁻²) ; un relâchement brutal laisse le nœud trop grand, qui s'effondre vers la maille. Un relâchement lent devrait lui laisser le temps de suivre.
+Départ : nœud relaxé de part179 (resultats/part179/wk_T0, deg −1, Etot 876,3, 64³, h = 0,5, e0 = 0,25, μ = 0,375), vitesses nulles, friction 0,5 jusqu'à t = 5, contraction a:1→AMIN sur t = 5–45 (friction 0,02), relâchement sur TBACK, évolution libre jusqu'à t = 120.
+Runs : slow_a05 (AMIN 0,5 ; TBACK 30) ; fast_a05 (0,5 ; 3 : même départ que le test, isole l'effet de la vitesse) ; slow_a07 (0,7 ; 30) ; ctl_a10 (a = 1 : témoin).
+Critères écrits avant : (1) deg = −1 et cos_min > 0 à t = 45 ; (2) charge à t = 120 : conservée ou perdue, et dans ce cas cos_min au moment de la perte (saut de réseau si < 0) ; (3) houle : rms de rho_mean détrendé après la fin du relâchement et fréquence vs 2μ = 0,75 ; (4) écume : bandes spec[] vs témoin ; (5) comparaison slow_a05 / fast_a05 : si seul slow garde la charge, la perte venait du relâchement brutal.
+Limites : un seul nœud, une graine, un seul h (0,5) : aucune convergence en h ; a(t) imposé.
