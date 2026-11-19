@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 358
     defaults:
       run:
+        shell: bash
         working-directory: numerical_minimization/protect3d_Z
     steps:
       - uses: actions/checkout@v4
@@ -33,10 +34,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: champ_relaxe_L64_N128
           path: numerical_minimization/protect3d_Z/champs
-      - name: Relaxation N=192 (float64, maxcor 6, arret propre a 5h30)
+      - name: Relaxation N=192 (float64, tranches de 12, maxcor 4, arret propre a 5h30)
         run: |
           python halo_relax.py --in champs/relaxe_L64_N128.npy --N 192 --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 \
-            --taper 22,30 --maxcor 6 --maxit 5000 --save 50 --tmax 19800 --no-degree --out relaxe_L96_N192.npy | tee relaxe_L96_N192.log
+            --slab 12 --taper 22,30 --maxcor 4 --maxit 5000 --save 50 --tmax 19800 --no-degree --out relaxe_L96_N192.npy | tee relaxe_L96_N192.log
       - name: Mesure du halo
         if: always()
         run: |

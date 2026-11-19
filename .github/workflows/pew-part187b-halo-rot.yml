@@ -19,6 +19,7 @@ jobs:
           - {tag: L48_N96_rotB, n: '96', maxit: '2500', save: '250', rot: '1,2,0,50'}
     defaults:
       run:
+        shell: bash
         working-directory: numerical_minimization/protect3d_Z
     steps:
       - uses: actions/checkout@v4

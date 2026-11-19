@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 60
     defaults:
       run:
+        shell: bash
         working-directory: numerical_minimization/protect3d_Z
     steps:
       - uses: actions/checkout@v4

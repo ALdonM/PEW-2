@@ -33,6 +33,63 @@ def embed_centre(phi, N):
     return out
 
 
+def make_slab(h, mu, cF, d2, N, ep):
+    """Energie, gradient, parties et charge calcules par tranches d'epaisseur ep le long de l'axe 1 (halo de 1 maille, periodique).
+    Necessaire pour N>=192 : jax compile l'energie complete avec ~500 tableaux N^3 intermediaires (29 Go a N=192, OOM)."""
+    import zlat
+    assert N % ep == 0, "N doit etre multiple de --slab"
+    ns = N // ep
+
+    def idx(i):
+        return (np.arange(i * ep - 1, (i + 1) * ep + 1)) % N
+
+    def E_pad(pp):
+        g, f, p = zlat.energy_density(pp, h, mu, cF, d2)
+        return h ** 3 * jnp.sum((g + f + p)[1:-1])
+
+    def parts_pad(pp):
+        g, f, p = zlat.energy_density(pp, h, mu, cF, d2)
+        return h ** 3 * jnp.array([jnp.sum(g[1:-1]), jnp.sum(f[1:-1]), jnp.sum(p[1:-1])])
+
+    def q_pad(pp):
+        z = pp / jnp.sqrt(jnp.sum(pp ** 2, axis=0))
+        M = jnp.stack([z] + [zlat.cen(z, ax, h) for ax in (1, 2, 3)])
+        M = jnp.moveaxis(M, (0, 1), (-2, -1))
+        return jnp.sum(jnp.linalg.det(M)[1:-1]) / (2 * np.pi ** 2)
+
+    vg_pad, gE_pad, E_j, parts_j, q_j = jax.jit(jax.value_and_grad(E_pad)), jax.jit(jax.grad(E_pad)), jax.jit(E_pad), jax.jit(parts_pad), jax.jit(q_pad)
+
+    def pad(p, i):
+        return jnp.asarray(np.asarray(p)[:, idx(i)])
+
+    def Ej(p):
+        return sum(float(E_j(pad(p, i))) for i in range(ns))
+
+    def gE(p):
+        g = np.zeros(np.asarray(p).shape, dtype=np.float64)
+        for i in range(ns):
+            g[:, idx(i)] += np.asarray(gE_pad(pad(p, i)))
+        return g
+
+    def vg(p):
+        g = np.zeros(np.asarray(p).shape, dtype=np.float64)
+        e = 0.0
+        for i in range(ns):
+            ei, gi = vg_pad(pad(p, i))
+            e += float(ei)
+            g[:, idx(i)] += np.asarray(gi)
+        return e, g
+
+    def parts(p):
+        return sum(np.asarray(parts_j(pad(p, i))) for i in range(ns))
+
+    def qdens(p):
+        return np.array([sum(float(q_j(pad(p, i))) for i in range(ns))])  # sum(det)/(2 pi^2) ; le appelant multiplie par h^3
+
+    Ej.vg = vg
+    return Ej, gE, parts, qdens
+
+
 def tourne(phi, axe, deg):
     """Rotation spatiale (rotation des coordonnees seulement, indices internes du doublet inchanges)
     du champ phi (4,N,N,N) autour de son centre, par interpolation cubique. Donne une autre
@@ -61,6 +118,7 @@ def main():
     ap.add_argument("--save", type=int, default=500)
     ap.add_argument("--out", required=True)
     ap.add_argument("--no-degree", action="store_true")
+    ap.add_argument("--slab", type=int, default=0, help="epaisseur de tranche (N multiple) : energie/gradient par tranches, obligatoire pour N>=192 (RAM)")
     ap.add_argument("--maxcor", type=int, default=20, help="memoire L-BFGS-B (nb de paires s,y) ; 6 pour N>=192 (RAM)")
     ap.add_argument("--tmax", type=float, default=0.0, help="duree max de la minimisation en secondes (arret propre, le champ est sauvegarde)")
     ap.add_argument("--taper", default="", help="r0,r1 (unites physiques) : ecart au vide multiplie par un cos^2 de 1 (r<r0) a 0 (r>r1) apres l'insertion ; sert a agrandir la boite depuis un champ deja relaxe")
@@ -92,10 +150,16 @@ def main():
         print("taper cos^2 :", r0, r1, flush=True)
     shape = start.shape
     cF = 1.0 / (2 * a.e0 ** 2)
-    Ej, gE, parts, qdens = make(a.h, a.mu, cF, a.d2)
+    if a.slab > 0:
+        Ej, gE, parts, qdens = make_slab(a.h, a.mu, cF, a.d2, shape[1], a.slab)
+    else:
+        Ej, gE, parts, qdens = make(a.h, a.mu, cF, a.d2)
 
     def fg(x):
         p = jnp.array(x.reshape(shape), dtype=fl)
+        if hasattr(Ej, "vg"):
+            e, g = Ej.vg(p)
+            return e, g.ravel()
         return float(Ej(p)), np.array(gE(p), dtype=np.float64).ravel()
 
     k = [0]
