@@ -1,0 +1,400 @@
+name: PEW part189 couplage vitesse de phase c = rho/rho_vac (iceberg)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  relax:
+    name: part189 relax
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'none'
+          G0: '0.5'
+          T_END: '20'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          NB: '64'
+        run: |
+          python -u dyn186c.py p189_relax 2>&1 | tee run_p189_relax.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_relax_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_relax; mkdir -p $OUT
+          cp p189_relax_history.jsonl p189_relax_params.json p189_relax_state.json p189_relax_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_relax; git commit -q -m 'part189 relax : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  K0:
+    name: part189 K0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: relax
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          T_END: '22'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part189/p189_relax/p189_relax_champ_final.npy'
+        run: |
+          python -u dyn186c.py p189_K0 2>&1 | tee run_p189_K0.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_K0_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_K0; mkdir -p $OUT
+          cp p189_K0_history.jsonl p189_K0_params.json p189_K0_state.json p189_K0_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_K0; git commit -q -m 'part189 K0 : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Kp:
+    name: part189 Kp
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: relax
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          T_END: '22'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part189/p189_relax/p189_relax_champ_final.npy'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: |
+          python -u dyn186c.py p189_Kp 2>&1 | tee run_p189_Kp.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_Kp_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_Kp; mkdir -p $OUT
+          cp p189_Kp_history.jsonl p189_Kp_params.json p189_Kp_state.json p189_Kp_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_Kp; git commit -q -m 'part189 Kp : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Vp:
+    name: part189 Vp
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: relax
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          T_END: '22'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          INIT: 'vac'
+          INIT_FILE: '../../resultats/part189/p189_relax/p189_relax_champ_final.npy'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: |
+          python -u dyn186c.py p189_Vp 2>&1 | tee run_p189_Vp.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_Vp_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_Vp; mkdir -p $OUT
+          cp p189_Vp_history.jsonl p189_Vp_params.json p189_Vp_state.json p189_Vp_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_Vp; git commit -q -m 'part189 Vp : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Ka:
+    name: part189 Ka
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: relax
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          T_END: '22'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part189/p189_relax/p189_relax_champ_final.npy'
+          WAVE: 'amp'
+          WEPS: '0.05'
+        run: |
+          python -u dyn186c.py p189_Ka 2>&1 | tee run_p189_Ka.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_Ka_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_Ka; mkdir -p $OUT
+          cp p189_Ka_history.jsonl p189_Ka_params.json p189_Ka_state.json p189_Ka_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_Ka; git commit -q -m 'part189 Ka : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Va:
+    name: part189 Va
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: relax
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          T_END: '22'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          INIT: 'vac'
+          INIT_FILE: '../../resultats/part189/p189_relax/p189_relax_champ_final.npy'
+          WAVE: 'amp'
+          WEPS: '0.05'
+        run: |
+          python -u dyn186c.py p189_Va 2>&1 | tee run_p189_Va.log
+          python - <<'PYCODE'
+          import json; st = json.load(open('p189_Va_state.json')); print(st); assert st['finished']
+          PYCODE
+      - name: Commit results to resultats/
+        shell: bash
+        run: |
+          OUT=../../resultats/part189/p189_Va; mkdir -p $OUT
+          cp p189_Va_history.jsonl p189_Va_params.json p189_Va_state.json p189_Va_champ_final.npy $OUT/
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part189/p189_Va; git commit -q -m 'part189 Va : resultats'
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1

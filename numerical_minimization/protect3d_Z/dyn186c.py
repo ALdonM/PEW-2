@@ -31,6 +31,7 @@ KW = 0.0
 TC0, TH, PT, TSTART_H, TC, RMIN = env('TC0', 20.0), env('TH', 15.0), env('PT', 1.0), env('TSTART_H', 0.9), env('TC', 0.6), env('RMIN', 0.35)
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
+CP = env('CP', 0.0)
 CHECK = env('CHECK', 10)
 NOEUDS = env('NOEUDS', 0)
 EINJ, INIT_FILE = env('EINJ', 0.0), env('INIT_FILE', '')
@@ -82,6 +83,7 @@ cosmin_j = jax.jit(lambda phi: jnp.min(coss(phi)))
 
 def Ew(phi, w2, w4, kw):
     g, f, p = energy_density(phi / kw, h, mu, cF, d2)
+    if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
     return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
 
