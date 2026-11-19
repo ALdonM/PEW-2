@@ -1,0 +1,517 @@
+name: PEW part188b part188b iceberg dans la houle (paquet de phase / amplitude traversant un noeud)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  Kp3_r1:
+    name: part188b Kp3 chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Kp3.npz
+            numerical_minimization/protect3d_Z/p188b_Kp3_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Kp3_params.json
+            numerical_minimization/protect3d_Z/p188b_Kp3_proj.npy
+          key: p188b-Kp3-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Kp3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p188b_Kp3 2>&1 | tee run_p188b_Kp3_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Kp3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Kp3; mkdir -p $OUT
+          cp p188b_Kp3_history.jsonl p188b_Kp3_params.json p188b_Kp3_state.json p188b_Kp3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Kp3; git commit -q -m 'part188b Kp3 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Vp3_r1:
+    name: part188b Vp3 chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Vp3.npz
+            numerical_minimization/protect3d_Z/p188b_Vp3_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Vp3_params.json
+            numerical_minimization/protect3d_Z/p188b_Vp3_proj.npy
+          key: p188b-Vp3-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Vp3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'vac'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p188b_Vp3 2>&1 | tee run_p188b_Vp3_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Vp3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Vp3; mkdir -p $OUT
+          cp p188b_Vp3_history.jsonl p188b_Vp3_params.json p188b_Vp3_state.json p188b_Vp3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Vp3; git commit -q -m 'part188b Vp3 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Kp3b_r1:
+    name: part188b Kp3b chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Kp3b.npz
+            numerical_minimization/protect3d_Z/p188b_Kp3b_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Kp3b_params.json
+            numerical_minimization/protect3d_Z/p188b_Kp3b_proj.npy
+          key: p188b-Kp3b-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Kp3b-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          WAVE: 'phase'
+          WEPS: '0.025'
+        run: python -u dyn186c.py p188b_Kp3b 2>&1 | tee run_p188b_Kp3b_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Kp3b_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Kp3b; mkdir -p $OUT
+          cp p188b_Kp3b_history.jsonl p188b_Kp3b_params.json p188b_Kp3b_state.json p188b_Kp3b_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Kp3b; git commit -q -m 'part188b Kp3b chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Vp3b_r1:
+    name: part188b Vp3b chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Vp3b.npz
+            numerical_minimization/protect3d_Z/p188b_Vp3b_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Vp3b_params.json
+            numerical_minimization/protect3d_Z/p188b_Vp3b_proj.npy
+          key: p188b-Vp3b-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Vp3b-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'vac'
+          WAVE: 'phase'
+          WEPS: '0.025'
+        run: python -u dyn186c.py p188b_Vp3b 2>&1 | tee run_p188b_Vp3b_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Vp3b_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Vp3b; mkdir -p $OUT
+          cp p188b_Vp3b_history.jsonl p188b_Vp3b_params.json p188b_Vp3b_state.json p188b_Vp3b_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Vp3b; git commit -q -m 'part188b Vp3b chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Ka3_r1:
+    name: part188b Ka3 chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Ka3.npz
+            numerical_minimization/protect3d_Z/p188b_Ka3_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Ka3_params.json
+            numerical_minimization/protect3d_Z/p188b_Ka3_proj.npy
+          key: p188b-Ka3-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Ka3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'file'
+          INIT_FILE: '../../resultats/part179/wk_T0/wk_T0_champ_final.npy'
+          WAVE: 'amp'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p188b_Ka3 2>&1 | tee run_p188b_Ka3_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Ka3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Ka3; mkdir -p $OUT
+          cp p188b_Ka3_history.jsonl p188b_Ka3_params.json p188b_Ka3_state.json p188b_Ka3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Ka3; git commit -q -m 'part188b Ka3 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  Va3_r1:
+    name: part188b Va3 chunk 1/1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    outputs:
+      finished: ${{ steps.check_done.outputs.finished }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Restore checkpoint
+        uses: actions/cache@v4
+        with:
+          path: |
+            numerical_minimization/protect3d_Z/ck_p188b_Va3.npz
+            numerical_minimization/protect3d_Z/p188b_Va3_history.jsonl
+            numerical_minimization/protect3d_Z/p188b_Va3_params.json
+            numerical_minimization/protect3d_Z/p188b_Va3_proj.npy
+          key: p188b-Va3-r1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            p188b-Va3-
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run or resume
+        env:
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          N: '64'
+          H: '0.5'
+          MU: '0.375'
+          E0: '0.25'
+          DT: '0.0025'
+          T0: '0'
+          T_END: '22'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          WK: '3.0'
+          WX0: '-10'
+          WSIG: '4'
+          FINAL32: '1'
+          INIT: 'vac'
+          WAVE: 'amp'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p188b_Va3 2>&1 | tee run_p188b_Va3_r1.log
+      - name: Check whether finished
+        id: check_done
+        shell: bash
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          st = json.load(open('p188b_Va3_state.json')); print(st)
+          open(os.environ['GITHUB_OUTPUT'], 'a').write('finished=' + ('true' if st['finished'] else 'false') + '\n')
+          PYCODE
+      - name: Commit results to resultats/
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          OUT=../../resultats/part188b/p188b_Va3; mkdir -p $OUT
+          cp p188b_Va3_history.jsonl p188b_Va3_params.json p188b_Va3_state.json p188b_Va3_champ_final.npy $OUT/ 2>/dev/null || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part188b/p188b_Va3; git commit -q -m 'part188b Va3 chunk 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 12); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
