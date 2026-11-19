@@ -61,6 +61,9 @@ def main():
     ap.add_argument("--save", type=int, default=500)
     ap.add_argument("--out", required=True)
     ap.add_argument("--no-degree", action="store_true")
+    ap.add_argument("--maxcor", type=int, default=20, help="memoire L-BFGS-B (nb de paires s,y) ; 6 pour N>=192 (RAM)")
+    ap.add_argument("--tmax", type=float, default=0.0, help="duree max de la minimisation en secondes (arret propre, le champ est sauvegarde)")
+    ap.add_argument("--taper", default="", help="r0,r1 (unites physiques) : ecart au vide multiplie par un cos^2 de 1 (r<r0) a 0 (r>r1) apres l'insertion ; sert a agrandir la boite depuis un champ deja relaxe")
     ap.add_argument("--rot", default="", help="ax,ay,az,angle_deg : rotation spatiale du noeud avant relaxation (test de memoire de l'axe)")
     ap.add_argument("--x64", type=int, default=1, help="1 : energie et gradient en float64 (recommande : en float32 L-BFGS-B s'arrete sur le bruit d'arrondi, ~1e-7 E)")
     a = ap.parse_args()
@@ -78,6 +81,15 @@ def main():
         start[:, 0, :, :] = start[:, :, 0, :] = start[:, :, :, 0] = 0
         start[0, 0, :, :] = start[0, :, 0, :] = start[0, :, :, 0] = 1.0  # vide sur les faces
         print("depart tourne :", a.rot, flush=True)
+    if a.taper:
+        r0, r1 = (float(x) for x in a.taper.split(","))
+        Nn = start.shape[1]
+        x1 = (np.arange(Nn) - Nn / 2 + 0.5) * a.h
+        R = np.sqrt(x1[:, None, None] ** 2 + x1[None, :, None] ** 2 + x1[None, None, :] ** 2)
+        w = np.where(R <= r0, 1.0, np.where(R >= r1, 0.0, np.cos(0.5 * np.pi * (R - r0) / (r1 - r0)) ** 2)).astype(np.float32)
+        vac = np.zeros_like(start); vac[0] = 1.0
+        start = (vac + (start - vac) * w).astype(np.float32)
+        print("taper cos^2 :", r0, r1, flush=True)
     shape = start.shape
     cF = 1.0 / (2 * a.e0 ** 2)
     Ej, gE, parts, qdens = make(a.h, a.mu, cF, a.d2)
@@ -99,6 +111,10 @@ def main():
 
     def cb(x):
         k[0] += 1
+        if a.tmax and time.time() - t0 > a.tmax:
+            np.save(a.out, x.reshape(shape))
+            print("arret sur --tmax a l'iteration", k[0], flush=True)
+            raise StopIteration
         if k[0] % 100 == 0:
             p = jnp.array(x.reshape(shape), dtype=fl)
             measure(p, k[0])
@@ -107,7 +123,7 @@ def main():
 
     measure(jnp.array(start, dtype=fl), 0)
     res = minimize(fg, start.astype(np.float64).ravel(), jac=True, method="L-BFGS-B", callback=cb,
-                   options=dict(maxiter=a.maxit, maxcor=20, gtol=1e-7, ftol=1e-14, maxfun=int(a.maxit * 1.3)))
+                   options=dict(maxiter=a.maxit, maxcor=a.maxcor, gtol=1e-7, ftol=1e-14, maxfun=int(a.maxit * 1.3)))
     p = res.x.reshape(shape)
     np.save(a.out, p)
     print("FIN", res.message, "nit", res.nit, flush=True)
