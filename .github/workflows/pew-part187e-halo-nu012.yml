@@ -1,4 +1,4 @@
-name: PEW part187e halo du noeud a nu=0.12 (masse des modes charges, parametres des paires part184) : L=32, 48, 64
+name: PEW part187e halo du noeud a nu=0.12 (masse des modes charges, parametres des paires part184), L=32, 48, 64
 
 on:
   workflow_dispatch:
