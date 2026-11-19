@@ -32,6 +32,7 @@ TC0, TH, PT, TSTART_H, TC, RMIN = env('TC0', 20.0), env('TH', 15.0), env('PT', 1
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
+KW0, MEANC = env('KW0', 0.0), env('MEANC', 0)   # part191 : amplitude globale de la porteuse imposée (KW0) ; MEANC=1 : amplitude moyenne rappelée à kw à chaque pas (zéro mode global)
 CHECK = env('CHECK', 10)
 NOEUDS = env('NOEUDS', 0)
 EINJ, INIT_FILE = env('EINJ', 0.0), env('INIT_FILE', '')
@@ -131,6 +132,7 @@ else:
     if INIT == 'file':
         phi = np.load(INIT_FILE).astype(np.float64)
         if NB != N: phi = pad_fourier(np.fft.fftn(phi, axes=(1, 2, 3)), N)
+        if KW0 > 0: phi = phi * KW0   # part191 : champ de départ à l'amplitude de vide KW0
     if INIT == 'knot':
         from zlat import hopfion
         phi = hopfion(N, h, env('RK', 6.0)).astype(np.float64)
@@ -175,6 +177,7 @@ def measure(phi, v, t):
     a = a_of(t); rv = kw_of(t); q = np.array(qd(phi)) * h**3
     r = np.sqrt(np.array(jnp.sum(phi**2, 0))); zz = np.array(phi) / r
     g, f, p = energy_density(phi / rv, h, mu, cF, d2); g, p = g * rv**2, p * rv**2
+    if CP: g = g * np.array(jnp.sum((phi / rv)**2, axis=0))**CP   # part191 : l'énergie mesurée contient le poids rho^(2CP) (absent des historiques part189/190)
     E = np.array([float(jnp.sum(g)) * h**3, float(jnp.sum(f)) * h**3, float(jnp.sum(p)) * h**3])
     e = np.array(g / a**2 + f / a**4 + p) * h**3
     es = ndimage.gaussian_filter(e, 2, mode='wrap')
@@ -205,6 +208,7 @@ def measure(phi, v, t):
                 Ebar=round(float(Pbar(phi)), 3), Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(Pbar(phi) if BARRIER else 0.0), 3))
 
 def kw_of(t):
+    if KW0 > 0: return KW0
     if MODE != 'hot' or TC <= 0: return 1.0
     return float(np.sqrt(max(RMIN**2, 1.0 - T_of(t) / TC)))
 RUNMIN = [2.0]
@@ -245,6 +249,7 @@ with open(hist, "a") as H_:
         tm = t + dte / 2
         key = jax.random.fold_in(jax.random.PRNGKey(10_000 + seed), nstep_g[0]); nstep_g[0] += 1
         phi, v, acc = kdk(phi, v, acc, a_of(t + dte), float(np.exp(-gam(tm) * dte / 2)), dte, kw_of(t + dte), T_of(tm), key, float(np.exp(-G0 * dte / 2)))
+        if MEANC: phi = phi * (kw_of(t + dte) / jnp.mean(jnp.sqrt(jnp.sum(phi**2, axis=0))))   # part191 : rappel global de l'amplitude moyenne
         t += dte; nstep = locals().get('nstep', 0) + 1
         if nstep % CHECK == 0: RUNMIN[0] = min(RUNMIN[0], float(cosmin_j(phi)))
         if nstep % 2000 == 0:
