@@ -55,7 +55,7 @@ jobs:
         working-directory: .
         run: |
           mkdir -p resultats/part187
-          cp numerical_minimization/protect3d_Z/relaxe_L96_N192.log halo_L96_N192.* comp_L96_N192.* resultats/part187/ 2>/dev/null || true
+          cd numerical_minimization/protect3d_Z && cp relaxe_L96_N192.log halo_L96_N192.* comp_L96_N192.* ../../resultats/part187/ ; cd ../..
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
           git add resultats/part187
