@@ -1,0 +1,17 @@
+== nu012_L32_N64: N=64 L=32.0 Etot=934.01 fenetre d'ajustement 6.1-9.9
+part de e_j / e_tot, e_ang / e_tot, e_rho / e_tot, e4 / e_tot, eV / e_tot dans E(>R):
+  R= 6  E(>R)=  287.73  e_j   6.6%  e_n  42.8%  e_ang  49.5%  e_rho   0.8%  e4  35.1%  eV  14.6%
+  R= 8  E(>R)=  127.21  e_j   6.3%  e_n  58.1%  e_ang  64.4%  e_rho   0.9%  e4  17.2%  eV  17.6%
+  R=10  E(>R)=   52.78  e_j   7.4%  e_n  68.0%  e_ang  75.4%  e_rho   0.7%  e4   5.4%  eV  18.6%
+  R=12  E(>R)=   21.80  e_j   9.8%  e_n  71.1%  e_ang  80.9%  e_rho   0.4%  e4   1.3%  eV  17.5%
+  R=14  E(>R)=    9.04  e_j  12.8%  e_n  71.6%  e_ang  84.4%  e_rho   0.1%  e4   0.4%  eV  15.1%
+pente log-log de E(>R): {'6-8': -2.84, '8-10': -3.94, '10-12': -4.85, '12-14': -5.71}
+  ajustement abs_j : puissance p=2.82 (res 0.025) | exp k=0.358 (res 0.006) -> exponentielle
+  ajustement e_j   : puissance p=5.91 (res 0.039) | exp k=0.749 (res 0.021) -> exponentielle
+  ajustement e_n   : puissance p=3.00 (res 0.065) | exp k=0.383 (res 0.037) -> exponentielle
+  ajustement e_tot : puissance p=5.02 (res 0.050) | exp k=0.637 (res 0.004) -> exponentielle
+  ajustement Theta : puissance p=3.85 (res 0.048) | exp k=0.489 (res 0.014) -> exponentielle
+pentes locales abs_j : {'3-5': -0.76, '5-7': -1.87, '7-9': -2.94, '9-11': -3.04, '11-13': -2.83, '13-15': -2.72}
+pentes locales e_j   : {'3-5': -2.0, '5-7': -4.25, '7-9': -6.13, '9-11': -6.11, '11-13': -5.58, '13-15': -4.99}
+pentes locales e_n   : {'3-5': -0.74, '5-7': -1.67, '7-9': -3.01, '9-11': -5.28, '11-13': -7.01, '13-15': -7.33}
+pentes locales Theta : {'3-5': -1.76, '5-7': -2.86, '7-9': -3.84, '9-11': -5.64, '11-13': -7.04, '13-15': -7.13}
