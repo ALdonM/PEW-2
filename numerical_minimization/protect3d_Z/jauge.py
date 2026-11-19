@@ -207,6 +207,9 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     from numpy.polynomial import legendre as _lg
     Rin = jnp.asarray(R0 < 12.0)
     for i in range(int(TEND / dt) + 1):
+        if os.environ.get('QCUR', '0') == '1' and i % 5 == 0:   # part184zc : flux au plan median toutes les 0,1 unite (ligne CUR, hors JSON) pour verifier dqL/dt = Imid + Iwrap par integration
+            gtc_ = gE(p, t, nu, g2)[1]; ia_ = (2 if ORI == 'z' else 0); qq_ = qd(p, v)
+            print('CUR', json.dumps(dict(t=round(i * dt, 2), qL=round(float(h**3 * jnp.sum(qq_ * left)), 3), Imid=round(-0.5 * float(jnp.sum(jnp.take(gtc_[ia_], N // 2 - 1, axis=ia_))), 3), Iwrap=round(0.5 * float(jnp.sum(jnp.take(gtc_[ia_], N - 1, axis=ia_))), 3))), flush=True)
         if i % int(1.0 / dt) == 0:
             q = qd(p, v); gd, fd, pd = energy_density(p, h, mu, cF, d2); e = h**3 * (gd + fd + pd + jnp.sum(v**2, 0))
             gg = jnp.asarray(gd); 
@@ -225,6 +228,13 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
                 Sj_ = jnp.asarray(S); rec['qx'] = [round(float(h**3 * jnp.sum(q * ((Sj_ >= -24 + 4 * k_) & (Sj_ < -20 + 4 * k_)))), 2) for k_ in range(12)]
                 rec['qfar'] = round(float(h**3 * jnp.sum(q * Rjx)), 2); rec['qtot'] = round(float(h**3 * jnp.sum(q)), 2)
                 rec['Eel'] = round(float(jnp.sum(w**2) * h / (2 * g2)), 2) if g2 > 0 else 0.0
+            if os.environ.get('QCUR', '0') == '1':   # part184zc : courant de charge exact au plan median S=0 : qdot = (1/2h^3) sum_a [gt_a(x-a) - gt_a(x)], gt = dE/dtheta (continuite exacte, theta fixe ou dynamique)
+                gtc = gE(p, t, nu, g2)[1]; axs = (3 if ORI == 'z' else 1); ia = axs - 1; Mi = N // 2 - 1
+                Imid = -0.5 * float(jnp.sum(jnp.take(gtc[ia], Mi, axis=ia))); Iwrap = 0.5 * float(jnp.sum(jnp.take(gtc[ia], N - 1, axis=ia)))   # dqL/dt = Imid + Iwrap (Iwrap = liaison periodique au bord de boite)
+                ac_ = accs(p, t, nu, g2)[0]; qdot = p[2] * ac_[3] - p[3] * ac_[2]; qdiv = 0.5 / h**3 * sum(jnp.roll(gtc[a_], 1, axis=a_) - gtc[a_] for a_ in range(3))
+                rec['Imid'] = round(Imid, 3); rec['Iwrap'] = round(Iwrap, 3); rec['cont'] = [round(float(jnp.max(jnp.abs(qdot - qdiv))), 6), round(float(jnp.max(jnp.abs(qdot))), 4)]
+                Rp = np.sqrt(np.maximum(R0**2 - np.asarray(S)**2, 0.0)); Rm = np.take(Rp, Mi, axis=ia)   # rayon perpendiculaire a l'axe, dans le plan des liaisons traversant S=0
+                fl = -0.5 * np.asarray(jnp.take(gtc[ia], Mi, axis=ia)); rec['jrad'] = [round(float(fl[(Rm >= 2 * k_) & (Rm < 2 * k_ + 2)].sum()), 3) for k_ in range(10)]
             rec['Pg'] = [round(float(h**3 * jnp.sum(Sg_[k_])), 3) for k_ in range(3)]; rec['PzLR'] = [round(float(h**3 * jnp.sum(Pm_[2] * left)), 2), round(float(h**3 * jnp.sum(Pm_[2] * ~left)), 2)]
             rec['Lz_in'] = round(float(h**3 * jnp.sum(Lm_[2] * Rin)), 2); rec['Pm'] = [round(float(h**3 * jnp.sum(Pm_[k_])), 3) for k_ in range(3)]
             rec['Econs'] = round(float(energy(p, t, nu, g2) + h**3 * jnp.sum(v**2) + (jnp.sum(w**2) * h / (2 * g2) if g2 > 0 else 0.0)), 2)

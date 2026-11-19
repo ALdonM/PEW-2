@@ -1,0 +1,361 @@
+name: PEW part184zd omega 0,19 relaxation avec jauge plus longue (N96) et boite 128
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  relax96b:
+    name: relaxation G019 prolongee N96 (+150)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: relaxed_G019
+          path: numerical_minimization/protect3d_Z
+          run-id: 44572873080
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: relaxation G019 prolongee N96 (+150)
+        env:
+          N: '96'
+          H: '0.5'
+          RELT: '150'
+          OMREL: '0.19'
+          RG2: '0.02'
+          RELIN: relaxedg.npy
+          RELST: relaxedg_state.npz
+        run: python jauge.py relax 0.12 relaxedg.npy | tee relax_G019b_N96.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relaxedg96b
+          path: |
+            numerical_minimization/protect3d_Z/relaxedg.npy
+            numerical_minimization/protect3d_Z/relaxedg_state.npz
+          if-no-files-found: ignore
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/relax_G019b_N96.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd relaxation G019 prolongee N96 (+150) : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  paires96:
+    name: part184zd N96 ${{ matrix.tag }}
+    needs: relax96b
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: ZDG96_zJs_om19, art: relaxedg96b, rid: '${{ github.run_id }}', om: '0.19', sj: same, ori: z, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG96_zJo_om19, art: relaxedg96b, rid: '${{ github.run_id }}', om: '0.19', sj: opp, ori: z, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG96_xJs_om19, art: relaxedg96b, rid: '${{ github.run_id }}', om: '0.19', sj: same, ori: x, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG96_xJo_om19, art: relaxedg96b, rid: '${{ github.run_id }}', om: '0.19', sj: opp, ori: x, g2: '0.02', st: 'relaxedg_state.npz'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          path: numerical_minimization/protect3d_Z
+          run-id: ${{ matrix.rid }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Paire (profil de charge QPROF et courant au plan median QCUR)
+        env:
+          N: '96'
+          H: '0.5'
+          NB: '96'
+          SEPC: '20'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          DT: '0.02'
+          ORIENT: ${{ matrix.ori }}
+          VPROD: '1'
+          QPROF: '1'
+          QCUR: '1'
+          STATE: ${{ matrix.st }}
+        run: |
+          if [ -f relaxedg.npy ]; then export RELAXED=relaxedg.npy; else export RELAXED=relaxed.npy; fi
+          if [ -z "$STATE" ]; then unset STATE; fi
+          python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 60 ${{ matrix.tag }} opp ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  relax128n:
+    name: relaxation sans jauge omega 0,14 N128
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - name: relaxation sans jauge omega 0,14 N128
+        env:
+          N: '128'
+          H: '0.5'
+          RELT: '120'
+          OMREL: '0.14'
+        run: python jauge.py relax 0.12 relaxed.npy | tee relax_R014_N128.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relaxed128n
+          path: |
+            numerical_minimization/protect3d_Z/relaxed.npy
+          if-no-files-found: ignore
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/relax_R014_N128.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd relaxation sans jauge omega 0,14 N128 : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  relax128g:
+    name: relaxation avec jauge omega 0,19 N128
+    needs: relax128n
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: relaxed128n
+          path: numerical_minimization/protect3d_Z
+      - name: relaxation avec jauge omega 0,19 N128
+        env:
+          N: '128'
+          H: '0.5'
+          RELT: '100'
+          OMREL: '0.19'
+          RG2: '0.02'
+          RELIN: relaxed.npy
+        run: python jauge.py relax 0.12 relaxedg.npy | tee relax_G019_N128.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relaxedg128
+          path: |
+            numerical_minimization/protect3d_Z/relaxedg.npy
+            numerical_minimization/protect3d_Z/relaxedg_state.npz
+          if-no-files-found: ignore
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/relax_G019_N128.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd relaxation avec jauge omega 0,19 N128 : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  paires128g:
+    name: part184zd N128 jauge ${{ matrix.tag }}
+    needs: relax128g
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: ZDG128_zJs_om19, art: relaxedg128, rid: '${{ github.run_id }}', om: '0.19', sj: same, ori: z, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG128_zJo_om19, art: relaxedg128, rid: '${{ github.run_id }}', om: '0.19', sj: opp, ori: z, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG128_xJs_om19, art: relaxedg128, rid: '${{ github.run_id }}', om: '0.19', sj: same, ori: x, g2: '0.02', st: 'relaxedg_state.npz'}
+          - {tag: ZDG128_xJo_om19, art: relaxedg128, rid: '${{ github.run_id }}', om: '0.19', sj: opp, ori: x, g2: '0.02', st: 'relaxedg_state.npz'}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          path: numerical_minimization/protect3d_Z
+          run-id: ${{ matrix.rid }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Paire (profil de charge QPROF et courant au plan median QCUR)
+        env:
+          N: '128'
+          H: '0.5'
+          NB: '128'
+          SEPC: '20'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          DT: '0.02'
+          ORIENT: ${{ matrix.ori }}
+          VPROD: '1'
+          QPROF: '1'
+          QCUR: '1'
+          STATE: ${{ matrix.st }}
+        run: |
+          if [ -f relaxedg.npy ]; then export RELAXED=relaxedg.npy; else export RELAXED=relaxed.npy; fi
+          if [ -z "$STATE" ]; then unset STATE; fi
+          python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 60 ${{ matrix.tag }} opp ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
+  paires128n:
+    name: part184zd N128 sans jauge ${{ matrix.tag }}
+    needs: relax128n
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: ZD0128_zJs_om14, art: relaxed128n, rid: '${{ github.run_id }}', om: '0.14', sj: same, ori: z, g2: '0.0', st: ''}
+          - {tag: ZD0128_zJo_om14, art: relaxed128n, rid: '${{ github.run_id }}', om: '0.14', sj: opp, ori: z, g2: '0.0', st: ''}
+          - {tag: ZD0128_xJs_om14, art: relaxed128n, rid: '${{ github.run_id }}', om: '0.14', sj: same, ori: x, g2: '0.0', st: ''}
+          - {tag: ZD0128_xJo_om14, art: relaxed128n, rid: '${{ github.run_id }}', om: '0.14', sj: opp, ori: x, g2: '0.0', st: ''}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          path: numerical_minimization/protect3d_Z
+          run-id: ${{ matrix.rid }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Paire (profil de charge QPROF et courant au plan median QCUR)
+        env:
+          N: '128'
+          H: '0.5'
+          NB: '128'
+          SEPC: '20'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          DT: '0.02'
+          ORIENT: ${{ matrix.ori }}
+          VPROD: '1'
+          QPROF: '1'
+          QCUR: '1'
+          STATE: ${{ matrix.st }}
+        run: |
+          if [ -f relaxedg.npy ]; then export RELAXED=relaxedg.npy; else export RELAXED=relaxed.npy; fi
+          if [ -z "$STATE" ]; then unset STATE; fi
+          python jauge.py pair 0.12 ${{ matrix.g2 }} ${{ matrix.om }} 60 ${{ matrix.tag }} opp ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184zd
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184zd/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184zd
+          git commit -m "part184zd paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
