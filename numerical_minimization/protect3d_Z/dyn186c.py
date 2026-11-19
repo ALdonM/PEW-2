@@ -1,4 +1,5 @@
-"""part186c -- trempe chaude : bain de Langevin T(t) = TSTART / a^PT, expansion rad (a = sqrt(tau/TC0)), amplitude du vide RV(T) (r^2 = max(RMIN^2, 1 - T/TC)) ;
+"""part188 (dans dyn186c) : INIT=vac, WAVE=phase|amp (paquet gaussien WK, WEPS, WX0, WSIG vers +x), FINAL32=1 : test « iceberg dans la houle ».
+part186c -- trempe chaude : bain de Langevin T(t) = TSTART / a^PT, expansion rad (a = sqrt(tau/TC0)), amplitude du vide RV(T) (r^2 = max(RMIN^2, 1 - T/TC)) ;
 TC<=0 : amplitude fixe (témoin sans transition). V(phi) = mu^2 (rho^2 + r^4/(rho^2 + r^2 d2) - 2 r^2) : vide en rho = r, même courbure ; E2 -> r^2 E2(phi/r).
 MODE=hot (bain si TSTART_H>0 ; sinon expansion seule, friction de Hubble 1.5/tau). Voir README_part186c.md.
 part176 -- Protection de la charge de Hopf sur réseau (note de cadrage part175) : barrière d'admissibilité
@@ -148,7 +149,23 @@ else:
         if KNOT_SIGN < 0: a_ = a_ * np.array([1, -1, -1, -1])[:, None, None, None]
         a0, a1, a2, a3 = a_; b0, b1, b2, b3 = b_
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
-    phi = jnp.array(phi.astype(np.float32)); v = jnp.zeros_like(phi); t = t0
+    if INIT == 'vac': phi = np.zeros((4, N, N, N)); phi[0] = 1.0   # part188 : vide uniforme (témoin sans nœud)
+    v0 = np.zeros((4, N, N, N))
+    WAVE = env('WAVE', '')   # part188 : paquet d'ondes 'phase' (Goldstone U(1), sans masse, Z -> e^{i chi} Z) ou 'amp' (mode d'amplitude, massif) vers +x
+    if WAVE:
+        WK, WEPS, WX0, WSIG = env('WK', 1.0), env('WEPS', 0.1), env('WX0', -10.0), env('WSIG', 3.0)
+        xs = (np.arange(N) - N / 2 + 0.5) * h; X = xs[:, None, None] * np.ones((1, N, N)); u = X - WX0
+        om = WK if WAVE == 'phase' else float(np.sqrt(WK**2 + 4 * mu**2)); vg = WK / om
+        env_ = np.exp(-u**2 / (2 * WSIG**2)); dl = WEPS * env_ * np.cos(WK * u)
+        dld = WEPS * (om * env_ * np.sin(WK * u) + vg * (u / WSIG**2) * env_ * np.cos(WK * u))   # d(dl)/dt pour un paquet allant vers +x
+        if WAVE == 'phase':
+            c_, s_ = np.cos(dl), np.sin(dl); a_, b_, c2, d_ = phi
+            phi = np.stack([a_ * c_ - b_ * s_, a_ * s_ + b_ * c_, c2 * c_ - d_ * s_, c2 * s_ + d_ * c_])
+            v0 = dld * np.stack([-phi[1], phi[0], -phi[3], phi[2]])
+        else:
+            v0 = dld * phi; phi = phi * (1 + dl)
+        print('paquet', WAVE, 'k', WK, 'omega', om, 'vg', vg, 'eps', WEPS, flush=True)
+    phi = jnp.array(phi.astype(np.float32)); v = jnp.array(v0.astype(np.float32)); t = t0
     json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB), open(f"{TAG}_params.json", "w"))
 
 PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") else []   # part181 : projection de la densité d'énergie sur le plan xy à chaque mesure (float16)
@@ -231,5 +248,5 @@ with open(hist, "a") as H_:
         if nstep % 2000 == 0:
             np.savez(ck, phi=np.array(phi), v=np.array(v), t=t)
 np.savez(ck, phi=np.array(phi), v=np.array(v), t=t)
-np.save(f"{TAG}_champ_final.npy", np.array(phi, dtype=np.float16))
+np.save(f"{TAG}_champ_final.npy", np.array(phi, dtype=np.float32 if env('FINAL32', 0) else np.float16))
 json.dump(dict(finished=finished, t=t), open(stf, "w")); print("FIN", finished, t)
