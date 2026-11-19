@@ -118,6 +118,7 @@ def main():
     ap.add_argument("--save", type=int, default=500)
     ap.add_argument("--out", required=True)
     ap.add_argument("--no-degree", action="store_true")
+    ap.add_argument("--nu", type=float, default=0.0, help="masse des modes charges : + 2 nu^2 |Z2|^2 (part184b) ; 0 = modele Z pur")
     ap.add_argument("--slab", type=int, default=0, help="epaisseur de tranche (N multiple) : energie/gradient par tranches, obligatoire pour N>=192 (RAM)")
     ap.add_argument("--maxcor", type=int, default=20, help="memoire L-BFGS-B (nb de paires s,y) ; 6 pour N>=192 (RAM)")
     ap.add_argument("--tmax", type=float, default=0.0, help="duree max de la minimisation en secondes (arret propre, le champ est sauvegarde)")
@@ -150,6 +151,14 @@ def main():
         print("taper cos^2 :", r0, r1, flush=True)
     shape = start.shape
     cF = 1.0 / (2 * a.e0 ** 2)
+    if a.nu > 0:
+        import zlat as _z
+        _ed, _nu = _z.energy_density, a.nu
+
+        def _ed_nu(phi, h, mu, cF, d2):
+            g, f, p = _ed(phi, h, mu, cF, d2)
+            return g, f, p + 2.0 * _nu ** 2 * (phi[2] ** 2 + phi[3] ** 2)
+        _z.energy_density = _ed_nu
     if a.slab > 0:
         Ej, gE, parts, qdens = make_slab(a.h, a.mu, cF, a.d2, shape[1], a.slab)
     else:

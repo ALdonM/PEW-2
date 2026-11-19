@@ -36,7 +36,7 @@ def cen(f, ax, h):
     return (np.roll(f, -1, axis=ax) - np.roll(f, 1, axis=ax)) / (2 * h)
 
 
-def densities(phi, h, mu, e0, d2):
+def densities(phi, h, mu, e0, d2, nu=0.0):
     """Retourne e2 (|grad Z|^2), e4 (Faddeev), eV (potentiel), rho, Theta (=|grad zeta|^2, differences avant), j (courant de phase, diff. centrees)."""
     phi = phi.astype(np.float64)
     cF = 1.0 / (2 * e0 ** 2)
@@ -53,7 +53,7 @@ def densities(phi, h, mu, e0, d2):
                 cr = np.cross(Di, Dj, axisa=0, axisb=0, axisc=0)
                 e4 = e4 + 0.25 * np.sum(n * cr, axis=0) ** 2
     e4 = cF * e4
-    eV = mu ** 2 * (r2 + 1.0 / (r2 + d2) - 2.0)
+    eV = mu ** 2 * (r2 + 1.0 / (r2 + d2) - 2.0) + 2.0 * nu ** 2 * (c * c + d * d)   # part184b : masse nu des modes charges (Z2) ; nu=0 : modele Z pur
     rho = np.sqrt(r2)
     zeta = phi / rho
     theta = sum(np.sum(fwd(zeta, ax, h) ** 2, axis=0) for ax in (1, 2, 3))
@@ -150,6 +150,7 @@ def main():
     ap.add_argument("--mu", type=float, default=0.375)
     ap.add_argument("--e0", type=float, default=0.25)
     ap.add_argument("--d2", type=float, default=1e-3)
+    ap.add_argument("--nu", type=float, default=0.0, help="masse des modes charges : + 2 nu^2 |Z2|^2 (part184b) ; 0 = modele Z pur")
     ap.add_argument("--tag", default="noeud")
     ap.add_argument("--out", default=None)
     ap.add_argument("--ref", default=None, help="E2,E4,EV de reference (journal)")
@@ -162,7 +163,7 @@ def main():
     h = a.h
     L = N * h
     rmax = L / 2
-    e2, e4, eV, rho, theta, j = densities(phi, h, a.mu, a.e0, a.d2)
+    e2, e4, eV, rho, theta, j = densities(phi, h, a.mu, a.e0, a.d2, a.nu)
     # Le regulateur d2 donne au vide (rho=1) une densite de potentiel -mu^2 d2/(1+d2) non nulle : on la retranche pour les
     # fractions d'energie (sinon -4,6 sur 876 pour L=32, soit ~5 % de l'energie au-dela de r=10). Les totaux "bruts" restent ceux du journal.
     e_vac = a.mu ** 2 * (1.0 / (1.0 + a.d2) - 1.0)

@@ -38,6 +38,7 @@ def main():
     ap.add_argument("--mu", type=float, default=0.375)
     ap.add_argument("--e0", type=float, default=0.25)
     ap.add_argument("--d2", type=float, default=1e-3)
+    ap.add_argument("--nu", type=float, default=0.0)
     ap.add_argument("--tag", default="noeud")
     ap.add_argument("--out", default=None)
     ap.add_argument("--fen", default="", help="r1,r2 de la fenetre d'ajustement (defaut : 0.19 L a 0.31 L)")
@@ -45,7 +46,7 @@ def main():
 
     phi = np.load(a.champ).astype(np.float64)
     N = phi.shape[1]; h = a.h; L = N * h; rmax = L / 2
-    e2, e4, eV, rho, theta, j = densities(phi, h, a.mu, a.e0, a.d2)
+    e2, e4, eV, rho, theta, j = densities(phi, h, a.mu, a.e0, a.d2, a.nu)
     eV = eV - a.mu ** 2 * (1.0 / (1.0 + a.d2) - 1.0)
     et = e2 + e4 + eV
     c = centre_periodique(et, h)
