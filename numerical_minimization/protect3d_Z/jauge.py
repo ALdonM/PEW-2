@@ -155,12 +155,24 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         return jnp.array(np.fft.ifftn(f).real)
     qd = lambda p, v: p[2] * v[3] - p[3] * v[2]
     q = qd(p, v); psi = poisson(g2 * CS * (q - q.mean())); w = jnp.stack([jnp.roll(psi, -1, axis=a_) - psi for a_ in range(3)])
-    if os.environ.get('STATE'):   # part184z : nœud seul dans son état stationnaire avec jauge (theta relaxé, Z2 tourne à om + psi(x), theta' = grad psi)
-        assert os.environ.get('SINGLE', '0') == '1' and os.environ.get('VPROD', '0') == '1'
-        st = np.load(os.environ['STATE']); ax = 3 if ORI == 'z' else 1
-        t = jnp.array(np.roll(st['th'], -SEP, axis=ax)); psr = jnp.array(np.roll(st['psi'], -SEP, axis=ax - 1), dtype=p.dtype)
+    if os.environ.get('STATE'):   # part184z/za : nœuds dans leur état stationnaire avec jauge : theta magnétostatique relaxé (A, plus miroir de A pour B), psi résolu pour toute la configuration
+        assert os.environ.get('VPROD', '0') == '1' and NB == N
+        st = np.load(os.environ['STATE']); ax = 3 if ORI == 'z' else 1; thA = np.array(st['th'])
+        th = np.roll(thA, -SEP, axis=ax)
+        if os.environ.get('SINGLE', '0') != '1':
+            assert SQ == 'opp' and ORI in ('x', 'z')
+            fl = thA[:, ::-1] if ax == 1 else thA[:, :, :, ::-1]; fl = np.array(fl)   # miroir : le lien le long de l'axe réfléchi change de sens
+            fl[ax - 1] = -np.roll(fl[ax - 1], -1, axis=ax - 1)
+            th = th + np.roll(fl, SEP, axis=ax)
+        t = jnp.array(th.astype(np.float32))
+        z2 = np.array(p[2]**2 + p[3]**2, dtype=np.float64); q0 = np.array(qd(p, v), dtype=np.float64)
+        dA = np.sqrt((X - c1x)**2 + (Y - c1y)**2 + (Zc - c1z)**2); dB = np.sqrt((X - c2x)**2 + (Y - c2y)**2 + (Zc - c2z)**2)
+        rf = min(18.0, 0.35 * N * h); far = (dA > rf) & ((dB > rf) | (os.environ.get('SINGLE', '0') == '1')); ps = np.zeros((N, N, N))
+        for _ in range(60):
+            S = g2 * CS * (q0 + ps * z2); ph = np.array(poisson(S - S.mean()), dtype=np.float64); ph = ph - ph[far].mean(); ps = 0.5 * ps + 0.5 * ph
+        psr = jnp.array(ps.astype(np.float32))
         v = v + psr * jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]); w = jnp.stack([jnp.roll(psr, -1, axis=a_) - psr for a_ in range(3)])
-        q = qd(p, v); print('STATE : residu de Gauss rms', float(jnp.sqrt(jnp.mean((sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2 / g2 - CS * (q - q.mean()))**2))), 'echelle', float(jnp.sqrt(jnp.mean((CS * q)**2))), flush=True)
+        q = qd(p, v); print('STATE : residu de Gauss rms', float(jnp.sqrt(jnp.mean((sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2 / g2 - CS * (q - q.mean()))**2))), 'echelle', float(jnp.sqrt(jnp.mean((CS * q)**2))), 'psi(A)', float(ps[np.unravel_index(np.argmin(dA), dA.shape)]), 'psi(B)', float(ps[np.unravel_index(np.argmin(dB), dB.shape)]), flush=True)
     @jax.jit
     def kdk(p, t, v, w, a, b):
         v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
