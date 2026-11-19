@@ -61,6 +61,44 @@ if sys.argv[1] == 'check':
 elif sys.argv[1] == 'relax':   # relaxe un nœud isolé (N=48) et le sauvegarde : python jauge.py relax NU FICHIER
     nu = float(sys.argv[2]); dt = 0.02; p = jnp.array(np.load(os.environ['RELIN']) if os.environ.get('RELIN') else hopfion(N, h, 6.0));   # RELIN : reprend une relaxation à partir d'un fichier (part184v)
     t = jnp.zeros((3, N, N, N), dtype=p.dtype); v = jnp.zeros_like(p)
+    RG2 = float(os.environ.get('RG2', 0.0))
+    if RG2 > 0:   # part184z : relaxation d'un noeud chargé en rotation AVEC champ de jauge. Etat stationnaire exact (jauge temporelle) :
+        # Z2 tourne à Omega(x) = om + psi(x), theta croît de t*grad(psi), Gauss : Lap psi = g2*CS*Omega*|Z2|^2 (fond neutralisant), psi -> 0 loin du noeud ;
+        # conditions : a_static(p, th) + Omega^2 Z2 = 0 (centrifuge local) et dE/dth = 0 (magnétostatique avec les courants propres du noeud).
+        om = float(os.environ.get('OMREL', 0.0)); CS = 2.0; dt = 0.02
+        st0 = np.load(os.environ['RELST']) if os.environ.get('RELST') else None
+        t = jnp.array(st0['th']) if st0 is not None else jnp.zeros((3, N, N, N), dtype=p.dtype); v = jnp.zeros_like(p); w = jnp.zeros_like(t)
+        kk = 2 * np.pi * np.fft.fftfreq(N, h); lap = -sum((2 - 2 * np.cos(a_ * h)) / h**2 for a_ in np.meshgrid(kk, kk, kk, indexing='ij'))
+        def poisson(rhs):
+            f = np.fft.fftn(np.array(rhs)); lp = lap.copy(); lp[0, 0, 0] = 1.0; f = f / lp; f[0, 0, 0] = 0
+            return np.fft.ifftn(f).real
+        xx = x_(N); R0 = np.sqrt(sum(a_**2 for a_ in np.meshgrid(xx, xx, xx, indexing='ij'))); far = R0 > min(20.0, 0.4 * N * h)   # région loin du noeud où psi = 0 (fréquence om définie à l infini)
+        psi = np.array(st0['psi']) if st0 is not None else np.zeros((N, N, N))
+        def solve_psi(p, psi, nit=6):
+            z2 = np.array(p[2]**2 + p[3]**2, dtype=np.float64)
+            for _ in range(nit):
+                S = RG2 * CS * (om + psi) * z2; ph = poisson(S - S.mean()); ph = ph - ph[far].mean(); psi = 0.5 * psi + 0.5 * ph
+            S = RG2 * CS * (om + psi) * z2; res = np.array(sum(np.roll(psi, -1, a_) - 2 * psi + np.roll(psi, 1, a_) for a_ in range(3)) / h**2) - (S - S.mean())
+            return psi, float(np.sqrt(np.mean(res**2))), float(np.sqrt(np.mean((S - S.mean())**2)))
+        def faccs(p, t, ps):
+            a, b = accs(p, t, nu, RG2); Om = om + ps
+            return a + Om**2 * jnp.stack([0 * p[0], 0 * p[1], p[2], p[3]]), b
+        g = np.exp(-float(os.environ.get('RELG', 0.5)) * dt); RELT = float(os.environ.get('RELT', 20))
+        @jax.jit
+        def stepg(p, t, v, w, a, b, ps):
+            v = v * g + 0.5 * dt * a; w = w * g + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
+            a, b = faccs(p, t, ps); return p, t, (v + 0.5 * dt * a) * g, (w + 0.5 * dt * b) * g, a, b
+        psi, rG, sG = solve_psi(p, psi, 20); psj = jnp.array(psi, dtype=p.dtype); a, b = faccs(p, t, psj)
+        for i in range(int(RELT / dt)):
+            if i % 25 == 0: psi, rG, sG = solve_psi(p, psi); psj = jnp.array(psi, dtype=p.dtype)
+            p, t, v, w, a, b = stepg(p, t, v, w, a, b, psj)
+            if i % int(10 / dt) == 0:
+                I_ = float(h**3 * jnp.sum(p[2]**2 + p[3]**2)); V_ = float(energy(p, t, nu, RG2)); Q_ = float(h**3 * jnp.sum((om + psj) * (p[2]**2 + p[3]**2)))
+                print('relaxg t=%.0f V=%.3f rms_force=%.3e rms_forceth=%.3e Z2=%.1f charge=%.2f psi_centre=%.4f psi_min=%.4f gauss_res=%.2e/%.2e Ekin=%.2e' % (i * dt, V_, float(jnp.sqrt(jnp.mean(a**2))), float(jnp.sqrt(jnp.mean(b**2))), I_, Q_, float(psi[N // 2, N // 2, N // 2]), float(psi.min()), rG, sG, float(h**3 * jnp.sum(v**2))), flush=True)
+        psi, rG, sG = solve_psi(p, psi, 20)
+        print('relaxg final rms_force=%.3e rms_forceth=%.3e Z2=%.1f gauss_res=%.2e' % (float(jnp.sqrt(jnp.mean(a**2))), float(jnp.sqrt(jnp.mean(b**2))), float(h**3 * jnp.sum(p[2]**2 + p[3]**2)), rG), flush=True)
+        np.save(sys.argv[3], np.array(p)); np.savez(sys.argv[3].replace('.npy', '') + '_state.npz', th=np.array(t), psi=psi.astype(np.float32), om=om, g2=RG2)
+        print('relaxé (jauge), V =', float(energy(p, t, nu, RG2))); sys.exit()
     OMR = float(os.environ.get('OMREL', 0.0))   # part184x : relaxation dans le référentiel tournant (phase de Z2 à vitesse OMR) : on minimise V - OMR^2 I, I = h^3 sum|Z2|^2 (force centrifuge OMR^2 Z2)
     facc = lambda p: (accs(p, t, nu, 0.0)[0] + OMR**2 * jnp.stack([0 * p[0], 0 * p[1], p[2], p[3]]),)
     a = facc(p)[0]; g = np.exp(-float(os.environ.get('RELG', 0.5)) * dt); RELT = float(os.environ.get('RELT', 20))   # part184m : durée et friction de relaxation réglables (défaut = ancien comportement)
@@ -117,6 +155,12 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         return jnp.array(np.fft.ifftn(f).real)
     qd = lambda p, v: p[2] * v[3] - p[3] * v[2]
     q = qd(p, v); psi = poisson(g2 * CS * (q - q.mean())); w = jnp.stack([jnp.roll(psi, -1, axis=a_) - psi for a_ in range(3)])
+    if os.environ.get('STATE'):   # part184z : nœud seul dans son état stationnaire avec jauge (theta relaxé, Z2 tourne à om + psi(x), theta' = grad psi)
+        assert os.environ.get('SINGLE', '0') == '1' and os.environ.get('VPROD', '0') == '1'
+        st = np.load(os.environ['STATE']); ax = 3 if ORI == 'z' else 1
+        t = jnp.array(np.roll(st['th'], -SEP, axis=ax)); psr = jnp.array(np.roll(st['psi'], -SEP, axis=ax - 1), dtype=p.dtype)
+        v = v + psr * jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]); w = jnp.stack([jnp.roll(psr, -1, axis=a_) - psr for a_ in range(3)])
+        q = qd(p, v); print('STATE : residu de Gauss rms', float(jnp.sqrt(jnp.mean((sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2 / g2 - CS * (q - q.mean()))**2))), 'echelle', float(jnp.sqrt(jnp.mean((CS * q)**2))), flush=True)
     @jax.jit
     def kdk(p, t, v, w, a, b):
         v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
