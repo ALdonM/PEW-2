@@ -2,7 +2,7 @@
 Mesure : (porteuse) profil de delta rho / rho_vac autour du noeud, G_eff = delta(r_d) r_d / M en fonction de rho_vac ; (noeuds) masse M, taille, charge, stabilité en fonction de rho_vac."""
 # part193 : raideur du noeud (angulaire) fixe en absolu : WA = rv^-2 ; raideur radiale de la porteuse WR = rv^-s (s=0 porteuse faible=molle, s=1, s=2 tout fixe)
 # part193 : eponge spherique (SPR0=16, SPRB=24, SPSIG=0.3), MEANC=0 (le bord impose le vide). Choix (mu, rho_vac, s) a fixer apres part192 : provisoire
-runs = [(f"s{sx}_r{rn}", "0.375", r, sx) for sx in (0,) for rn, r in (("100", "1.0"), ("050", "0.5"))]
+runs = [(f"s{sx}_r{rn}", "0.375", r, sx) for sx in (0, 2) for rn, r in (("100", "1.0"), ("050", "0.5"))]
 COMMON = {"N": "96", "NB": "96", "H": "0.5", "E0": "0.25", "DT": "0.005", "T0": "0", "MODE": "none", "G0": "0.5", "T_END": "40", "MEAS": "4.0", "SNAP": "1000", "TIME_BUDGET": "18900",
           "JAX_PLATFORM_NAME": "cpu", "OMP_NUM_THREADS": "4", "BARRIER": "0", "NOEUDS": "0", "KC": "0", "SEED": "1", "FINAL32": "1", "CP": "1", "MEANC": "0", "SPR0": "16", "SPRB": "24", "SPSIG": "0.3", "INIT": "file", "INIT_FILE": "init96.npy"}
 def job(tag, mu, r, sx):
