@@ -174,13 +174,18 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
         v = v + psr * jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]); w = jnp.stack([jnp.roll(psr, -1, axis=a_) - psr for a_ in range(3)])
         q = qd(p, v); print('STATE : residu de Gauss rms', float(jnp.sqrt(jnp.mean((sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2 / g2 - CS * (q - q.mean()))**2))), 'echelle', float(jnp.sqrt(jnp.mean((CS * q)**2))), 'psi(A)', float(ps[np.unravel_index(np.argmin(dA), dA.shape)]), 'psi(B)', float(ps[np.unravel_index(np.argmin(dB), dB.shape)]), flush=True)
     # part184ze : couche absorbante spherique optionnelle (SPM = amortissement max de v, SPG = de w (jauge), SPRS = rayon de debut en unites, defaut 0,75 x demi-boite)
-    SPM, SPG = float(os.environ.get('SPM', 0.0)), float(os.environ.get('SPG', 0.0)); _hb = N * h / 2; _rs = float(os.environ.get('SPRS', 0.75 * _hb))
+    SPM, SPG = float(os.environ.get('SPM', 0.0)), float(os.environ.get('SPG', 0.0)); SPROT = os.environ.get('SPROT', '0') == '1'; _hb = N * h / 2; _rs = float(os.environ.get('SPRS', 0.75 * _hb))
     _prof = np.clip((R0 - _rs) / max(_hb - _rs, 1e-6), 0, 1)**2
     Sv = jnp.asarray(np.exp(-SPM * _prof * dt).astype(np.float32))[None]; Sw = jnp.asarray(np.exp(-SPG * _prof * dt).astype(np.float32))[None]
     @jax.jit
     def kdk(p, t, v, w, a, b):
         v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
-        a, b = accs(p, t, nu, g2); return p, t, (v + 0.5 * dt * a) * Sv, (w + 0.5 * dt * b) * Sw, a, b
+        a, b = accs(p, t, nu, g2); v = v + 0.5 * dt * a
+        if SPROT:   # part184ze : n'amortit pas la composante de rotation de phase de Z2 (spin des noeuds), seulement le reste de v
+            e_ = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) / jnp.sqrt(p[2]**2 + p[3]**2 + 1e-12); vp_ = e_ * jnp.sum(v * e_, 0)
+            v = vp_ + (v - vp_) * Sv
+        else: v = v * Sv
+        return p, t, v, (w + 0.5 * dt * b) * Sw, a, b
     a, b = accs(p, t, nu, g2)
     Qh = lambda p: float(h**3 * jnp.sum(jnp.linalg.det(jnp.moveaxis(jnp.stack([p / jnp.sqrt(jnp.sum(p**2, 0))] + [(jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), -1, k_) - jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1)))) / (2 * np.pi**2))
     def Qa(p):
