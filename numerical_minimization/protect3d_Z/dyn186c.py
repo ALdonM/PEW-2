@@ -32,6 +32,7 @@ TC0, TH, PT, TSTART_H, TC, RMIN = env('TC0', 20.0), env('TH', 15.0), env('PT', 1
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
+SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
 WR, WA = env('WR', 1.0), env('WA', 1.0)   # part192 : raideur radiale (porteuse) et angulaire (noeud) du terme E2, coefficients absolus (1,1 = part191)
 KW0, MEANC = env('KW0', 0.0), env('MEANC', 0)   # part191 : amplitude globale de la porteuse imposée (KW0) ; MEANC=1 : amplitude moyenne rappelée à kw à chaque pas (zéro mode global)
 CHECK = env('CHECK', 10)
@@ -94,6 +95,11 @@ def Ew(phi, w2, w4, kw):
     if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
     return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
+
+if SPR0 > 0:
+    _x = (np.arange(N) - N / 2 + 0.5) * h
+    _r = np.sqrt(_x[:, None, None]**2 + _x[None, :, None]**2 + _x[None, None, :]**2)
+    SIG = jnp.asarray(SPSIG * np.clip((_r - SPR0) / (SPRB - SPR0), 0.0, 1.0)**2 + 50.0 * (_r > SPRB), dtype=jnp.float32)   # hors de la sphère : absorption forte
 
 def kick(v, damp, T, key, dampb):
     amp = jnp.sqrt(jnp.maximum((1.0 - dampb**2) * T, 0.0) / (2.0 * h**3))
@@ -257,6 +263,9 @@ with open(hist, "a") as H_:
         key = jax.random.fold_in(jax.random.PRNGKey(10_000 + seed), nstep_g[0]); nstep_g[0] += 1
         phi, v, acc = kdk(phi, v, acc, a_of(t + dte), float(np.exp(-gam(tm) * dte / 2)), dte, kw_of(t + dte), T_of(tm), key, float(np.exp(-G0 * dte / 2)))
         if MEANC: phi = phi * (kw_of(t + dte) / jnp.mean(jnp.sqrt(jnp.sum(phi**2, axis=0))))   # part191 : rappel global de l'amplitude moyenne
+        if SPR0 > 0:
+            fs = jnp.exp(-SIG * dte); vac = jnp.array([kw_of(t + dte), 0, 0, 0], dtype=phi.dtype)[:, None, None, None]
+            v = v * fs[None]; phi = vac + (phi - vac) * fs[None]
         t += dte; nstep = locals().get('nstep', 0) + 1
         if nstep % CHECK == 0: RUNMIN[0] = min(RUNMIN[0], float(cosmin_j(phi)))
         if nstep % 2000 == 0:
