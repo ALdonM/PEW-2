@@ -1,0 +1,14 @@
+relax t=0 E=1143.328 rms_force=1.946e-02 Z2=1077.6 Ekin=0.156 omrel=0.140 V-om2I=1122.206 E_rot=V+om2I=1164.450 J=2omI=301.74
+relax t=10 E=900.601 rms_force=8.791e-04 Z2=1283.5 Ekin=0.938 omrel=0.140 V-om2I=875.445 E_rot=V+om2I=925.758 J=2omI=359.38
+relax t=20 E=896.199 rms_force=5.043e-04 Z2=1549.6 Ekin=0.290 omrel=0.140 V-om2I=865.827 E_rot=V+om2I=926.572 J=2omI=433.89
+relax t=30 E=896.227 rms_force=3.586e-04 Z2=1752.1 Ekin=0.143 omrel=0.140 V-om2I=861.886 E_rot=V+om2I=930.569 J=2omI=490.59
+relax t=40 E=897.204 rms_force=2.728e-04 Z2=1910.2 Ekin=0.082 omrel=0.140 V-om2I=859.765 E_rot=V+om2I=934.643 J=2omI=534.84
+relax t=50 E=898.394 rms_force=2.147e-04 Z2=2035.4 Ekin=0.051 omrel=0.140 V-om2I=858.500 E_rot=V+om2I=938.288 J=2omI=569.92
+relax t=60 E=899.563 rms_force=1.725e-04 Z2=2135.8 Ekin=0.033 omrel=0.140 V-om2I=857.701 E_rot=V+om2I=941.425 J=2omI=598.02
+relax t=70 E=900.631 rms_force=1.406e-04 Z2=2216.9 Ekin=0.022 omrel=0.140 V-om2I=857.180 E_rot=V+om2I=944.082 J=2omI=620.73
+relax t=80 E=901.573 rms_force=1.158e-04 Z2=2282.8 Ekin=0.015 omrel=0.140 V-om2I=856.830 E_rot=V+om2I=946.315 J=2omI=639.18
+relax t=90 E=902.388 rms_force=9.625e-05 Z2=2336.6 Ekin=0.010 omrel=0.140 V-om2I=856.591 E_rot=V+om2I=948.184 J=2omI=654.24
+relax t=100 E=903.085 rms_force=8.063e-05 Z2=2380.6 Ekin=0.007 omrel=0.140 V-om2I=856.425 E_rot=V+om2I=949.745 J=2omI=666.57
+relax t=110 E=903.677 rms_force=6.802e-05 Z2=2416.8 Ekin=0.005 omrel=0.140 V-om2I=856.307 E_rot=V+om2I=951.046 J=2omI=676.71
+relax final rms_force=5.777e-05 Z2=2446.6
+relaxé, E = 904.17626953125
