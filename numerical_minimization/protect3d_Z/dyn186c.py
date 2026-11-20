@@ -33,6 +33,7 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
 SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
+WV = env('WV', 1.0)   # part194 : poids du potentiel V (1 = part191/192/193)
 WR, WA = env('WR', 1.0), env('WA', 1.0)   # part192 : raideur radiale (porteuse) et angulaire (noeud) du terme E2, coefficients absolus (1,1 = part191)
 KW0, MEANC = env('KW0', 0.0), env('MEANC', 0)   # part191 : amplitude globale de la porteuse imposée (KW0) ; MEANC=1 : amplitude moyenne rappelée à kw à chaque pas (zéro mode global)
 CHECK = env('CHECK', 10)
@@ -93,7 +94,7 @@ def split_g(pp, g):
 def Ew(phi, w2, w4, kw):
     g, f, p = energy_density(phi / kw, h, mu, cF, d2); g = split_g(phi / kw, g)
     if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
-    return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
+    return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + WV * kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
 
 if SPR0 > 0:
@@ -189,7 +190,7 @@ PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") els
 def measure(phi, v, t):
     a = a_of(t); rv = kw_of(t); q = np.array(qd(phi)) * h**3
     r = np.sqrt(np.array(jnp.sum(phi**2, 0))); zz = np.array(phi) / r
-    g, f, p = energy_density(phi / rv, h, mu, cF, d2); g = split_g(phi / rv, g); g, p = g * rv**2, p * rv**2
+    g, f, p = energy_density(phi / rv, h, mu, cF, d2); g = split_g(phi / rv, g); g, p = g * rv**2, p * rv**2 * WV
     if CP: g = g * np.array(jnp.sum((phi / rv)**2, axis=0))**CP   # part191 : l'énergie mesurée contient le poids rho^(2CP) (absent des historiques part189/190)
     E = np.array([float(jnp.sum(g)) * h**3, float(jnp.sum(f)) * h**3, float(jnp.sum(p)) * h**3])
     e = np.array(g / a**2 + f / a**4 + p) * h**3
