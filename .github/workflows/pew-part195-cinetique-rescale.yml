@@ -1,0 +1,205 @@
+name: PEW part195 amplitude globale imposee, rigidite du milieu, G effectif et effets sur le noeud
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  m0375_r050:
+    name: part195 m0375_r050
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Preparer le noeud dans la boite 96
+        run: python prep_embed96.py ../../resultats/part179/wk_T0/wk_T0_champ_final.npy init96.npy 96
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'none'
+          G0: '0.5'
+          T_END: '40'
+          MEAS: '4.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MEANC: '0'
+          SPR0: '16'
+          SPRB: '24'
+          SPSIG: '0.3'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          MU: '0.375'
+          KW0: '0.5'
+          WA: '4.0'
+          WR: '4.0'
+          WV: '4.0'
+          KT: '16.0'
+        run: python -u dyn186c.py p195_m0375_r050 2>&1 | tee run_p195_m0375_r050.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part195/p195_m0375_r050; mkdir -p $OUT
+          cp p195_m0375_r050_history.jsonl p195_m0375_r050_params.json p195_m0375_r050_state.json p195_m0375_r050_champ_final.npy $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part195/p195_m0375_r050; git commit -q -m 'part195 m0375_r050 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  m005_r070:
+    name: part195 m005_r070
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Preparer le noeud dans la boite 96
+        run: python prep_embed96.py ../../resultats/part179/wk_T0/wk_T0_champ_final.npy init96.npy 96
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'none'
+          G0: '0.5'
+          T_END: '40'
+          MEAS: '4.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MEANC: '0'
+          SPR0: '16'
+          SPRB: '24'
+          SPSIG: '0.3'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          MU: '0.05'
+          KW0: '0.7'
+          WA: '2.040816'
+          WR: '2.040816'
+          WV: '2.040816'
+          KT: '4.164931'
+        run: python -u dyn186c.py p195_m005_r070 2>&1 | tee run_p195_m005_r070.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part195/p195_m005_r070; mkdir -p $OUT
+          cp p195_m005_r070_history.jsonl p195_m005_r070_params.json p195_m005_r070_state.json p195_m005_r070_champ_final.npy $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part195/p195_m005_r070; git commit -q -m 'part195 m005_r070 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  m005_r050:
+    name: part195 m005_r050
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Preparer le noeud dans la boite 96
+        run: python prep_embed96.py ../../resultats/part179/wk_T0/wk_T0_champ_final.npy init96.npy 96
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'none'
+          G0: '0.5'
+          T_END: '40'
+          MEAS: '4.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MEANC: '0'
+          SPR0: '16'
+          SPRB: '24'
+          SPSIG: '0.3'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          MU: '0.05'
+          KW0: '0.5'
+          WA: '4.0'
+          WR: '4.0'
+          WV: '4.0'
+          KT: '16.0'
+        run: python -u dyn186c.py p195_m005_r050 2>&1 | tee run_p195_m005_r050.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part195/p195_m005_r050; mkdir -p $OUT
+          cp p195_m005_r050_history.jsonl p195_m005_r050_params.json p195_m005_r050_state.json p195_m005_r050_champ_final.npy $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part195/p195_m005_r050; git commit -q -m 'part195 m005_r050 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1

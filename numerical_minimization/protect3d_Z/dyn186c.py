@@ -33,6 +33,7 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
 SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
+KT = env('KT', 1.0)   # part195 : poids du terme cinétique ½·KT·|∂ₜφ|² (vitesse des ondes c² ∝ 1/KT)
 WV = env('WV', 1.0)   # part194 : poids du potentiel V (1 = part191/192/193)
 WR, WA = env('WR', 1.0), env('WA', 1.0)   # part192 : raideur radiale (porteuse) et angulaire (noeud) du terme E2, coefficients absolus (1,1 = part191)
 KW0, MEANC = env('KW0', 0.0), env('MEANC', 0)   # part191 : amplitude globale de la porteuse imposée (KW0) ; MEANC=1 : amplitude moyenne rappelée à kw à chaque pas (zéro mode global)
@@ -115,11 +116,11 @@ def kdk(phi, v, acc, a_new, damp, dt, kw, T, key, dampb):
     k1, k2 = jax.random.split(key)
     v = kick(v, damp, T, k1, dampb) + 0.5 * dt * acc
     phi = phi + dt * v
-    acc = -0.5 * gEw(phi, a_new**-2, a_new**-4, kw) / h**3
+    acc = -0.5 * gEw(phi, a_new**-2, a_new**-4, kw) / (KT * h**3)
     v = kick(v + 0.5 * dt * acc, damp, T, k2, dampb)
     return phi, v, acc
 
-acc_of = jax.jit(lambda phi, a, kw: -0.5 * gEw(phi, a**-2, a**-4, kw) / h**3)
+acc_of = jax.jit(lambda phi, a, kw: -0.5 * gEw(phi, a**-2, a**-4, kw) / (KT * h**3))
 
 _, _, parts, qd = make(h, mu, cF, d2)
 TREL, TCOMP, TBACK, AMIN, G0C = env('TREL', 30.0), env('TCOMP', 40.0), env('TBACK', 3.0), env('AMIN', 0.5), env('G0C', 0.02)
