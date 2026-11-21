@@ -1,0 +1,159 @@
+name: PEW part197 retard de phase d'une onde libre de la porteuse, milieu fixe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  r100_Kw:
+    name: part197 r100_Kw
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Depart du noeud a l'equilibre (part194)
+        run: python -c "import numpy as np; np.save('init96.npy', (np.load('../../resultats/part193/p193_s2_r100/p193_s2_r100_champ_final.npy')/1.0).astype(np.float32))"
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '4.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MEANC: '0'
+          SPR0: '16'
+          SPRB: '24'
+          SPSIG: '0.3'
+          WK: '1.5'
+          WX0: '-8'
+          WSIG: '3'
+          KW0: '1.0'
+          WA: '1.0'
+          WR: '1.0'
+          WV: '1.0'
+          KT: '1.0'
+          WC: '1.0'
+          T_END: '20'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p197_r100_Kw 2>&1 | tee run_p197_r100_Kw.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part197/p197_r100_Kw; mkdir -p $OUT
+          cp p197_r100_Kw_history.jsonl p197_r100_Kw_params.json p197_r100_Kw_state.json p197_r100_Kw_champ_final.npy $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part197/p197_r100_Kw; git commit -q -m 'part197 r100_Kw : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  r100_Vw:
+    name: part197 r100_Vw
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '4.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '1'
+          MEANC: '0'
+          SPR0: '16'
+          SPRB: '24'
+          SPSIG: '0.3'
+          WK: '1.5'
+          WX0: '-8'
+          WSIG: '3'
+          KW0: '1.0'
+          WA: '1.0'
+          WR: '1.0'
+          WV: '1.0'
+          KT: '1.0'
+          WC: '1.0'
+          T_END: '20'
+          INIT: 'vac'
+          WAVE: 'phase'
+          WEPS: '0.05'
+        run: python -u dyn186c.py p197_r100_Vw 2>&1 | tee run_p197_r100_Vw.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part197/p197_r100_Vw; mkdir -p $OUT
+          cp p197_r100_Vw_history.jsonl p197_r100_Vw_params.json p197_r100_Vw_state.json p197_r100_Vw_champ_final.npy $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part197/p197_r100_Vw; git commit -q -m 'part197 r100_Vw : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
