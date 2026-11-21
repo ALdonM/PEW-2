@@ -9,7 +9,11 @@ def L(t):
 def Zs(p): return p[0] + 1j * p[1], p[2] + 1j * p[3]
 def chi(P, Q):
     a1, a2 = Zs(P); b1, b2 = Zs(Q); return np.angle(np.conj(b1) * a1 + np.conj(b2) * a2)
-bins = [(3, 5), (5, 7), (7, 9), (9, 11)]
+bins = [(0, 3), (3, 5), (5, 7), (7, 9), (9, 11)]
+kx = 2 * np.pi * np.fft.fftfreq(N, h)
+def env(c):
+    F = np.fft.fft(c, axis=0); F[~((kx > 2.0) & (kx < 4.0))] = 0   # enveloppe du paquet (k entre 2 et 4)
+    return np.abs(np.fft.ifft(F, axis=0))
 for rn, rv in (('100', 1.0), ('050', 0.5)):
     K0 = L(f'r{rn}_K0')
     if K0 is None: print(rn, 'K0 absent'); continue
@@ -24,4 +28,5 @@ for rn, rv in (('100', 1.0), ('050', 0.5)):
             m = (b >= a) & (b < c)
             zK = (cK * np.exp(-1j * k * x) * win)[:, m].sum(); zV = (cV * np.exp(-1j * k * x) * win)[:, m].sum()
             d = np.angle(zK / zV) / k
-            print(f'  b {a}-{c}: retard {d:+.3f} | amplitude relative {abs(zK)/abs(zV):.3f} | int(1-rho)dx = {I[m].mean():.3f}')
+            eK, eV = env(cK)**2, env(cV)**2; gK = (eK[:, m].mean(1) * xs).sum() / eK[:, m].mean(1).sum(); gV = (eV[:, m].mean(1) * xs).sum() / eV[:, m].mean(1).sum()
+            print(f'  b {a}-{c}: retard de GROUPE (centre enveloppe V - K) {gV-gK:+.2f} | retard {d:+.3f} | amplitude relative {abs(zK)/abs(zV):.3f} | int(1-rho)dx = {I[m].mean():.3f}')

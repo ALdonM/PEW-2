@@ -1,0 +1,4 @@
+# part196b — comme part196 mais avec le nœud μ_a=0,375 (champ faible)
+Raison : part196 (μ_a=0,05) montre un obstacle trop fort (retard ≫ λ, paquet encore dans le nœud à t=20). Ici : nœud de part193/194 (R≈6, ρ_min/ρ_vac≈0,69, δρ(r=9)≈−0,07), ρ_vac=1 (départ part193 s2_r100) et 0,5 (part194 m0375_r050), μ_a=0,375, mêmes réglages (éponge 16→24, KT=ρ_vac⁻⁴, t=20 / 36, ε=0,05 ; ε=0,025 à ρ_vac=0,5).
+Prédictions [P] : (R1) retard de groupe et de phase > 0, décroissant avec b ; (R2) retard ≈ ∫(1/ρ′−1)dx le long du trajet (c_local=c₀ρ′, optique géométrique) à ±30 %, avec ∫(1−ρ′)dx comme approximation au premier ordre ; (R3) même retard (en unités de longueur) à ρ_vac=1 et 0,5, à ±15 % ; (R4) linéarité ε à ±20 %. Si le retard de phase est < λ, il est mesurable ; sinon utiliser le retard de groupe (enveloppe k=3).
+Réfutation : retard nul dans le bruit ; ou dépendant de ρ_vac à >30 %.
