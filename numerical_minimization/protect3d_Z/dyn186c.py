@@ -168,13 +168,13 @@ else:
         if KNOT_SIGN < 0: a_ = a_ * np.array([1, -1, -1, -1])[:, None, None, None]
         a0, a1, a2, a3 = a_; b0, b1, b2, b3 = b_
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
-    if INIT == 'vac': phi = np.zeros((4, N, N, N)); phi[0] = 1.0   # part188 : vide uniforme (témoin sans nœud)
+    if INIT == 'vac': phi = np.zeros((4, N, N, N)); phi[0] = KW0 if KW0 > 0 else 1.0   # part188 : vide uniforme (témoin sans nœud)
     v0 = np.zeros((4, N, N, N))
     WAVE = env('WAVE', '')   # part188 : paquet d'ondes 'phase' (Goldstone U(1), sans masse, Z -> e^{i chi} Z) ou 'amp' (mode d'amplitude, massif) vers +x
     if WAVE:
         WK, WEPS, WX0, WSIG = env('WK', 1.0), env('WEPS', 0.1), env('WX0', -10.0), env('WSIG', 3.0)
         xs = (np.arange(N) - N / 2 + 0.5) * h; X = xs[:, None, None] * np.ones((1, N, N)); u = X - WX0
-        om = WK if WAVE == 'phase' else float(np.sqrt(WK**2 + 4 * mu**2)); vg = WK / om
+        om = env('WC', 1.0) * WK if WAVE == 'phase' else float(np.sqrt(WK**2 + 4 * mu**2)); vg = env('WC', 1.0) if WAVE == 'phase' else WK / om
         env_ = np.exp(-u**2 / (2 * WSIG**2)); dl = WEPS * env_ * np.cos(WK * u)
         dld = WEPS * (om * env_ * np.sin(WK * u) + vg * (u / WSIG**2) * env_ * np.cos(WK * u))   # d(dl)/dt pour un paquet allant vers +x
         if WAVE == 'phase':
