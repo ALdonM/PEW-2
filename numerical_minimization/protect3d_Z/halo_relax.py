@@ -124,6 +124,7 @@ def main():
     ap.add_argument("--tmax", type=float, default=0.0, help="duree max de la minimisation en secondes (arret propre, le champ est sauvegarde)")
     ap.add_argument("--taper", default="", help="r0,r1 (unites physiques) : ecart au vide multiplie par un cos^2 de 1 (r<r0) a 0 (r>r1) apres l'insertion ; sert a agrandir la boite depuis un champ deja relaxe")
     ap.add_argument("--rot", default="", help="ax,ay,az,angle_deg : rotation spatiale du noeud avant relaxation (test de memoire de l'axe)")
+    ap.add_argument("--free", default="", help="fichier .npy (N,N,N) : 1 = site libre, 0 = site fige (gradient annule : le champ y reste exactement a sa valeur de depart) ; sert aux paires a cœurs figes (part187f)")
     ap.add_argument("--x64", type=int, default=1, help="1 : energie et gradient en float64 (recommande : en float32 L-BFGS-B s'arrete sur le bruit d'arrondi, ~1e-7 E)")
     a = ap.parse_args()
     jax.config.update("jax_enable_x64", bool(a.x64))
@@ -164,12 +165,21 @@ def main():
     else:
         Ej, gE, parts, qdens = make(a.h, a.mu, cF, a.d2)
 
+    libre = np.load(a.free).astype(np.float64) if a.free else None
+    if libre is not None:
+        assert libre.shape == shape[1:], (libre.shape, shape)
+        print("sites figes :", int((libre == 0).sum()), "sur", libre.size, flush=True)
+
     def fg(x):
         p = jnp.array(x.reshape(shape), dtype=fl)
         if hasattr(Ej, "vg"):
             e, g = Ej.vg(p)
-            return e, g.ravel()
-        return float(Ej(p)), np.array(gE(p), dtype=np.float64).ravel()
+            g = np.array(g, dtype=np.float64)
+        else:
+            e, g = float(Ej(p)), np.array(gE(p), dtype=np.float64)
+        if libre is not None:
+            g = g.reshape(shape) * libre[None]
+        return float(e), g.ravel()
 
     k = [0]
     t0 = time.time()
