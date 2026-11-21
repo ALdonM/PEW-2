@@ -20,7 +20,7 @@ Raccourcissement systématique de 0,5 à 0,6 (3 %). Charges q0 non identiques (N
 | z Jo | 15,90 | 20,25 | 332 / 336 |
 | z Js | 16,36 | 16,36 | 595 / 467 |
 A charge égale seulement pour les Jo ; pour les Js la charge initiale diffère de 21 à 24 %.
-z Jo : forte dépendance en N (+27 %) et en durée de relaxation (ZBG 18,86 contre ZDG96 15,90 au même N). La non-monotonie en omega persiste à N128 (30,37 à 0,14 ; 20,25 à 0,19) mais il n'y a pas de point N128 à omega 0,10. On ne peut PAS conclure à un artefact de boîte (correction de l'audit).
+z Jo : forte dépendance en N (+27 %) et en durée de relaxation (ZBG 18,86 contre ZDG96 15,90 au même N). [CORRIGÉ dans la note ze2 : l'audit avait mélangé les séries sans jauge (26,31 et 30,37) et avec jauge (20,25). Voir claude_NOTE_session_20261121_s35_part184ze2_N128_omega010_jauge_zJo.md.] On ne peut PAS conclure à un artefact de boîte.
 
 ## 3. Absorbeur (jauge.py : SPM, SPG, SPRS, SPROT), paire x Jo, omega 0,10, sans jauge
 Référence cube périodique ZC0_xJo_om10 (= ZB0_x_par_om10) : t_ann 14,95, qL(10) = 21,94.
