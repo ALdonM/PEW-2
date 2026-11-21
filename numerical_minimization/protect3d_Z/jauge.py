@@ -179,12 +179,14 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     Sv = jnp.asarray(np.exp(-SPM * _prof * dt).astype(np.float32))[None]; Sw = jnp.asarray(np.exp(-SPG * _prof * dt).astype(np.float32))[None]
     SPGT = os.environ.get('SPGT', '0') == '1'   # part184ze : amortit seulement la partie transverse de w (la partie longitudinale porte Gauss et Coulomb)
     _kk = 2 * np.pi * np.fft.fftfreq(N, h); _lp = -sum((2 - 2 * np.cos(a_ * h)) / h**2 for a_ in np.meshgrid(_kk, _kk, _kk, indexing='ij')); _lp[0, 0, 0] = 1.0; _lpj = jnp.asarray(_lp.astype(np.float32))
+    def _long(w):   # partie longitudinale de w : w_a = psi(x+a) - psi(x), psi = Lap^-1 div w
+        d_ = sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2
+        f_ = jnp.fft.fftn(d_) / _lpj; f_ = f_.at[0, 0, 0].set(0.0); ps_ = jnp.fft.ifftn(f_).real
+        return jnp.stack([jnp.roll(ps_, -1, axis=a_) - ps_ for a_ in range(3)])
     def _damp_w(w):
         if not SPGT: return w * Sw
-        d_ = sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2   # divergence arriere
-        f_ = jnp.fft.fftn(d_) / _lpj; f_ = f_.at[0, 0, 0].set(0.0); ps_ = jnp.fft.ifftn(f_).real
-        wl_ = jnp.stack([(jnp.roll(ps_, -1, axis=a_) - ps_) * 1.0 for a_ in range(3)])   # partie longitudinale : w_a = psi(x+a) - psi(x) (psi = Lap^-1 div w)
-        return wl_ + (w - wl_) * Sw
+        wl_ = _long(w); u_ = (w - wl_) * Sw   # S(x) varie dans l'espace : S*wT n'est plus transverse -> on re-projette
+        return wl_ + (u_ - _long(u_))
     @jax.jit
     def kdk(p, t, v, w, a, b):
         v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w

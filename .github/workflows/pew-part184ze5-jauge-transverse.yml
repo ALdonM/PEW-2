@@ -16,8 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {tag: ZT_xJo_om14_spg1t, spm: '1.0', spg: '1.0', sprot: '1'}
-          - {tag: ZT_xJo_om14_spg3t, spm: '1.0', spg: '3.0', sprot: '1'}
+          - {tag: ZU_xJo_om14_spg1t, spm: '1.0', spg: '1.0', sprot: '1'}
+          - {tag: ZU_xJo_om14_spg3t, spm: '1.0', spg: '3.0', sprot: '1'}
     defaults:
       run:
         working-directory: numerical_minimization/protect3d_Z
