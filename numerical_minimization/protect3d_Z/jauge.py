@@ -233,6 +233,9 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
             Lm_, Lg_ = Lvec(Pm_), Lvec(Sg_)
             rec['L'] = [round(float(h**3 * jnp.sum(Lm_[k_])), 2) for k_ in range(3)]; rec['Lg'] = [round(float(h**3 * jnp.sum(Lg_[k_])), 2) for k_ in range(3)]
             rec['JA'] = round(float(h**3 * jnp.sum(q * bA)), 2); rec['JB'] = round(float(h**3 * jnp.sum(q * bB)), 2); rec['Z2A'] = round(float(h**3 * jnp.sum((p[2]**2 + p[3]**2) * bA)), 1); rec['EA'] = round(float(jnp.sum(e * bA)), 2)
+            if os.environ.get('GAUSS', '0') == '1' and g2 > 0:   # part184ze : residu de Gauss rms (div w / h^2 / g2 - CS (q - <q>)) et echelle rms(CS q), pour tester l'absorbeur avec jauge
+                _gr = sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2 / g2 - CS * (q - q.mean())
+                rec['gres'] = round(float(jnp.sqrt(jnp.mean(_gr**2))), 4); rec['gsc'] = round(float(jnp.sqrt(jnp.mean((CS * q)**2))), 4)
             if os.environ.get('QPROF', '0') == '1':   # part184zb : ou va la charge (profil axial, region lointaine, energie electrique)
                 Sj_ = jnp.asarray(S); rec['qx'] = [round(float(h**3 * jnp.sum(q * ((Sj_ >= -24 + 4 * k_) & (Sj_ < -20 + 4 * k_)))), 2) for k_ in range(12)]
                 rec['qfar'] = round(float(h**3 * jnp.sum(q * Rjx)), 2); rec['qtot'] = round(float(h**3 * jnp.sum(q)), 2)
