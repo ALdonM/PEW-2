@@ -177,6 +177,14 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
     SPM, SPG = float(os.environ.get('SPM', 0.0)), float(os.environ.get('SPG', 0.0)); SPROT = os.environ.get('SPROT', '0') == '1'; _hb = N * h / 2; _rs = float(os.environ.get('SPRS', 0.75 * _hb))
     _prof = np.clip((R0 - _rs) / max(_hb - _rs, 1e-6), 0, 1)**2
     Sv = jnp.asarray(np.exp(-SPM * _prof * dt).astype(np.float32))[None]; Sw = jnp.asarray(np.exp(-SPG * _prof * dt).astype(np.float32))[None]
+    SPGT = os.environ.get('SPGT', '0') == '1'   # part184ze : amortit seulement la partie transverse de w (la partie longitudinale porte Gauss et Coulomb)
+    _kk = 2 * np.pi * np.fft.fftfreq(N, h); _lp = -sum((2 - 2 * np.cos(a_ * h)) / h**2 for a_ in np.meshgrid(_kk, _kk, _kk, indexing='ij')); _lp[0, 0, 0] = 1.0; _lpj = jnp.asarray(_lp.astype(np.float32))
+    def _damp_w(w):
+        if not SPGT: return w * Sw
+        d_ = sum((w[a_] - jnp.roll(w[a_], 1, axis=a_)) for a_ in range(3)) / h**2   # divergence arriere
+        f_ = jnp.fft.fftn(d_) / _lpj; f_ = f_.at[0, 0, 0].set(0.0); ps_ = jnp.fft.ifftn(f_).real
+        wl_ = jnp.stack([(jnp.roll(ps_, -1, axis=a_) - ps_) * 1.0 for a_ in range(3)])   # partie longitudinale : w_a = psi(x+a) - psi(x) (psi = Lap^-1 div w)
+        return wl_ + (w - wl_) * Sw
     @jax.jit
     def kdk(p, t, v, w, a, b):
         v = v + 0.5 * dt * a; w = w + 0.5 * dt * b; p = p + dt * v; t = t + dt * w
@@ -185,7 +193,7 @@ elif sys.argv[1] == 'pair':   # python jauge.py pair NU G2 OM TEND TAG SQ SJ   (
             e_ = jnp.stack([0 * p[0], 0 * p[1], -p[3], p[2]]) / jnp.sqrt(p[2]**2 + p[3]**2 + 1e-12); vp_ = e_ * jnp.sum(v * e_, 0)
             v = vp_ + (v - vp_) * Sv
         else: v = v * Sv
-        return p, t, v, (w + 0.5 * dt * b) * Sw, a, b
+        return p, t, v, _damp_w(w + 0.5 * dt * b), a, b
     a, b = accs(p, t, nu, g2)
     Qh = lambda p: float(h**3 * jnp.sum(jnp.linalg.det(jnp.moveaxis(jnp.stack([p / jnp.sqrt(jnp.sum(p**2, 0))] + [(jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), -1, k_) - jnp.roll(p / jnp.sqrt(jnp.sum(p**2, 0)), 1, k_)) / (2 * h) for k_ in (1, 2, 3)]), (0, 1), (-2, -1)))) / (2 * np.pi**2))
     def Qa(p):
