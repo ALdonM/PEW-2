@@ -1,4 +1,4 @@
-name: PEW part184ze8 t_ann en fonction de la charge : paires z Jo omega 0,19 N128 depuis les etapes intermediaires de relaxation
+name: PEW part184ze8 t_ann en fonction de la charge, paires z Jo omega 0,19 N128 depuis les etapes intermediaires de relaxation
 
 on:
   workflow_dispatch:
