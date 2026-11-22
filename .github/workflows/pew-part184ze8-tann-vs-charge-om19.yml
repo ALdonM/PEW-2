@@ -1,0 +1,75 @@
+name: PEW part184ze8 t_ann en fonction de la charge : paires z Jo omega 0,19 N128 depuis les etapes intermediaires de relaxation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  pairs:
+    name: part184ze8 paire ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: ZDG128_zJo_om19_s1, sj: opp, art: relaxedg128d_s1}
+          - {tag: ZDG128_zJo_om19_s2, sj: opp, art: relaxedg128d_s2}
+          - {tag: ZDG128_zJo_om19_s3, sj: opp, art: relaxedg128d_s3}
+          - {tag: ZDG128_zJo_om19_s4, sj: opp, art: relaxedg128d_s4}
+          - {tag: ZDG128_zJo_om19_s5, sj: opp, art: relaxedg128d_s5}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          path: numerical_minimization/protect3d_Z
+          run-id: '44959317019'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Paire (QPROF et QCUR)
+        env:
+          N: '128'
+          H: '0.5'
+          NB: '128'
+          SEPC: '20'
+          REXT: '22'
+          RA1: '12'
+          RA2: '22'
+          D2: '0.001'
+          GUARD: '1e-6'
+          DT: '0.02'
+          ORIENT: z
+          VPROD: '1'
+          QPROF: '1'
+          QCUR: '1'
+          STATE: relaxedg_state.npz
+          RELAXED: relaxedg.npy
+        run: python jauge.py pair 0.12 0.02 0.19 60 ${{ matrix.tag }} opp ${{ matrix.sj }} | tee ${{ matrix.tag }}.log
+      - name: Archive dans resultats/part184
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p resultats/part184/gh_part184ze
+          cp numerical_minimization/protect3d_Z/${{ matrix.tag }}.log resultats/part184/gh_part184ze/ || true
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part184/gh_part184ze
+          git commit -m "part184ze8 paire ${{ matrix.tag }} : journal
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBqQanp7VoG9CMMcjx" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || sleep $((RANDOM % 20 + 5)); done
