@@ -4,7 +4,8 @@ R = sys.argv[1] if len(sys.argv) > 1 else '../../resultats/part198'
 N = 96; h = 0.5; k = 3.0; xs = (np.arange(N) - N / 2 + .5) * h
 x = xs[:, None, None]; Y, Zc = np.meshgrid(xs, xs, indexing='ij'); b = np.sqrt(Y**2 + Zc**2)
 def L(t):
-    f = f'{R}/p196b_{t}/p196b_{t}_champ_final.npy'
+    old = t in ('r100_K0', 'r100_Vw')
+    f = f"../../resultats/part196b/p196b_{t}/p196b_{t}_champ_final.npy" if old else f"{R}/p198_{t}/p198_{t}_champ_final.npy"
     return np.load(f).astype(float) if os.path.exists(f) else None
 def Zs(p): return p[0] + 1j * p[1], p[2] + 1j * p[3]
 def chi(P, Q):

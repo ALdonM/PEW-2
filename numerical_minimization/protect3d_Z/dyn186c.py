@@ -32,6 +32,9 @@ TC0, TH, PT, TSTART_H, TC, RMIN = env('TC0', 20.0), env('TH', 15.0), env('PT', 1
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
+GRAD = env('GRAD', 0.0)   # part199 : pente de porteuse imposee rho_t(x)=1+GRAD*x (potentiel et eponge rappellent vers rho_t)
+_xg = (np.arange(N) - N / 2 + 0.5) * h
+RT = jnp.asarray(1.0 + GRAD * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
 SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
 KT = env('KT', 1.0)
 _ktf = os.environ.get('KTMAP', '')
@@ -96,6 +99,8 @@ def split_g(pp, g):
 
 def Ew(phi, w2, w4, kw):
     g, f, p = energy_density(phi / kw, h, mu, cF, d2); g = split_g(phi / kw, g)
+    if GRAD != 0.0:
+        r2 = jnp.sum((phi / kw)**2, axis=0) / RT**2; p = mu**2 * (r2 + 1.0 / (r2 + d2) - 2.0)   # part199 : le minimum du potentiel suit rho_t(x)
     if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
     return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + WV * kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
@@ -195,6 +200,7 @@ def measure(phi, v, t):
     r = np.sqrt(np.array(jnp.sum(phi**2, 0))); zz = np.array(phi) / r
     g, f, p = energy_density(phi / rv, h, mu, cF, d2); g = split_g(phi / rv, g); g, p = g * rv**2, p * rv**2 * WV
     if CP: g = g * np.array(jnp.sum((phi / rv)**2, axis=0))**CP   # part191 : l'énergie mesurée contient le poids rho^(2CP) (absent des historiques part189/190)
+    f4 = np.array(f); sf = f4.sum() + 1e-30; X4 = _xg[:, None, None]; x4 = float((f4 * X4).sum() / sf); y4 = float((f4 * _xg[None, :, None]).sum() / sf); z4 = float((f4 * _xg[None, None, :]).sum() / sf)   # part199 : centre de la densite de Faddeev (nulle dans la porteuse)
     E = np.array([float(jnp.sum(g)) * h**3, float(jnp.sum(f)) * h**3, float(jnp.sum(p)) * h**3])
     e = np.array(g / a**2 + f / a**4 + p) * h**3
     es = ndimage.gaussian_filter(e, 2, mode='wrap')
@@ -216,6 +222,7 @@ def measure(phi, v, t):
                 rho_min=round(float(r.min()) / rv, 3), rho_med=round(float(np.median(r)) / rv, 3),
                 order=round(float(np.linalg.norm(zz.reshape(4, -1).mean(1))), 4),
                 clusters=[[round(float(El[i]), 1), round(float(Ql[i]), 2)] for i in o],
+                x4=round(x4, 4), y4=round(y4, 4), z4=round(z4, 4),
                 centres=[[round(float(c) * h, 2) for c in cm] for cm in com],
                 deg=degree(np.array(phi, dtype=np.float64)),
                 deg_bloc=degree(np.array(phi, dtype=np.float64).reshape(4, N//2, 2, N//2, 2, N//2, 2).mean((2, 4, 6))),
@@ -268,7 +275,7 @@ with open(hist, "a") as H_:
         phi, v, acc = kdk(phi, v, acc, a_of(t + dte), float(np.exp(-gam(tm) * dte / 2)), dte, kw_of(t + dte), T_of(tm), key, float(np.exp(-G0 * dte / 2)))
         if MEANC: phi = phi * (kw_of(t + dte) / jnp.mean(jnp.sqrt(jnp.sum(phi**2, axis=0))))   # part191 : rappel global de l'amplitude moyenne
         if SPR0 > 0:
-            fs = jnp.exp(-SIG * dte); vac = jnp.array([kw_of(t + dte), 0, 0, 0], dtype=phi.dtype)[:, None, None, None]
+            fs = jnp.exp(-SIG * dte); vac = jnp.array([kw_of(t + dte), 0, 0, 0], dtype=phi.dtype)[:, None, None, None] * (RT[None] if GRAD != 0.0 else 1.0)
             v = v * fs[None]; phi = vac + (phi - vac) * fs[None]
         t += dte; nstep = locals().get('nstep', 0) + 1
         if nstep % CHECK == 0: RUNMIN[0] = min(RUNMIN[0], float(cosmin_j(phi)))
