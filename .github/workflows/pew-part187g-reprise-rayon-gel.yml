@@ -1,0 +1,101 @@
+name: PEW part187g reprise des 6 paires non convergees (rc=5) et test des rayons de gel rc=4 et rc=6 (nu=0.12, L=64)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  paires:
+    name: part187g ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: rc5r_opp_z_d12, src: opp_z_d12, dir: z, s: '12', ch: opp, rc: '5', mode: reprise}
+          - {tag: rc5r_opp_z_d18, src: opp_z_d18, dir: z, s: '18', ch: opp, rc: '5', mode: reprise}
+          - {tag: rc5r_opp_diag_d11, src: opp_diag_d11, dir: diag, s: '8', ch: opp, rc: '5', mode: reprise}
+          - {tag: rc5r_same_z_d12, src: same_z_d12, dir: z, s: '12', ch: same, rc: '5', mode: reprise}
+          - {tag: rc5r_same_x_d12, src: same_x_d12, dir: x, s: '12', ch: same, rc: '5', mode: reprise}
+          - {tag: rc5r_same_diag_d11, src: same_diag_d11, dir: diag, s: '8', ch: same, rc: '5', mode: reprise}
+          - {tag: rc4_opp_z_d18, src: none, dir: z, s: '18', ch: opp, rc: '4', mode: neuf}
+          - {tag: rc4_opp_x_d18, src: none, dir: x, s: '18', ch: opp, rc: '4', mode: neuf}
+          - {tag: rc4_same_x_d18, src: none, dir: x, s: '18', ch: same, rc: '4', mode: neuf}
+          - {tag: rc6_opp_z_d18, src: none, dir: z, s: '18', ch: opp, rc: '6', mode: neuf}
+          - {tag: rc6_opp_x_d18, src: none, dir: x, s: '18', ch: opp, rc: '6', mode: neuf}
+          - {tag: rc6_same_x_d18, src: none, dir: x, s: '18', ch: same, rc: '6', mode: neuf}
+    defaults:
+      run:
+        shell: bash
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud isole relaxe (L=64, nu=0.12) du run 44638347471
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 44638347471
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: champ_relaxe_nu012_L64_N128
+          path: numerical_minimization/protect3d_Z/seul
+      - name: Champ deja relaxe (reprise) du run 44960085478
+        if: matrix.mode == 'reprise'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 44960085478
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: champ_paire_${{ matrix.src }}
+          path: numerical_minimization/protect3d_Z/reprise
+      - name: Depart de la paire (coeurs figes a la valeur du noeud isole)
+        run: |
+          ls -la seul
+          python paire_depart.py seul/relaxe_nu012_L64_N128.npy --h 0.5 --dir ${{ matrix.dir }} --s ${{ matrix.s }} --charge ${{ matrix.ch }} --rc ${{ matrix.rc }} --tag ${{ matrix.tag }}
+      - name: Relaxation de tout le reste (float64, L-BFGS-B, nu=0.12)
+        run: |
+          IN=depart_${{ matrix.tag }}.npy; if [ "${{ matrix.mode }}" = reprise ]; then IN=reprise/relaxe_${{ matrix.src }}.npy; fi; ls -la $IN
+          python halo_relax.py --in $IN --N 128 --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 --nu 0.12 \
+            --free libre_${{ matrix.tag }}.npy --maxit 3000 --save 200 --tmax 19000 --no-degree --out relaxe_${{ matrix.tag }}.npy | tee relaxe_${{ matrix.tag }}.log
+      - name: Energie d interaction et charge
+        if: always()
+        run: |
+          python paire_mesure.py relaxe_${{ matrix.tag }}.npy --seul seul/relaxe_nu012_L64_N128.npy --nu 0.12 --h 0.5 --tag ${{ matrix.tag }} --out paire_${{ matrix.tag }}.json | tee paire_${{ matrix.tag }}.log
+      - name: Champ relaxe en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: champ_paire_${{ matrix.tag }}
+          path: numerical_minimization/protect3d_Z/relaxe_${{ matrix.tag }}.npy
+          retention-days: 30
+      - name: Archive dans resultats/part187g
+        if: always()
+        run: |
+          mkdir -p ../../resultats/part187g
+          cp relaxe_${{ matrix.tag }}.log paire_${{ matrix.tag }}.* ../../resultats/part187g/
+          cd ../..
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part187g
+          if git diff --cached --quiet; then echo "rien a archiver"; exit 0; fi
+          git commit -m "part187g paire ${{ matrix.tag }} : journaux et mesures
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdBJ7QYur7BNLAidNKZ"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 20 + 5))
+          done
+          if [ "$ok" != 1 ]; then echo "ECHEC du push apres 6 essais"; exit 1; fi
