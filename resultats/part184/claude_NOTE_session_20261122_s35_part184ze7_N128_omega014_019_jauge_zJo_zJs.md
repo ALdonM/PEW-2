@@ -18,7 +18,7 @@ Statut : [D] numérique, modèle d'essai Z. Run GitHub 44959317019 (chaîne A : 
 - z Jo avec jauge : la non-monotonie en omega (maximum à 0,14 puis creux à 0,19) existe aux deux tailles de boîte : N=96 : 21,8 / 25,8 / 15,9 ; N=128 : 20,8 / 23,9 / 16,0. Ce n'est pas un artefact de boîte (écart N96 -> N128 de 0,1 à 1,8).
 - Le creux à omega 0,19 dépend de la durée de relaxation : t_ann passe de 20,25 (100 unités) à 16,03 (250 unités) à N=128, et de 18,86 à 15,90 à N=96.
 - Charge : elle monte encore avec la durée de relaxation (z Jo 336 -> 350 ; z Js 467 -> 641 à N=128), donc la relaxation à omega 0,19 n'est pas convergée à 250 unités. z Js n'est pas à charge égale entre N=96 et N=128 (-10 % à omega 0,14 ; +8 % à 0,19 après 250 unités).
-- z Js reste toujours plus rapide que z Jo (16,1 contre 16,0 à omega 0,19 : égalité à la précision des données ; ailleurs 1 à 6 unités de moins).
+- z Js est plus rapide que z Jo à omega 0,10 et 0,14 (de 2 à 6 unités) ; à omega 0,19 après 250 unités les deux se rejoignent (16,12 contre 16,03 à N=128, 16,36 contre 15,90 à N=96) : la hiérarchie Jo plus lent que Js disparaît à ce point, résultat à vérifier avec une relaxation convergée.
 
 ## Limites
 Une orientation (z), un seul N supplémentaire, relaxation à omega 0,19 non convergée, charges initiales différentes pour les Js. Le creux à omega 0,19 n'est qu'à moitié établi : les deux relaxations N=96 et N=128 de 250 unités le donnent à 16,0 mais la charge n'a pas cessé de croître.
