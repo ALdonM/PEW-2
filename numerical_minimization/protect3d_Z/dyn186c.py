@@ -19,7 +19,7 @@ Terme de Faddeev temporel omis [D]. Schéma : saut-de-mouton avec friction exact
 usage : python dyn.py TAG   (paramètres par variables d'environnement)"""
 import os, sys, json, time, numpy as np, jax, jax.numpy as jnp
 from scipy import ndimage
-from zlat import energy_density, random_field, make, fwd
+from zlat import energy_density, random_field, make, fwd, nvec, cross
 
 env = lambda k, d: type(d)(os.environ.get(k, d))
 TAG = sys.argv[1]
@@ -32,6 +32,7 @@ TC0, TH, PT, TSTART_H, TC, RMIN = env('TC0', 20.0), env('TH', 15.0), env('PT', 1
 BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
+KF = env('KF', 0.0)   # part200 : poids du terme de Faddeev temporel (inertie quartique) ; 0 = absent
 GRAD = env('GRAD', 0.0)   # part199 : pente de porteuse imposee rho_t(x)=1+GRAD*x (potentiel et eponge rappellent vers rho_t)
 _xg = (np.arange(N) - N / 2 + 0.5) * h
 RT = jnp.asarray(1.0 + GRAD * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
@@ -117,17 +118,41 @@ def kick(v, damp, T, key, dampb):
         n = jnp.fft.irfftn(jnp.fft.rfftn(n, axes=(1, 2, 3)) * KMASK[None], s=n.shape[1:], axes=(1, 2, 3)).astype(v.dtype)
     return v * damp + amp * n
 
+
+def _qvecs(phi):
+    # F0i = n . (dn x D_i n) = q_i . v avec q_i = J^T (D_i n x n) ; moyenne avant/arriere (6 vecteurs), J = dn/dphi
+    n = nvec(phi); _, vjp = jax.vjp(nvec, phi); out = []
+    for ax in (1, 2, 3):
+        Df = fwd(n, ax, h); Db = (n - jnp.roll(n, 1, axis=ax)) / h
+        for D in (Df, Db): out.append(vjp(cross(D, n))[0])
+    return out
+def _MGv(phi, v): return (KF * cF / 2) * sum(q * jnp.sum(q * v, axis=0) for q in _qvecs(phi))
+def _KFs(phi, v): return 0.25 * KF * cF * sum(jnp.sum(jnp.sum(q * v, axis=0)**2) for q in _qvecs(phi))
+def _Mmat(phi):
+    qs = _qvecs(phi); M = (KF * cF / 2) * sum(q[:, None] * q[None, :] for q in qs)
+    return M + (KT * jnp.eye(4, dtype=M.dtype)[:, :, None, None, None])
+def acc_full(phi, v, a_new, kw):
+    g = gEw(phi, a_new**-2, a_new**-4, kw) / h**3
+    if KF == 0.0: return -0.5 * g / KT
+    t1 = jax.grad(_KFs, 0)(phi, v)
+    t2 = jax.jvp(lambda p: _MGv(p, v), (phi,), (v,))[1]
+    rhs = t1 - t2 - 0.5 * g
+    M = jnp.moveaxis(_Mmat(phi), (0, 1), (-2, -1)); r = jnp.moveaxis(rhs, 0, -1)[..., None]
+    return jnp.moveaxis(jnp.linalg.solve(M, r)[..., 0], -1, 0)
+def kin_total(phi, v):   # vT M v (convention |phidot|^2 - E)
+    return jnp.sum(KT * v**2) + 2 * _KFs(phi, v) if KF != 0.0 else jnp.sum(KT * v**2)
+
 @jax.jit
 def kdk(phi, v, acc, a_new, damp, dt, kw, T, key, dampb):
     # saut-de-mouton (une seule évaluation du gradient par pas) avec friction exacte exp(-3H dt/2) de part et d'autre
     k1, k2 = jax.random.split(key)
     v = kick(v, damp, T, k1, dampb) + 0.5 * dt * acc
     phi = phi + dt * v
-    acc = -0.5 * gEw(phi, a_new**-2, a_new**-4, kw) / (KT * h**3)
+    acc = acc_full(phi, v, a_new, kw)
     v = kick(v + 0.5 * dt * acc, damp, T, k2, dampb)
     return phi, v, acc
 
-acc_of = jax.jit(lambda phi, a, kw: -0.5 * gEw(phi, a**-2, a**-4, kw) / (KT * h**3))
+acc_of = jax.jit(lambda phi, a, kw: acc_full(phi, jnp.zeros_like(phi), a, kw))
 
 _, _, parts, qd = make(h, mu, cF, d2)
 TREL, TCOMP, TBACK, AMIN, G0C = env('TREL', 30.0), env('TCOMP', 40.0), env('TBACK', 3.0), env('AMIN', 0.5), env('G0C', 0.02)
@@ -216,7 +241,7 @@ def measure(phi, v, t):
     cc = coss(phi); cmin = jnp.min(cc)
     zm = zz.reshape(4, -1).mean(1); zm = zm / (np.linalg.norm(zm) + 1e-30)
     core = int((np.einsum('a...,a->...', zz, zm) < 0).sum())
-    return dict(P0=P0, Pk=Pk, spec=spec, rho_mean=round(float(r.mean()) / rv, 4), rv=round(rv, 4), tau=round(tau_of(t), 2), t=round(t, 3), a=round(a, 4), Ek=round(float(jnp.sum(v**2)) * h**3, 2),
+    return dict(P0=P0, Pk=Pk, spec=spec, rho_mean=round(float(r.mean()) / rv, 4), rv=round(rv, 4), tau=round(tau_of(t), 2), t=round(t, 3), a=round(a, 4), Ek=round(float(jnp.sum(v**2)) * h**3, 2), Ekm=round(float(kin_total(phi, v)) * h**3, 2),
                 E2=round(E[0] / a**2, 2), E4=round(E[1] / a**4, 2), EV=round(E[2], 2),
                 Q=round(float(q.sum()), 3), Qabs=round(float(np.abs(q).sum()), 3),
                 rho_min=round(float(r.min()) / rv, 3), rho_med=round(float(np.median(r)) / rv, 3),
