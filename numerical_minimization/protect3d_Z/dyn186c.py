@@ -33,6 +33,7 @@ BARRIER, EPSB, CSTAR = env('BARRIER', 0), env('EPSB', 0.5), env('CSTAR', 0.5)
 KNOT_SIGN = env('KNOT_SIGN', 1)
 CP = env('CP', 0.0)
 KF = env('KF', 0.0)   # part200 : poids du terme de Faddeev temporel (inertie quartique) ; 0 = absent
+NU = env('NU', 0.0)   # part201 : masse nu de Z2 (L1 sans jauge : L0 + 2 nu^2 |Z2|^2) ; 0 = absent
 GRAD = env('GRAD', 0.0)   # part199 : pente de porteuse imposee rho_t(x)=1+GRAD*x (potentiel et eponge rappellent vers rho_t)
 _xg = (np.arange(N) - N / 2 + 0.5) * h
 RT = jnp.asarray(1.0 + GRAD * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
@@ -103,7 +104,8 @@ def Ew(phi, w2, w4, kw):
     if GRAD != 0.0:
         r2 = jnp.sum((phi / kw)**2, axis=0) / RT**2; p = mu**2 * (r2 + 1.0 / (r2 + d2) - 2.0)   # part199 : le minimum du potentiel suit rho_t(x)
     if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
-    return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + WV * kw**2 * p) + (Pbar(phi) if BARRIER else 0.0)
+    mz2 = 2.0 * NU**2 * (phi[2]**2 + phi[3]**2) if NU != 0.0 else 0.0   # part201 : masse 2 nu^2 |Z2|^2 (L1), en absolu, independante du milieu (decision de Michel du 22/11)
+    return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + WV * kw**2 * p + mz2) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)
 
 if SPR0 > 0:
@@ -254,7 +256,8 @@ def measure(phi, v, t):
                 noeuds=compte_noeuds(np.array(phi, dtype=np.float64)) if NOEUDS else None,
                 T=round(T_of(t), 4), core=core, cos_min=round(float(cmin), 4), frac_below=round(float(jnp.mean(cc < CSTAR)), 5),
                 cos_min_run=round(float(RUNMIN[0]), 4),
-                Ebar=round(float(Pbar(phi)), 3), Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(Pbar(phi) if BARRIER else 0.0), 3))
+                Ebar=round(float(Pbar(phi)), 3), EN=round(float(2 * NU**2 * jnp.sum(phi[2]**2 + phi[3]**2)) * h**3, 3),   # part201 : energie de masse 2 nu^2 |Z2|^2 (incluse dans Etot ; 0 si NU=0)
+                Etot=round(float(jnp.sum(v**2)) * h**3 + E[0]/a**2 + E[1]/a**4 + E[2] + float(2 * NU**2 * jnp.sum(phi[2]**2 + phi[3]**2)) * h**3 + float(Pbar(phi) if BARRIER else 0.0), 3))
 
 def kw_of(t):
     if KW0 > 0: return KW0
