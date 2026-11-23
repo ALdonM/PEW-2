@@ -1,0 +1,142 @@
+name: PEW part202 raffinement en h du test de boost
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  h0p5:
+    name: part202 boost h0.5
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u relax_boost202.py 0.5 17000 2>&1 | tee run_h0.5.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part202/boost_h0.5; mkdir -p $OUT
+          cp boost202_h0.5.json run_h0.5.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part202/boost_h0.5; git commit -q -m 'part202 boost h0.5 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  h0p4:
+    name: part202 boost h0.4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u relax_boost202.py 0.4 17000 2>&1 | tee run_h0.4.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part202/boost_h0.4; mkdir -p $OUT
+          cp boost202_h0.4.json run_h0.4.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part202/boost_h0.4; git commit -q -m 'part202 boost h0.4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  h0p32:
+    name: part202 boost h0.32
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u relax_boost202.py 0.32 17000 2>&1 | tee run_h0.32.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part202/boost_h0.32; mkdir -p $OUT
+          cp boost202_h0.32.json run_h0.32.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part202/boost_h0.32; git commit -q -m 'part202 boost h0.32 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  h0p25:
+    name: part202 boost h0.25
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u relax_boost202.py 0.25 17000 2>&1 | tee run_h0.25.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part202/boost_h0.25; mkdir -p $OUT
+          cp boost202_h0.25.json run_h0.25.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part202/boost_h0.25; git commit -q -m 'part202 boost h0.25 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
