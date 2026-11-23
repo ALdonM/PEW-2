@@ -7,7 +7,7 @@ Les equations du mouvement sont tirees de L par autodiff (pas ecrites a la main)
 import os, numpy as np, jax, jax.numpy as jnp
 from zlat import cross
 
-def build(N, h=0.5, mu=0.375, e0=0.25, d2=1e-3, nu=0.12, g2=0.02, KF=1.0, GUARD=1e-6):
+def build(N, h=0.5, mu=0.375, e0=0.25, d2=1e-3, nu=0.12, g2=0.02, KF=1.0, GUARD=1e-6, tscheme='avg'):   # tscheme : 'avg' (moyenne des carres avant/arriere, defaut) ou 'central' (carre de la moyenne) : test de sensibilite au schema
     cF = 1 / (2 * e0**2)
     sq = lambda z: z.real**2 + z.imag**2
     def rot(n, al):
@@ -53,7 +53,8 @@ def build(N, h=0.5, mu=0.375, e0=0.25, d2=1e-3, nu=0.12, g2=0.02, KF=1.0, GUARD=
                 Db = (n - rot(jnp.roll(n, 1, axis=1 + a), jnp.roll(th[a], 1, axis=a))) / h
                 Of = jnp.sum(n * cross(D0n, Df), axis=0) + (0.5 * (n3 + jnp.roll(n3, -1, axis=a)) - 1.0) * E[a]
                 Ob = jnp.sum(n * cross(D0n, Db), axis=0) + (0.5 * (n3 + jnp.roll(n3, 1, axis=a)) - 1.0) * jnp.roll(E[a], 1, axis=a)
-                T = T + KF * cF * 0.5 * jnp.sum(Of**2 + Ob**2)
+                if tscheme == 'avg': T = T + KF * cF * 0.5 * jnp.sum(Of**2 + Ob**2)
+                else: T = T + KF * cF * jnp.sum((0.5 * (Of + Ob))**2)
         return h**3 * T
     def lagr(q, v, a0): return kin(q[0], q[1], v[0], v[1], a0) - energy(q[0], q[1])
     a0z = jnp.zeros((N, N, N))
