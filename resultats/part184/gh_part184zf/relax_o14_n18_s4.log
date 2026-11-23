@@ -1,0 +1,5 @@
+relaxg t=0 V=782.397 rms_force=3.468e-05 rms_forceth=4.619e-06 Z2=932.8 charge=103.40 psi_centre=-0.0395 psi_min=-0.0402 gauss_res=5.35e-17/1.34e-04 Ekin=4.95e-07
+relaxg t=10 V=782.296 rms_force=2.629e-05 rms_forceth=4.019e-06 Z2=928.9 charge=102.99 psi_centre=-0.0394 psi_min=-0.0401 gauss_res=1.87e-10/1.33e-04 Ekin=7.68e-04
+relaxg t=20 V=782.225 rms_force=2.019e-05 rms_forceth=3.480e-06 Z2=926.3 charge=102.73 psi_centre=-0.0394 psi_min=-0.0400 gauss_res=1.06e-10/1.33e-04 Ekin=4.49e-04
+relaxg final rms_force=1.795e-05 rms_forceth=3.251e-06 Z2=925.5 gauss_res=3.42e-15
+relaxé (jauge), V = 782.2008056640625
