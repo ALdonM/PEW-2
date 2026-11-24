@@ -1,0 +1,12 @@
+KF=1 h=0.5 N=64: M=25.638 dE/dlnl=-0.618 | P=2.63472 P_pred=2.63890 err=-1.59e-03 | H=21.16590 H_pred=25.77379 err=-1.79e-01
+KF=1 h=0.4 N=80: M=25.710 dE/dlnl=-0.760 | P=2.65758 P_pred=2.66027 err=-1.01e-03 | H=21.23901 H_pred=25.84682 err=-1.78e-01
+KF=1 h=0.32 N=100: M=25.756 dE/dlnl=-0.851 | P=2.67228 P_pred=2.67409 err=-6.76e-04 | H=21.28614 H_pred=25.89390 err=-1.78e-01
+KF=0 h=0.5 N=64: M=25.638 dE/dlnl=-0.618 | P=2.07323 P_pred=2.63890 err=-2.14e-01 | H=21.13782 H_pred=25.77379 err=-1.80e-01
+KF=0 h=0.4 N=80: M=25.710 dE/dlnl=-0.760 | P=2.09245 P_pred=2.66027 err=-2.13e-01 | H=21.21075 H_pred=25.84682 err=-1.79e-01
+KF=0 h=0.32 N=100: M=25.756 dE/dlnl=-0.851 | P=2.10487 P_pred=2.67409 err=-2.13e-01 | H=21.25777 H_pred=25.89390 err=-1.79e-01
+--- temoin : modele sans terme quartique (e0=1e3, cF~0), KF=0 : theorie covariante triviale
+h=0.5: P=2.07323 P_pred=2.10065 err=-1.31e-02 | H err=-2.02e-01
+h=0.4: P=2.09245 P_pred=2.11032 err=-8.47e-03 | H err=-2.02e-01
+--- axe y (z inchange) KF=1
+h=0.5: err P=-2.05e-03 err H=-1.80e-01
+h=0.4: err P=-1.39e-03 err H=-1.79e-01
