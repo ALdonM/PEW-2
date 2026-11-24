@@ -1,0 +1,43 @@
+name: PEW part203 effet de boite sur l exces d inertie (L=48)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  L48:
+    name: part203 boite L=48
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u relax_boost203.py 48 0.5 19000 2>&1 | tee run_L48.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part203/L48; mkdir -p $OUT
+          cp boost203_L48_h0.5.json run_L48.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part203/L48; git commit -q -m 'part203 boite L=48 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
