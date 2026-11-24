@@ -1,0 +1,6 @@
+KF=1 h=0.5: Mrel=175.531 dE/dlnl=-44.809 | P=21.87126 pred=22.14498 err=-1.24e-02 | H err=-7.98e-05 | |Gauss|max=1.65e-02
+KF=1 h=0.4: Mrel=175.914 dE/dlnl=-45.598 | P=22.08565 pred=22.26276 err=-7.96e-03 | H err=-5.17e-05 | |Gauss|max=8.59e-03
+KF=1 h=0.32: Mrel=176.160 dE/dlnl=-46.104 | P=22.22419 pred=22.33841 err=-5.11e-03 | H err=-3.33e-05 | |Gauss|max=4.41e-03
+KF=0 h=0.5: Mrel=175.531 dE/dlnl=-44.809 | P=21.36853 pred=22.14498 err=-3.51e-02 | H err=-2.26e-04 | |Gauss|max=1.69e-02
+KF=0 h=0.4: Mrel=175.914 dE/dlnl=-45.598 | P=21.57892 pred=22.26276 err=-3.07e-02 | H err=-1.98e-04 | |Gauss|max=8.79e-03
+KF=0 h=0.32: Mrel=176.160 dE/dlnl=-46.104 | P=21.71493 pred=22.33841 err=-2.79e-02 | H err=-1.81e-04 | |Gauss|max=4.52e-03
