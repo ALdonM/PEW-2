@@ -1,0 +1,120 @@
+name: PEW part207 viriel du reseau vs pas h (nu=0.12)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  L32h0p4:
+    name: part207 L=32 h=0.4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+          NU: '0.12'
+        run: python -u relax_stress207.py 32 0.4 19000 2>&1 | tee run_L32h0p4.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part207/L32h0p4; mkdir -p $OUT
+          cp stress207_L32_h0.4_nu0.12.json virial207_L32_h0.4_nu0.12.json run_L32h0p4.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part207/L32h0p4; git commit -q -m 'part207 L=32 h=0.4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+
+
+
+  L32h0p32:
+    name: part207 L=32 h=0.32
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+          NU: '0.12'
+        run: python -u relax_stress207.py 32 0.32 19000 2>&1 | tee run_L32h0p32.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part207/L32h0p32; mkdir -p $OUT
+          cp stress207_L32_h0.32_nu0.12.json virial207_L32_h0.32_nu0.12.json run_L32h0p32.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part207/L32h0p32; git commit -q -m 'part207 L=32 h=0.32 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+
+
+
+  L40h0p4:
+    name: part207 L=40 h=0.4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Run
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+          NU: '0.12'
+        run: python -u relax_stress207.py 40 0.4 19000 2>&1 | tee run_L40h0p4.log
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part207/L40h0p4; mkdir -p $OUT
+          cp stress207_L40_h0.4_nu0.12.json virial207_L40_h0.4_nu0.12.json run_L40h0p4.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part207/L40h0p4; git commit -q -m 'part207 L=40 h=0.4 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+
+
