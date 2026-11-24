@@ -1,4 +1,4 @@
-name: PEW part204 test nu=0.12 (Z2 massif) : exces d inertie vs taille de boite
+name: PEW part204 test nu=0.12 Z2 massif - exces d inertie vs taille de boite
 
 on:
   workflow_dispatch:
