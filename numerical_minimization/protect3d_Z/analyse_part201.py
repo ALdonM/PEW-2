@@ -21,7 +21,7 @@ def sep_x(tag):
         pk = sorted(pk, key=lambda i: -prof[i])[:2]
         out.append(abs(x[pk[0]] - x[pk[1]]) if len(pk) == 2 else 0.0)
     return out
-for tag in ("opp_kf0", "opp_kf1", "opp_kf1_dt5", "same_kf0", "same_kf1"):
+for tag in ("opp_kf0", "opp_kf0_dt5", "opp_kf1", "opp_kf1_dt5", "same_kf0", "same_kf0_dt5", "same_kf1", "same_kf1_dt5"):
     m = hist(tag)
     if not m: print(tag, ": pas de resultats"); continue
     c0 = cons(m[0]); drift = max(abs(cons(r) - c0) for r in m) / c0
