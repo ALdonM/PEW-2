@@ -1,0 +1,352 @@
+name: PEW part210 palier 2 - paire opp a h=0.4 (N=120), KF=0 et KF=1, segments chaines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  opp_kf1_h04_s1:
+    name: part210 opp_kf1_h04 segment 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Depart
+        run: python make_pair210.py init120.npy 30 1
+      - name: Run
+        env:
+          N: '120'
+          NB: '120'
+          H: '0.4'
+          E0: '0.25'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          NU: '0'
+          DT: '0.004'
+          INIT: 'file'
+          INIT_FILE: 'init120.npy'
+          KF: '1'
+          T_END: '22'
+        run: python -u dyn186c.py p210_opp_kf1_h04 2>&1 | tee -a run_p210_opp_kf1_h04_s1.log
+      - name: Artefact (reprise)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: art_opp_kf1_h04_s1
+          path: |
+            numerical_minimization/protect3d_Z/ck_p210_opp_kf1_h04.npz
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_history.jsonl
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_state.json
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_params.json
+          retention-days: 14
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/p210_opp_kf1_h04; mkdir -p $OUT
+          cp p210_opp_kf1_h04_history.jsonl p210_opp_kf1_h04_params.json p210_opp_kf1_h04_state.json p210_opp_kf1_h04_proj.npy p210_opp_kf1_h04_champ_final.npy run_p210_opp_kf1_h04_s1.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/p210_opp_kf1_h04; git commit -q -m 'part210 opp_kf1_h04 segment 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  opp_kf1_h04_s2:
+    name: part210 opp_kf1_h04 segment 2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: opp_kf1_h04_s1
+    if: ${{ !cancelled() }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Reprise (artefact du segment precedent)
+        uses: actions/download-artifact@v4
+        with:
+          name: art_opp_kf1_h04_s1
+          path: numerical_minimization/protect3d_Z
+      - name: Run
+        env:
+          N: '120'
+          NB: '120'
+          H: '0.4'
+          E0: '0.25'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          NU: '0'
+          DT: '0.004'
+          INIT: 'file'
+          INIT_FILE: 'init120.npy'
+          KF: '1'
+          T_END: '22'
+        run: python -u dyn186c.py p210_opp_kf1_h04 2>&1 | tee -a run_p210_opp_kf1_h04_s2.log
+      - name: Artefact (reprise)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: art_opp_kf1_h04_s2
+          path: |
+            numerical_minimization/protect3d_Z/ck_p210_opp_kf1_h04.npz
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_history.jsonl
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_state.json
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_params.json
+          retention-days: 14
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/p210_opp_kf1_h04; mkdir -p $OUT
+          cp p210_opp_kf1_h04_history.jsonl p210_opp_kf1_h04_params.json p210_opp_kf1_h04_state.json p210_opp_kf1_h04_proj.npy p210_opp_kf1_h04_champ_final.npy run_p210_opp_kf1_h04_s2.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/p210_opp_kf1_h04; git commit -q -m 'part210 opp_kf1_h04 segment 2 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  opp_kf1_h04_s3:
+    name: part210 opp_kf1_h04 segment 3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    needs: opp_kf1_h04_s2
+    if: ${{ !cancelled() }}
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Reprise (artefact du segment precedent)
+        uses: actions/download-artifact@v4
+        with:
+          name: art_opp_kf1_h04_s2
+          path: numerical_minimization/protect3d_Z
+      - name: Run
+        env:
+          N: '120'
+          NB: '120'
+          H: '0.4'
+          E0: '0.25'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          NU: '0'
+          DT: '0.004'
+          INIT: 'file'
+          INIT_FILE: 'init120.npy'
+          KF: '1'
+          T_END: '22'
+        run: python -u dyn186c.py p210_opp_kf1_h04 2>&1 | tee -a run_p210_opp_kf1_h04_s3.log
+      - name: Artefact (reprise)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: art_opp_kf1_h04_s3
+          path: |
+            numerical_minimization/protect3d_Z/ck_p210_opp_kf1_h04.npz
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_history.jsonl
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_state.json
+            numerical_minimization/protect3d_Z/p210_opp_kf1_h04_params.json
+          retention-days: 14
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/p210_opp_kf1_h04; mkdir -p $OUT
+          cp p210_opp_kf1_h04_history.jsonl p210_opp_kf1_h04_params.json p210_opp_kf1_h04_state.json p210_opp_kf1_h04_proj.npy p210_opp_kf1_h04_champ_final.npy run_p210_opp_kf1_h04_s3.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/p210_opp_kf1_h04; git commit -q -m 'part210 opp_kf1_h04 segment 3 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  opp_kf0_h04_s1:
+    name: part210 opp_kf0_h04 segment 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Depart
+        run: python make_pair210.py init120.npy 30 1
+      - name: Run
+        env:
+          N: '120'
+          NB: '120'
+          H: '0.4'
+          E0: '0.25'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.5'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          NU: '0'
+          DT: '0.004'
+          INIT: 'file'
+          INIT_FILE: 'init120.npy'
+          KF: '0'
+          T_END: '9'
+        run: python -u dyn186c.py p210_opp_kf0_h04 2>&1 | tee -a run_p210_opp_kf0_h04_s1.log
+      - name: Artefact (reprise)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: art_opp_kf0_h04_s1
+          path: |
+            numerical_minimization/protect3d_Z/ck_p210_opp_kf0_h04.npz
+            numerical_minimization/protect3d_Z/p210_opp_kf0_h04_history.jsonl
+            numerical_minimization/protect3d_Z/p210_opp_kf0_h04_state.json
+            numerical_minimization/protect3d_Z/p210_opp_kf0_h04_params.json
+          retention-days: 14
+      - name: Commit results to resultats/
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/p210_opp_kf0_h04; mkdir -p $OUT
+          cp p210_opp_kf0_h04_history.jsonl p210_opp_kf0_h04_params.json p210_opp_kf0_h04_state.json p210_opp_kf0_h04_proj.npy p210_opp_kf0_h04_champ_final.npy run_p210_opp_kf0_h04_s1.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/p210_opp_kf0_h04; git commit -q -m 'part210 opp_kf0_h04 segment 1 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
