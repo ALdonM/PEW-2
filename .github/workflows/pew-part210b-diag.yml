@@ -116,7 +116,7 @@ jobs:
           ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
           test $ok = 1
   diagC:
-    name: part210b diag C KF=1, g2=0,02 : repetition de la config divergente
+    name: part210b diag C KF=1, g2=0,02 repetition de la config divergente
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     defaults:
