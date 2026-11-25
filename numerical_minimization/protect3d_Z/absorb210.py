@@ -17,12 +17,16 @@ def make(L, N, h, sgn=1.0):
         gphi = jnp.stack([z, z, a0 * phi[3], -a0 * phi[2]])
         gw = jnp.stack([-(jnp.roll(a0, -1, axis=a) - a0) for a in range(3)])
         return (sgn * gphi, sgn * gw)
-    def project(q, v):
-        a00 = jnp.zeros((N, N, N))
+    # preconditionneur FFT : symbole de l'operateur de jauge sur le vide uniforme (translation-invariant), calcule une fois
+    a00 = jnp.zeros((N, N, N)); vac = jnp.stack([jnp.sqrt(0.999) * jnp.ones((N, N, N))] + [jnp.zeros((N, N, N))] * 3)
+    thz = jnp.zeros((3, N, N, N)); zv = jnp.zeros((4, N, N, N))
+    _, Hv0 = jax.linearize(jax.grad(lambda a0: kin(vac, thz, zv, thz, a0)), a00)
+    sym = jnp.real(jnp.fft.fftn(Hv0(a00.at[0, 0, 0].set(1.0)))); sym = jnp.maximum(sym, 1e-3 * sym.max())
+    prec = lambda r: jnp.real(jnp.fft.ifftn(jnp.fft.fftn(r) / sym))
+    def project(q, v, tol=1e-8):
         f = lambda a0: kin(q[0], q[1], v[0], v[1], a0)
-        g = jax.grad(f)(a00)
-        Hv = lambda x: jax.jvp(jax.grad(f), (a00,), (x,))[1]
-        a0, _ = jax.scipy.sparse.linalg.cg(Hv, -g, tol=1e-12, maxiter=500)
+        g, Hl = jax.linearize(jax.grad(f), a00)
+        a0, _ = jax.scipy.sparse.linalg.cg(Hl, -g, tol=tol, maxiter=300, M=prec)
         d = Gam(q, a0)
         return (v[0] + d[0], v[1] + d[1])
     def damp(v, sig, dt):
