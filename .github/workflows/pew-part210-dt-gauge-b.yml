@@ -1,0 +1,97 @@
+name: PEW part210 etape 4b - test dt jusqu'a l'annihilation (paire jaugee sep 12 mailles, T=10)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dt004:
+    name: part210 test dt annihilation 0.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - run: python make_pairG210.py pairG64.npy 12 1
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          NU: '0.12'
+          G2: '0.02'
+          KF: '1'
+          DT: '0.04'
+          T_END: '10'
+          MEAS: '0.25'
+          SCHEME: sv
+          INIT_FILE: pairG64.npy
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u dynG210.py dtGb_0.04 2>&1 | tee run_dtGb_0.04.log
+      - name: Commit results
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/dtGb_0.04; mkdir -p $OUT
+          cp dtGb_0.04_history.jsonl dtGb_0.04_state.json dtGb_0.04_champ_final.npy run_dtGb_0.04.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/dtGb_0.04; git commit -q -m 'part210 test dt annihilation 0.04 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  dt0025:
+    name: part210 test dt annihilation 0.025
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - run: python make_pairG210.py pairG64.npy 12 1
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          NU: '0.12'
+          G2: '0.02'
+          KF: '1'
+          DT: '0.025'
+          T_END: '10'
+          MEAS: '0.25'
+          SCHEME: sv
+          INIT_FILE: pairG64.npy
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u dynG210.py dtGb_0.025 2>&1 | tee run_dtGb_0.025.log
+      - name: Commit results
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/dtGb_0.025; mkdir -p $OUT
+          cp dtGb_0.025_history.jsonl dtGb_0.025_state.json dtGb_0.025_champ_final.npy run_dtGb_0.025.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/dtGb_0.025; git commit -q -m 'part210 test dt annihilation 0.025 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
