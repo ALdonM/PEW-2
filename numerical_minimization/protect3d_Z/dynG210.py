@@ -7,8 +7,10 @@ sys.path.insert(0, '.'); jax.config.update("jax_enable_x64", True)
 import lagcov, absorb210
 from zlat import make
 env = lambda k, d: type(d)(os.environ.get(k, d))
+DIAG = dict(fpfail=0, cgcap=0)   # part210b : compteurs de non-convergence (point fixe du SV, CG plafonne a 200)
 TAG = sys.argv[1]; N = env('N', 64); h = env('H', 0.5); NU = env('NU', 0.12); G2 = env('G2', 0.02); KF = env('KF', 1.0)
 dt = env('DT', 0.02); T_END = env('T_END', 10.0); MEAS = env('MEAS', 0.5); SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)
+CK_FROM = env('CK_FROM', -1.0); CK_DT = env('CK_DT', 0.5)   # checkpoints horodates ck_{TAG}_t{t}.npz toutes les CK_DT a partir de CK_FROM (<0 : aucun)
 BUDGET = env('TIME_BUDGET', 18900.0); TOL = env('TOL', 1e-8); PREC_EVERY = env('PREC_EVERY', 5); SCHEME = os.environ.get('SCHEME', 'sv'); FP_TOL = env('FP_TOL', 1e-10); FP_MAX = env('FP_MAX', 12); INIT_FILE = os.environ.get('INIT_FILE', '')
 MU, E0, D2 = 0.375, 0.25, 1e-3
 S = lagcov.build(N, h=h, mu=MU, e0=E0, d2=D2, nu=NU, g2=G2, KF=KF); pfun = S['pfun']; cF = S['cF']
@@ -37,6 +39,7 @@ def Minv(q, r, x0, P, tol=None):
     z0 = tm(zeros_like, x0); x = x0; rr = tm(lambda a, c: a - c, r, Mv(q, z0, x)); z = pr(rr); p = z; rz = float(dot(rr, z)); b2 = float(dot(r, r)); it = 0
     while float(dot(rr, rr)) > tol**2 * b2 and it < 200:
         Ap = Mv(q, z0, p); al = rz / float(dot(p, Ap)); x = tm(lambda a, c: a + al * c, x, p); rr = tm(lambda a, c: a - al * c, rr, Ap); z = pr(rr); rzn = float(dot(rr, z)); p = tm(lambda a, c: a + (rzn / rz) * c, z, p); rz = rzn; it += 1
+    if it >= 200: DIAG['cgcap'] += 1
     return x, it
 Force = jax.jit(lambda q, v: tm(lambda a, b: a - b, dKq(q, v), dEq(q)))     # -dH/dq a p fixe = dK/dq|_v - dE/dq
 pf_j = jax.jit(lambda q, v: pfun(q, v))
@@ -48,12 +51,14 @@ def sv_step(q, v, P, dtt):
         r = tm(lambda a, b: a + 0.5 * dtt * b, p, Force(q, vh)); vn, it = Minv(q, r, vh, P); n_it += it
         d = float(jnp.sqrt(dot(tm(lambda a, b: a - b, vn, vh), tm(lambda a, b: a - b, vn, vh))) / (jnp.sqrt(dot(vn, vn)) + 1e-30)); vh = vn
         if d < FP_TOL: break
+    else: DIAG['fpfail'] += 1
     ph = pf_j(q, vh); q1 = tm(lambda a, b: a + dtt * b, q, vh); w = vh
     for k in range(FP_MAX):                      # q' = q + dt/2 (v_h + M(q')^-1 p_h)
         P1 = build_prec(q1, w); w, it = Minv(q1, ph, w, P1); n_it += it
         qn = tm(lambda a, b, c: a + 0.5 * dtt * (b + c), q, vh, w)
         d = float(jnp.sqrt(sum(jnp.sum((x - y)**2) for x, y in zip(qn, q1)))); q1 = qn
         if d < FP_TOL: break
+    else: DIAG['fpfail'] += 1
     P1 = build_prec(q1, w); w, it = Minv(q1, ph, w, P1); n_it += it
     p1 = tm(lambda a, b: a + 0.5 * dtt * b, ph, Force(q1, w)); v1, it = Minv(q1, p1, w, P1); n_it += it
     return q1, v1, n_it
@@ -71,7 +76,7 @@ else:
 def measure(q, v, t, its, n):
     qq = np.array(qd(q[0])) * h**3; H = float(hamil(q, v)); Ep = float(energy(q))
     r = dict(t=round(t, 4), H=H, E=Ep, K=H - Ep, Gmax=float(jnp.abs(gauss(q, v)).max()), Q=round(float(qq.sum()), 3), Qabs=round(float(np.abs(qq).sum()), 3),
-             rho_min=float(jnp.sqrt(jnp.sum(q[0]**2, 0)).min()), cg=its / max(n, 1)); open(hist, 'a').write(json.dumps(r) + '\n'); print(json.dumps(r), flush=True)
+             rho_min=float(jnp.sqrt(jnp.sum(q[0]**2, 0)).min()), cg=its / max(n, 1), fpfail=DIAG['fpfail'], cgcap=DIAG['cgcap']); open(hist, 'a').write(json.dumps(r) + '\n'); print(json.dumps(r), flush=True)
 P = build_prec(q, v); a, _ = acc(q, v, tm(zeros_like, v), P) if SCHEME != 'sv' else (None, 0); t00 = time.time(); its = 0; n = 0; next_meas = (np.floor(t / MEAS + 1e-9) + (0 if os.path.exists(hist) and os.path.getsize(hist) > 0 else 0)) * MEAS
 if os.path.getsize(hist) == 0: measure(q, v, t, 0, 1); next_meas = t + MEAS
 else: next_meas = t + MEAS
@@ -86,6 +91,7 @@ while t < T_END - 1e-9:
         fs = jnp.exp(-SIG * dt); v = (v[0] * fs[None], v[1] * fs[None]); q = (vac + (q[0] - vac) * fs[None], q[1] * fs[None]); v = project_j(q, v)
     t += dt; n += 1
     if t >= next_meas - 1e-9: measure(q, v, t, its, n); next_meas += MEAS
+    if CK_FROM >= 0 and t >= CK_FROM - 1e-9 and abs(t / CK_DT - round(t / CK_DT)) < 1e-6: np.savez(f"ck_{TAG}_t{t:.2f}.npz", phi=np.array(q[0]), th=np.array(q[1]), vphi=np.array(v[0]), vth=np.array(v[1]), t=t)
     if n % 500 == 0: np.savez(ck, phi=np.array(q[0]), th=np.array(q[1]), vphi=np.array(v[0]), vth=np.array(v[1]), t=t)
 fin = t >= T_END - 1e-9
 np.savez(ck, phi=np.array(q[0]), th=np.array(q[1]), vphi=np.array(v[0]), vth=np.array(v[1]), t=t)

@@ -1,0 +1,171 @@
+name: PEW part210b diagnostic divergence SV jauge (3 variantes, dt 0.04, T=6, checkpoints)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagA:
+    name: part210b diag A KF=0, jauge g2=0,02
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - run: python make_pairG210.py pairG64.npy 12 1
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          NU: '0.12'
+          G2: '0.02'
+          KF: '0'
+          DT: '0.04'
+          T_END: '6'
+          MEAS: '0.12'
+          SCHEME: sv
+          INIT_FILE: pairG64.npy
+          CK_FROM: '2.0'
+          CK_DT: '0.5'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u dynG210.py diagA_kf0 2>&1 | tee run_diagA_kf0.log
+      - name: Upload checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ck_diagA_kf0
+          path: numerical_minimization/protect3d_Z/ck_diagA_kf0_t*.npz
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Commit results
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/diagA_kf0; mkdir -p $OUT
+          cp diagA_kf0_history.jsonl diagA_kf0_state.json run_diagA_kf0.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/diagA_kf0; git commit -q -m 'part210b diagnostic diagA_kf0 : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  diagB:
+    name: part210b diag B KF=1, jauge raide g2=5e-4 (proche de sans jauge)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - run: python make_pairG210.py pairG64.npy 12 1
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          NU: '0.12'
+          G2: '0.0005'
+          KF: '1'
+          DT: '0.04'
+          T_END: '6'
+          MEAS: '0.12'
+          SCHEME: sv
+          INIT_FILE: pairG64.npy
+          CK_FROM: '2.0'
+          CK_DT: '0.5'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u dynG210.py diagB_g2petit 2>&1 | tee run_diagB_g2petit.log
+      - name: Upload checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ck_diagB_g2petit
+          path: numerical_minimization/protect3d_Z/ck_diagB_g2petit_t*.npz
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Commit results
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/diagB_g2petit; mkdir -p $OUT
+          cp diagB_g2petit_history.jsonl diagB_g2petit_state.json run_diagB_g2petit.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/diagB_g2petit; git commit -q -m 'part210b diagnostic diagB_g2petit : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  diagC:
+    name: part210b diag C KF=1, g2=0,02 : repetition de la config divergente
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - run: python -m pip install -r requirements.txt scipy
+      - run: python make_pairG210.py pairG64.npy 12 1
+      - name: Run
+        env:
+          N: '64'
+          H: '0.5'
+          NU: '0.12'
+          G2: '0.02'
+          KF: '1'
+          DT: '0.04'
+          T_END: '6'
+          MEAS: '0.12'
+          SCHEME: sv
+          INIT_FILE: pairG64.npy
+          CK_FROM: '2.0'
+          CK_DT: '0.5'
+          TIME_BUDGET: '19000'
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u dynG210.py diagC_rep 2>&1 | tee run_diagC_rep.log
+      - name: Upload checkpoints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ck_diagC_rep
+          path: numerical_minimization/protect3d_Z/ck_diagC_rep_t*.npz
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Commit results
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part210/diagC_rep; mkdir -p $OUT
+          cp diagC_rep_history.jsonl diagC_rep_state.json run_diagC_rep.log $OUT/ || true
+          cd ../..; git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resultats/part210/diagC_rep; git commit -q -m 'part210b diagnostic diagC_rep : resultats' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
