@@ -1,0 +1,81 @@
+name: PEW part215 noeuds Q_H=1 2 3 (nu=0) replaces en boite 64 (N=128) pour mesurer D sans artefact de boite
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  halo:
+    name: part215 ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: Q1_nu0_L64, run: '44312113969', art: champ_relaxe_L48_N96,  npy: relaxe_L48_N96.npy}
+          - {tag: Q2_nu0_L64, run: '45795701519', art: champ_relaxe_Q2_nu0,   npy: relaxe_Q2_nu0.npy}
+          - {tag: Q3_nu0_L64, run: '45843848874', art: champ_relaxe_Q3_nu0,   npy: relaxe_Q3_nu0.npy}
+    defaults:
+      run:
+        shell: bash
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud de depart (artefact d'un run precedent, boite 48)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          run-id: ${{ matrix.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Relaxation en boite 64 (N=128, float64, L-BFGS-B, le noeud est place au centre dans le vide)
+        run: |
+          python halo_relax.py --in depart/${{ matrix.npy }} --N 128 --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 --nu 0.0 \
+            --maxit 6000 --save 250 --tmax 19500 --out relaxe_${{ matrix.tag }}.npy | tee relaxe_${{ matrix.tag }}.log
+      - name: Mesure du halo et ventilation par composante
+        if: always()
+        run: |
+          python halo_mesure.py relaxe_${{ matrix.tag }}.npy --h 0.5 --mu 0.375 --e0 0.25 --d2 1e-3 --nu 0.0 --tag ${{ matrix.tag }} --out halo_${{ matrix.tag }}.json | tee halo_${{ matrix.tag }}.log
+          python halo_composantes.py relaxe_${{ matrix.tag }}.npy --h 0.5 --e0 0.25 --nu 0.0 --tag ${{ matrix.tag }} --out comp_${{ matrix.tag }}.json | tee comp_${{ matrix.tag }}.log
+      - name: Champ relaxe en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: champ_relaxe_${{ matrix.tag }}
+          path: numerical_minimization/protect3d_Z/relaxe_${{ matrix.tag }}.npy
+          retention-days: 30
+      - name: Archive dans resultats/part215
+        if: always()
+        run: |
+          mkdir -p ../../resultats/part215
+          cp relaxe_${{ matrix.tag }}.log halo_${{ matrix.tag }}.* comp_${{ matrix.tag }}.* ../../resultats/part215/ 2>/dev/null || true
+          cd ../..
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part215
+          if git diff --cached --quiet; then echo "rien a archiver"; exit 0; fi
+          git commit -m "part215 ${{ matrix.tag }} : journaux et mesures
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 20 + 5))
+          done
+          if [ "$ok" != 1 ]; then echo "ECHEC du push apres 6 essais"; exit 1; fi
