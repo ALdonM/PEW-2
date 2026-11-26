@@ -1,0 +1,19 @@
+== Q2_nu012_suite: N=96 L=48.0 Etot=1553.02 fenetre d'ajustement 9.1-14.9
+part de e_j / e_tot, e_ang / e_tot, e_rho / e_tot, e4 / e_tot, eV / e_tot dans E(>R):
+  R= 6  E(>R)=  813.84  e_j   9.8%  e_n  27.5%  e_ang  37.4%  e_rho   0.6%  e4  51.5%  eV  10.5%
+  R= 8  E(>R)=  406.48  e_j   9.4%  e_n  38.3%  e_ang  47.7%  e_rho   0.8%  e4  38.4%  eV  13.1%
+  R=10  E(>R)=  176.92  e_j   9.4%  e_n  51.1%  e_ang  60.5%  e_rho   0.8%  e4  23.0%  eV  15.7%
+  R=12  E(>R)=   71.36  e_j  11.9%  e_n  60.4%  e_ang  72.3%  e_rho   0.6%  e4   9.5%  eV  17.5%
+  R=14  E(>R)=   28.71  e_j  17.9%  e_n  60.8%  e_ang  78.7%  e_rho   0.4%  e4   2.7%  eV  18.3%
+  R=16  E(>R)=   12.36  e_j  26.7%  e_n  54.4%  e_ang  81.2%  e_rho   0.2%  e4   0.6%  eV  18.0%
+  R=20  E(>R)=    2.97  e_j  49.1%  e_n  36.5%  e_ang  85.6%  e_rho   0.0%  e4   0.0%  eV  14.4%
+pente log-log de E(>R): {'6-8': -2.41, '8-10': -3.73, '10-12': -4.98, '12-14': -5.91, '14-16': -6.31, '16-20': -6.38}
+  ajustement abs_j : puissance p=3.34 (res 0.009) | exp k=0.282 (res 0.034) -> puissance
+  ajustement e_j   : puissance p=6.98 (res 0.028) | exp k=0.588 (res 0.090) -> puissance
+  ajustement e_n   : puissance p=5.62 (res 0.132) | exp k=0.479 (res 0.078) -> exponentielle
+  ajustement e_tot : puissance p=7.30 (res 0.081) | exp k=0.619 (res 0.013) -> exponentielle
+  ajustement Theta : puissance p=6.21 (res 0.097) | exp k=0.527 (res 0.039) -> exponentielle
+pentes locales abs_j : {'3-5': -0.33, '5-7': -0.94, '7-9': -2.07, '9-11': -3.18, '11-13': -3.46, '13-15': -3.13, '15-17': -3.01, '17-19': -2.96, '19-21': -2.81, '21-23': -2.53}
+pentes locales e_j   : {'3-5': -0.92, '5-7': -2.36, '7-9': -4.83, '9-11': -7.0, '11-13': -7.16, '13-15': -6.25, '15-17': -5.91, '17-19': -5.72, '19-21': -5.34, '21-23': -4.71}
+pentes locales e_n   : {'3-5': -0.32, '5-7': -0.96, '7-9': -2.27, '9-11': -3.62, '11-13': -5.77, '13-15': -8.27, '15-17': -9.75, '17-19': -10.57, '19-21': -11.18, '21-23': -11.4}
+pentes locales Theta : {'3-5': -0.92, '5-7': -2.09, '7-9': -3.72, '9-11': -4.77, '11-13': -6.28, '13-15': -8.2, '15-17': -9.15, '17-19': -9.3, '19-21': -8.91, '21-23': -7.82}
