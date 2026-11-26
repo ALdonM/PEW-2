@@ -1,0 +1,87 @@
+name: PEW part212 homotopie nu et e0 depuis les noeuds relaxes (boite 48) pour atteindre des noeuds plus lourds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  chaine:
+    name: part212 ${{ matrix.chaine }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {chaine: nu,  run: '44638347471', art: champ_relaxe_nu012_L48_N96, npy: relaxe_nu012_L48_N96.npy, e0s: '0.25 0.25 0.25', nus: '0.18 0.24 0.30', tags: 'nu018 nu024 nu030'}
+          - {chaine: e0,  run: '44312113969', art: champ_relaxe_L48_N96,       npy: relaxe_L48_N96.npy,       e0s: '0.30 0.35 0.40', nus: '0 0 0',          tags: 'e030 e035 e040'}
+    defaults:
+      run:
+        shell: bash
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud de depart (artefact d'un run precedent)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.art }}
+          run-id: ${{ matrix.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Chaine d'homotopie (chaque etape part du noeud relaxe de l'etape precedente)
+        run: |
+          prev=depart/${{ matrix.npy }}
+          set -- ${{ matrix.tags }}; tags=($@)
+          set -- ${{ matrix.e0s }}; e0s=($@)
+          set -- ${{ matrix.nus }}; nus=($@)
+          for i in 0 1 2; do
+            t=${{ matrix.chaine }}_${tags[$i]}; e0=${e0s[$i]}; nu=${nus[$i]}
+            echo "=== etape $t (e0=$e0 nu=$nu) depuis $prev" | tee -a chaine.log
+            python halo_relax.py --in $prev --N 96 --h 0.5 --mu 0.375 --e0 $e0 --d2 1e-3 --nu $nu --maxit 3000 --save 250 --tmax 4500 --out relaxe_$t.npy | tee relaxe_$t.log
+            python halo_mesure.py relaxe_$t.npy --h 0.5 --mu 0.375 --e0 $e0 --d2 1e-3 --nu $nu --tag $t --out halo_$t.json | tee halo_$t.log
+            python halo_composantes.py relaxe_$t.npy --h 0.5 --e0 $e0 --nu $nu --tag $t --out comp_$t.json | tee comp_$t.log
+            # arret de la chaine si le noeud s'est effondre (Q ~ 0)
+            if grep -q "Q=-0.000" relaxe_$t.log; then echo "EFFONDRE a l'etape $t : chaine arretee" | tee -a chaine.log; break; fi
+            prev=relaxe_$t.npy
+          done
+      - name: Champs relaxes en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: champs_homotopie_${{ matrix.chaine }}
+          path: numerical_minimization/protect3d_Z/relaxe_*.npy
+          retention-days: 30
+      - name: Archive dans resultats/part212
+        if: always()
+        run: |
+          mkdir -p ../../resultats/part212
+          cp relaxe_*.log halo_*.json halo_*.log comp_*.json comp_*.log chaine.log ../../resultats/part212/ 2>/dev/null || true
+          cd ../..
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part212
+          if git diff --cached --quiet; then echo "rien a archiver"; exit 0; fi
+          git commit -m "part212 homotopie ${{ matrix.chaine }} : journaux et mesures
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 20 + 5))
+          done
+          if [ "$ok" != 1 ]; then echo "ECHEC du push apres 6 essais"; exit 1; fi
