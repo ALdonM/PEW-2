@@ -1,4 +1,4 @@
-name: PEW part214 consolidation Q1 seconde : Q_H=2 (nu=0.12) poursuivi, Q_H=3 (nu=0), Q_H=1 etire (nu=0)
+name: PEW part214 consolidation Q1 seconde (Q_H=2 poursuivi, Q_H=3, Q_H=1 etire)
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
       - name: Install dependencies
         run: python -m pip install -r requirements.txt "scipy>=1.15"
-      - name: Champ de depart (reprise : artefact du run part213 ; neuf : ansatz)
+      - name: Champ de depart (reprise = artefact du run part213, neuf = ansatz)
         if: matrix.mode == 'reprise'
         uses: actions/download-artifact@v4
         with:
