@@ -1,0 +1,76 @@
+name: PEW part211 noeuds supplementaires (nu et e0 varies) boite 48 pour Q1prime
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  halo:
+    name: part211 ${{ matrix.tag }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {tag: nu006_e025, n: '96', nu: '0.06', e0: '0.25', maxit: '3000', save: '250', tmax: '19000'}
+          - {tag: nu024_e025, n: '96', nu: '0.24', e0: '0.25', maxit: '3000', save: '250', tmax: '19000'}
+          - {tag: nu0_e018, n: '96', nu: '0.0', e0: '0.18', maxit: '3000', save: '250', tmax: '19000'}
+          - {tag: nu0_e035, n: '96', nu: '0.0', e0: '0.35', maxit: '3000', save: '250', tmax: '19000'}
+    defaults:
+      run:
+        shell: bash
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Tests du code de mesure
+        run: python test_halo.py
+      - name: Relaxation (float64, L-BFGS-B) depuis wk_T0 place au centre d'une boite N^3
+        run: |
+          python halo_relax.py --in ../../resultats/part179/wk_T0/wk_T0_champ_final.npy --N ${{ matrix.n }} --h 0.5 --mu 0.375 --e0 ${{ matrix.e0 }} --d2 1e-3 --nu ${{ matrix.nu }} \
+            --maxit ${{ matrix.maxit }} --save ${{ matrix.save }} --tmax ${{ matrix.tmax }} --out relaxe_${{ matrix.tag }}.npy | tee relaxe_${{ matrix.tag }}.log
+      - name: Mesure du halo et ventilation par composante
+        if: always()
+        run: |
+          python halo_mesure.py relaxe_${{ matrix.tag }}.npy --h 0.5 --mu 0.375 --e0 ${{ matrix.e0 }} --d2 1e-3 --nu ${{ matrix.nu }} --tag ${{ matrix.tag }} --out halo_${{ matrix.tag }}.json | tee halo_${{ matrix.tag }}.log
+          python halo_composantes.py relaxe_${{ matrix.tag }}.npy --h 0.5 --e0 ${{ matrix.e0 }} --nu ${{ matrix.nu }} --tag ${{ matrix.tag }} --out comp_${{ matrix.tag }}.json | tee comp_${{ matrix.tag }}.log
+      - name: Champ relaxe en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: champ_relaxe_${{ matrix.tag }}
+          path: numerical_minimization/protect3d_Z/relaxe_${{ matrix.tag }}.npy
+          retention-days: 30
+      - name: Archive dans resultats/part211
+        if: always()
+        working-directory: numerical_minimization/protect3d_Z
+        run: |
+          mkdir -p ../../resultats/part211
+          cp relaxe_${{ matrix.tag }}.log halo_${{ matrix.tag }}.* comp_${{ matrix.tag }}.* ../../resultats/part211/
+          cd ../..
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add resultats/part211
+          if git diff --cached --quiet; then echo "rien a archiver"; exit 0; fi
+          git commit -m "part211 noeuds ${{ matrix.tag }} : journaux et mesures
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 20 + 5))
+          done
+          if [ "$ok" != 1 ]; then echo "ECHEC du push apres 6 essais"; exit 1; fi
