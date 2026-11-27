@@ -206,6 +206,8 @@ else:
         phi = np.stack([a0*b0-a1*b1-a2*b2-a3*b3, a0*b1+a1*b0+a2*b3-a3*b2, a0*b2-a1*b3+a2*b0+a3*b1, a0*b3+a1*b2-a2*b1+a3*b0])
     if INIT == 'vac': phi = np.zeros((4, N, N, N)); phi[0] = KW0 if KW0 > 0 else 1.0   # part188 : vide uniforme (témoin sans nœud)
     v0 = np.zeros((4, N, N, N))
+    V0ROT = env('V0ROT', 0.0)   # part221 : rotation interne de phase de Z2 a la frequence V0ROT : v0 = omega * (0,0,-phi3,phi2)
+    if V0ROT != 0.0: v0 = V0ROT * np.stack([0 * phi[0], 0 * phi[1], -phi[3], phi[2]])
     WAVE = env('WAVE', '')   # part188 : paquet d'ondes 'phase' (Goldstone U(1), sans masse, Z -> e^{i chi} Z) ou 'amp' (mode d'amplitude, massif) vers +x
     if WAVE:
         WK, WEPS, WX0, WSIG = env('WK', 1.0), env('WEPS', 0.1), env('WX0', -10.0), env('WSIG', 3.0)
