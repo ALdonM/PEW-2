@@ -1,0 +1,280 @@
+name: PEW part222 temoin g=0 du noeud Q1 avec et sans eponge (diagnostic du saut d energie a t=0.5)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  eponge18_T8:
+    name: part222 eponge18_T8
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_L48_N96
+          run-id: 44312113969
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32 et diagnostic du bord
+        run: |
+          python - <<'PY'
+          import numpy as np
+          p=np.load('depart/relaxe_L48_N96.npy').astype(np.float32); np.save('init96.npy',p)
+          N=p.shape[1]; rho=np.sqrt((p**2).sum(0)); x=(np.arange(N)-N/2+0.5)*0.5
+          R=np.sqrt(x[:,None,None]**2+x[None,:,None]**2+x[None,None,:]**2)
+          for lo,hi in ((18,24),(24,30),(30,42)):
+              m=(R>=lo)&(R<hi); print('r',lo,hi,'phi moyen',[round(float(p[i][m].mean()),4) for i in range(4)],'rho moyen',round(float(rho[m].mean()),4),'ecart a (1,0,0,0) rms',round(float(np.sqrt(((p-np.array([1,0,0,0],dtype=np.float32)[:,None,None,None])**2)[:,m].mean())),4))
+          PY
+      - name: Temoin g=0
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.1'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          GRADA: '0'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          SPR0: '18'
+          SPRB: '24'
+          T_END: '8'
+        run: python -u dyn186c.py p222_eponge18_T8 2>&1 | tee run_p222_eponge18_T8.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part222/p222_eponge18_T8; cp p222_eponge18_T8_history.jsonl p222_eponge18_T8_params.json run_p222_eponge18_T8.log ../../resultats/part222/p222_eponge18_T8/ 2>/dev/null || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part222/p222_eponge18_T8; git commit -q -m 'part222 temoin eponge18_T8' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  sans_eponge_T8:
+    name: part222 sans_eponge_T8
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_L48_N96
+          run-id: 44312113969
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32 et diagnostic du bord
+        run: |
+          python - <<'PY'
+          import numpy as np
+          p=np.load('depart/relaxe_L48_N96.npy').astype(np.float32); np.save('init96.npy',p)
+          N=p.shape[1]; rho=np.sqrt((p**2).sum(0)); x=(np.arange(N)-N/2+0.5)*0.5
+          R=np.sqrt(x[:,None,None]**2+x[None,:,None]**2+x[None,None,:]**2)
+          for lo,hi in ((18,24),(24,30),(30,42)):
+              m=(R>=lo)&(R<hi); print('r',lo,hi,'phi moyen',[round(float(p[i][m].mean()),4) for i in range(4)],'rho moyen',round(float(rho[m].mean()),4),'ecart a (1,0,0,0) rms',round(float(np.sqrt(((p-np.array([1,0,0,0],dtype=np.float32)[:,None,None,None])**2)[:,m].mean())),4))
+          PY
+      - name: Temoin g=0
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.1'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          GRADA: '0'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          SPR0: '0'
+          SPRB: '0'
+          T_END: '8'
+        run: python -u dyn186c.py p222_sans_eponge_T8 2>&1 | tee run_p222_sans_eponge_T8.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part222/p222_sans_eponge_T8; cp p222_sans_eponge_T8_history.jsonl p222_sans_eponge_T8_params.json run_p222_sans_eponge_T8.log ../../resultats/part222/p222_sans_eponge_T8/ 2>/dev/null || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part222/p222_sans_eponge_T8; git commit -q -m 'part222 temoin sans_eponge_T8' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  sans_eponge_T24:
+    name: part222 sans_eponge_T24
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_L48_N96
+          run-id: 44312113969
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32 et diagnostic du bord
+        run: |
+          python - <<'PY'
+          import numpy as np
+          p=np.load('depart/relaxe_L48_N96.npy').astype(np.float32); np.save('init96.npy',p)
+          N=p.shape[1]; rho=np.sqrt((p**2).sum(0)); x=(np.arange(N)-N/2+0.5)*0.5
+          R=np.sqrt(x[:,None,None]**2+x[None,:,None]**2+x[None,None,:]**2)
+          for lo,hi in ((18,24),(24,30),(30,42)):
+              m=(R>=lo)&(R<hi); print('r',lo,hi,'phi moyen',[round(float(p[i][m].mean()),4) for i in range(4)],'rho moyen',round(float(rho[m].mean()),4),'ecart a (1,0,0,0) rms',round(float(np.sqrt(((p-np.array([1,0,0,0],dtype=np.float32)[:,None,None,None])**2)[:,m].mean())),4))
+          PY
+      - name: Temoin g=0
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '0.1'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          GRADA: '0'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+          SPR0: '0'
+          SPRB: '0'
+          T_END: '24'
+        run: python -u dyn186c.py p222_sans_eponge_T24 2>&1 | tee run_p222_sans_eponge_T24.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part222/p222_sans_eponge_T24; cp p222_sans_eponge_T24_history.jsonl p222_sans_eponge_T24_params.json run_p222_sans_eponge_T24.log ../../resultats/part222/p222_sans_eponge_T24/ 2>/dev/null || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part222/p222_sans_eponge_T24; git commit -q -m 'part222 temoin sans_eponge_T24' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
