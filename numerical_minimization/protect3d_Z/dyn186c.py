@@ -36,7 +36,8 @@ KF = env('KF', 0.0)   # part200 : poids du terme de Faddeev temporel (inertie qu
 NU = env('NU', 0.0)   # part201 : masse nu de Z2 (L1 sans jauge : L0 + 2 nu^2 |Z2|^2) ; 0 = absent
 GRAD = env('GRAD', 0.0)   # part199 : pente de porteuse imposee rho_t(x)=1+GRAD*x (potentiel et eponge rappellent vers rho_t)
 _xg = (np.arange(N) - N / 2 + 0.5) * h
-RT = jnp.asarray(1.0 + GRAD * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
+GRADA = env('GRADA', 0.0)   # part217 : amplitude de fond a(x)=1+GRADA*x, champ Z'=Z/a (vide (1,0,0,0) partout) ; E2 et EV multiplies par a^2, E4 inchange (modele A de part216)
+RT = jnp.asarray(1.0 + (GRAD if GRAD != 0.0 else GRADA) * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
 SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
 KT = env('KT', 1.0)
 _ktf = os.environ.get('KTMAP', '')
@@ -104,6 +105,7 @@ def Ew(phi, w2, w4, kw):
     if GRAD != 0.0:
         r2 = jnp.sum((phi / kw)**2, axis=0) / RT**2; p = mu**2 * (r2 + 1.0 / (r2 + d2) - 2.0)   # part199 : le minimum du potentiel suit rho_t(x)
     if CP: g = g * (jnp.sum((phi / kw)**2, axis=0))**CP   # part189 : vitesse de phase locale c^2 = (rho/rho_vac)^(2 CP), E2 -> rho^(2CP) |grad Z|^2 (CP=1 : C_local = C0 rho/rho_vac)
+    if GRADA != 0.0: g = g * RT**2; p = p * RT**2   # part217 (CP=0 et GRAD=0 requis)
     mz2 = 2.0 * NU**2 * (phi[2]**2 + phi[3]**2) if NU != 0.0 else 0.0   # part201 : masse 2 nu^2 |Z2|^2 (L1), en absolu, independante du milieu (decision de Michel du 22/11)
     return h**3 * jnp.sum(w2 * kw**2 * g + w4 * f + WV * kw**2 * p + mz2) + (Pbar(phi) if BARRIER else 0.0)
 gEw = jax.grad(Ew)

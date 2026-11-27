@@ -1,0 +1,477 @@
+name: PEW part217 inertie des noeuds Q_H=1 2 3 et chute dans une pente d amplitude de fond
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  inertie_Q1:
+    name: part217 inertie Q1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud relaxe en boite 64
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q1_nu0_L64
+          run-id: 45895033007
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Tenseur d inertie et couplage
+        run: python inertie_noeud.py depart/relaxe_Q1_nu0_L64.npy --tag Q1_L64 --out inertie_Q1_L64.json | tee inertie_Q1_L64.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part217; cp inertie_Q1_L64.* ../../resultats/part217/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217; git commit -q -m 'part217 inertie Q1
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  inertie_Q2:
+    name: part217 inertie Q2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud relaxe en boite 64
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q2_nu0_L64
+          run-id: 45895033007
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Tenseur d inertie et couplage
+        run: python inertie_noeud.py depart/relaxe_Q2_nu0_L64.npy --tag Q2_L64 --out inertie_Q2_L64.json | tee inertie_Q2_L64.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part217; cp inertie_Q2_L64.* ../../resultats/part217/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217; git commit -q -m 'part217 inertie Q2
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  inertie_Q3:
+    name: part217 inertie Q3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud relaxe en boite 64
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q3_nu0_L64
+          run-id: 45895033007
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Tenseur d inertie et couplage
+        run: python inertie_noeud.py depart/relaxe_Q3_nu0_L64.npy --tag Q3_L64 --out inertie_Q3_L64.json | tee inertie_Q3_L64.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part217; cp inertie_Q3_L64.* ../../resultats/part217/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217; git commit -q -m 'part217 inertie Q3
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  dyn_Q1_g020:
+    name: part217 chute Q1_g020
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_L48_N96
+          run-id: 44312113969
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32
+        run: python -c "import numpy as np; np.save('init96.npy', np.load('depart/relaxe_L48_N96.npy').astype(np.float32))"
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          T_END: '24'
+          GRADA: '0.02'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+        run: python -u dyn186c.py p217_Q1_g020 2>&1 | tee run_p217_Q1_g020.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part217/p217_Q1_g020; mkdir -p $OUT
+          cp p217_Q1_g020_history.jsonl p217_Q1_g020_params.json p217_Q1_g020_state.json $OUT/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217/p217_Q1_g020; git commit -q -m 'part217 Q1_g020 : chute dans une pente d amplitude de fond
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  dyn_Q2_g020:
+    name: part217 chute Q2_g020
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q2_nu0
+          run-id: 45795701519
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32
+        run: python -c "import numpy as np; np.save('init96.npy', np.load('depart/relaxe_Q2_nu0.npy').astype(np.float32))"
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          T_END: '24'
+          GRADA: '0.02'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+        run: python -u dyn186c.py p217_Q2_g020 2>&1 | tee run_p217_Q2_g020.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part217/p217_Q2_g020; mkdir -p $OUT
+          cp p217_Q2_g020_history.jsonl p217_Q2_g020_params.json p217_Q2_g020_state.json $OUT/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217/p217_Q2_g020; git commit -q -m 'part217 Q2_g020 : chute dans une pente d amplitude de fond
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  dyn_Q3_g020:
+    name: part217 chute Q3_g020
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q3_nu0
+          run-id: 45843848874
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32
+        run: python -c "import numpy as np; np.save('init96.npy', np.load('depart/relaxe_Q3_nu0.npy').astype(np.float32))"
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          T_END: '24'
+          GRADA: '0.02'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+        run: python -u dyn186c.py p217_Q3_g020 2>&1 | tee run_p217_Q3_g020.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part217/p217_Q3_g020; mkdir -p $OUT
+          cp p217_Q3_g020_history.jsonl p217_Q3_g020_params.json p217_Q3_g020_state.json $OUT/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217/p217_Q3_g020; git commit -q -m 'part217 Q3_g020 : chute dans une pente d amplitude de fond
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  dyn_Q3_g0:
+    name: part217 chute Q3_g0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt scipy
+      - name: Noeud de depart
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q3_nu0
+          run-id: 45843848874
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Depart en float32
+        run: python -c "import numpy as np; np.save('init96.npy', np.load('depart/relaxe_Q3_nu0.npy').astype(np.float32))"
+      - name: Run
+        env:
+          N: '96'
+          NB: '96'
+          H: '0.5'
+          E0: '0.25'
+          DT: '0.005'
+          T0: '0'
+          MODE: 'hot'
+          TC0: '1000000'
+          TH: '0'
+          TC: '0'
+          TSTART_H: '0'
+          G0: '0'
+          WARM: '0'
+          MU: '0.375'
+          MEAS: '2.0'
+          SNAP: '1000'
+          TIME_BUDGET: '18900'
+          JAX_PLATFORM_NAME: 'cpu'
+          OMP_NUM_THREADS: '4'
+          BARRIER: '0'
+          NOEUDS: '0'
+          KC: '0'
+          SEED: '1'
+          FINAL32: '1'
+          CP: '0'
+          MEANC: '0'
+          SPR0: '18'
+          SPRB: '24'
+          SPSIG: '0.3'
+          KW0: '1'
+          WA: '1'
+          WR: '1'
+          WV: '1'
+          KT: '1'
+          KF: '1'
+          NU: '0'
+          GRAD: '0'
+          T_END: '24'
+          GRADA: '0.0'
+          INIT: 'file'
+          INIT_FILE: 'init96.npy'
+        run: python -u dyn186c.py p217_Q3_g0 2>&1 | tee run_p217_Q3_g0.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          OUT=../../resultats/part217/p217_Q3_g0; mkdir -p $OUT
+          cp p217_Q3_g0_history.jsonl p217_Q3_g0_params.json p217_Q3_g0_state.json $OUT/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part217/p217_Q3_g0; git commit -q -m 'part217 Q3_g0 : chute dans une pente d amplitude de fond
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
