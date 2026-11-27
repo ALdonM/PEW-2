@@ -1,0 +1,142 @@
+name: PEW part219 plus bas modes de fluctuation (Hessienne) des noeuds Q_H=1 2 3
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  modes_Q1:
+    name: part219 modes Q1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud relaxe (part216 a=1.0, boite 48 N=96)
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q1_a1p0
+          run-id: 45967545962
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Plus bas modes de la Hessienne (LOBPCG)
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u hess_modes.py depart/relaxe_Q1_a1p0.npy --k 12 --tmax 15000 --tag Q1_L48 --out modes_Q1_L48.json 2>&1 | tee modes_Q1_L48.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part219; cp modes_Q1_L48.* ../../resultats/part219/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part219; git commit -q -m 'part219 modes Q1 : plus bas modes de fluctuation
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  modes_Q2:
+    name: part219 modes Q2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud relaxe (part216 a=1.0, boite 48 N=96)
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q2_a1p0
+          run-id: 45967545962
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Plus bas modes de la Hessienne (LOBPCG)
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u hess_modes.py depart/relaxe_Q2_a1p0.npy --k 12 --tmax 15000 --tag Q2_L48 --out modes_Q2_L48.json 2>&1 | tee modes_Q2_L48.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part219; cp modes_Q2_L48.* ../../resultats/part219/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part219; git commit -q -m 'part219 modes Q2 : plus bas modes de fluctuation
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
+  modes_Q3:
+    name: part219 modes Q3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 358
+    defaults:
+      run:
+        working-directory: numerical_minimization/protect3d_Z
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: numerical_minimization/protect3d_Z/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt "scipy>=1.15"
+      - name: Noeud relaxe (part216 a=1.0, boite 48 N=96)
+        uses: actions/download-artifact@v4
+        with:
+          name: champ_relaxe_Q3_a1p0
+          run-id: 45967545962
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          path: numerical_minimization/protect3d_Z/depart
+      - name: Plus bas modes de la Hessienne (LOBPCG)
+        env:
+          JAX_PLATFORM_NAME: cpu
+          OMP_NUM_THREADS: '4'
+        run: python -u hess_modes.py depart/relaxe_Q3_a1p0.npy --k 12 --tmax 15000 --tag Q3_L48 --out modes_Q3_L48.json 2>&1 | tee modes_Q3_L48.log
+      - name: Archive
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ../../resultats/part219; cp modes_Q3_L48.* ../../resultats/part219/ || true
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cd ../..
+          git add resultats/part219; git commit -q -m 'part219 modes Q3 : plus bas modes de fluctuation
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_012qTVdE7fweMvxDdweHMqCg' || exit 0
+          ok=0; for i in $(seq 1 20); do git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && ok=1 && break; git rebase --abort 2>/dev/null; sleep $((RANDOM % 30 + 5)); done
+          test $ok = 1
