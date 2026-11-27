@@ -1,0 +1,399 @@
+|g|rms/h^3 = 1.2357207568837618e-07
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[2.03319903e-05 2.59449398e-03 2.62111200e-03 4.61001820e-03
+ 1.54688688e+00 1.33921345e+00 1.45121439e+00 1.97725454e+00
+ 2.18417411e+00 2.09124893e+00 1.96114147e+00 2.25076298e+00]
+not reaching the requested tolerance 1e-05.
+Use iteration 9 instead with accuracy 
+1.2343118914983264.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[2.03319047e-05 2.59449331e-03 2.62111265e-03 4.61001820e-03
+ 1.54688688e+00 1.33921345e+00 1.45121439e+00 1.97725454e+00
+ 2.18417411e+00 2.09124893e+00 1.96114147e+00 2.25076298e+00]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 0  t=769s  lam = [-0.0, 0.0, 0.0, 0.0, 0.051957, 0.061502, 0.067917, 0.096477, 0.097875, 0.102109, 0.104976, 0.121246]  max_res=2.25e+00
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[4.04395157e-05 5.84612045e-04 5.77599056e-04 1.19896838e-03
+ 4.92591448e-01 4.90765104e-01 5.63692239e-01 6.04923670e-01
+ 7.11475989e-01 6.14769188e-01 6.23134705e-01 7.21844915e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 9 instead with accuracy 
+0.40213323971204745.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[4.04396108e-05 5.84609494e-04 5.77601666e-04 1.19896837e-03
+ 4.92591448e-01 4.90765104e-01 5.63692239e-01 6.04923670e-01
+ 7.11475989e-01 6.14769188e-01 6.23134706e-01 7.21844915e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 1  t=1591s  lam = [-0.0, 0.0, 0.0, 0.0, 0.007832, 0.01362, 0.017107, 0.043505, 0.046132, 0.047491, 0.047607, 0.059156]  max_res=7.22e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[3.40899493e-04 2.87622778e-04 2.05799697e-05 3.78293041e-04
+ 2.71279868e-01 3.57048916e-01 4.44747530e-01 8.61806442e-01
+ 6.97205199e-01 4.14572998e-01 3.95298779e-01 5.50984172e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 8 instead with accuracy 
+0.2841318419694258.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[2.60716252e-04 2.66318097e-04 1.95161341e-05 3.70375932e-04
+ 2.52768229e-01 2.93609959e-01 3.80604476e-01 7.03551463e-01
+ 5.58728956e-01 3.78220928e-01 3.53147087e-01 4.88034079e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 2  t=2412s  lam = [-0.0, -0.0, -0.0, 0.0, 0.002055, 0.004127, 0.005477, 0.027937, 0.032936, 0.03826, 0.040645, 0.046067]  max_res=7.04e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[2.24163484e-04 2.08934640e-04 1.35000356e-05 2.32463941e-04
+ 2.02630372e-01 2.69564175e-01 3.36657935e-01 8.82076305e-01
+ 1.04753514e+00 3.30713876e-01 3.44168667e-01 4.54355839e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 6 instead with accuracy 
+0.18670112377365353.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[1.33208733e-04 1.27887661e-04 1.10062074e-05 1.93558540e-04
+ 1.45568224e-01 1.77429655e-01 2.26014932e-01 4.87832911e-01
+ 4.57436550e-01 2.18798188e-01 2.21010224e-01 3.05857140e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 3  t=3218s  lam = [-0.0, -0.0, -0.0, 0.0, 0.000857, 0.001734, 0.002333, 0.0175, 0.026066, 0.036124, 0.038612, 0.041755]  max_res=4.88e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.02206733e-04 1.00976141e-04 6.53825628e-06 1.11690699e-04
+ 1.11324512e-01 1.45483796e-01 1.99958071e-01 5.42322142e-01
+ 7.44336028e-01 2.09596461e-01 2.74306712e-01 2.96238497e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.12257779050016566.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[8.81543669e-05 8.51699327e-05 7.18796266e-06 1.25950586e-04
+ 9.81381141e-02 1.24089104e-01 1.47974358e-01 3.15056043e-01
+ 3.08174544e-01 1.42240946e-01 1.40069923e-01 1.94883991e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 4  t=3996s  lam = [-0.0, -0.0, -0.0, 0.0, 0.000798, 0.001629, 0.002187, 0.016855, 0.025494, 0.036006, 0.038496, 0.041507]  max_res=3.15e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[6.56388039e-05 6.13892004e-05 4.74270742e-06 8.01640137e-05
+ 9.43148333e-02 1.31242706e-01 1.66370247e-01 4.26819065e-01
+ 5.38341336e-01 1.65940639e-01 2.56892196e-01 2.80979430e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.10104617309006951.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.96970558e-05 7.54815557e-05 5.98604956e-06 1.04683573e-04
+ 8.03278613e-02 1.03423263e-01 1.17513556e-01 2.61632445e-01
+ 2.54969980e-01 1.16755356e-01 1.17698730e-01 1.59967038e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 5  t=4770s  lam = [-0.0, -0.0, -0.0, 0.0, 0.000767, 0.001573, 0.002112, 0.016503, 0.025183, 0.035946, 0.038435, 0.041379]  max_res=2.62e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[3.64656818e-05 3.82075191e-05 3.09037316e-06 5.13603554e-05
+ 6.31851619e-02 9.62085823e-02 1.31366132e-01 3.12475922e-01
+ 3.68266741e-01 1.20948588e-01 2.07288693e-01 2.01521594e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.09750136033300655.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.28583043e-05 6.97252871e-05 5.58131743e-06 9.74964555e-05
+ 7.81041317e-02 1.01439188e-01 1.16374875e-01 2.50660619e-01
+ 2.50114302e-01 1.11222384e-01 1.09231353e-01 1.52623809e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 6  t=5529s  lam = [-0.0, -0.0, -0.0, 0.0, 0.000742, 0.001527, 0.002053, 0.016213, 0.024927, 0.035897, 0.038385, 0.041276]  max_res=2.51e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[3.11568457e-05 3.26718301e-05 2.47991691e-06 4.07632103e-05
+ 3.86139568e-02 6.49852469e-02 8.57752055e-02 2.00502241e-01
+ 2.68215880e-01 7.91405395e-02 1.39352555e-01 1.34503488e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 9 instead with accuracy 
+0.08426634875712953.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[3.11565374e-05 3.26721383e-05 2.48008816e-06 4.07631906e-05
+ 3.86139568e-02 6.49852469e-02 8.57752055e-02 2.00502241e-01
+ 2.68215880e-01 7.91405396e-02 1.39352555e-01 1.34503488e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 7  t=6295s  lam = [-0.0, -0.0, -0.0, 0.0, 2.9e-05, 5.2e-05, 9.2e-05, 0.001287, 0.003757, 0.033961, 0.035762, 0.036878]  max_res=2.68e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.52123083e-05 1.74041743e-05 1.20969273e-06 2.64978265e-05
+ 1.37016789e-02 1.30446424e-02 1.91124055e-02 1.00747473e-01
+ 1.82030534e-01 8.58122351e-02 1.61683397e-01 2.08667304e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 6 instead with accuracy 
+0.05221716408615464.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[1.91360015e-05 1.95859210e-05 1.54610429e-06 2.73628718e-05
+ 1.38076402e-02 1.72970631e-02 2.81243058e-02 1.03568035e-01
+ 1.89088564e-01 6.45304759e-02 8.20247348e-02 1.28097520e-01]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 8  t=7065s  lam = [-0.0, -0.0, -0.0, 0.0, 7e-06, 9e-06, 2.1e-05, 0.000474, 0.001138, 0.03383, 0.035544, 0.036371]  max_res=1.89e-01
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.28697073e-05 1.72442189e-05 9.01526006e-07 4.04242130e-05
+ 6.88363024e-03 8.08236382e-03 1.04447213e-02 4.95666033e-02
+ 8.72657799e-02 9.28488138e-02 2.82656698e-01 1.64568860e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 5 instead with accuracy 
+0.032516955661006396.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[1.41399448e-05 1.57694381e-05 9.51410318e-07 2.11987565e-05
+ 1.09006951e-02 1.08583230e-02 1.61903032e-02 6.02148725e-02
+ 9.10646146e-02 4.56448612e-02 6.38834427e-02 9.13942960e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 9  t=7837s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 5e-06, 1e-05, 0.000302, 0.000558, 0.033766, 0.035434, 0.036091]  max_res=9.14e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.65009601e-05 2.13917942e-05 8.06443171e-07 7.18092348e-05
+ 5.60877830e-03 7.32344301e-03 1.11941722e-02 3.76250732e-02
+ 6.09714773e-02 4.60054041e-01 1.32943404e-01 1.36971997e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.022520027213957478.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[9.37592711e-06 8.88834411e-06 6.68548242e-07 1.49843436e-05
+ 6.45938615e-03 6.80279862e-03 1.34190508e-02 4.19149293e-02
+ 6.65486341e-02 2.85891080e-02 4.78045909e-02 5.86679116e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 10  t=8508s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 5e-06, 1e-05, 0.000291, 0.000533, 0.03376, 0.035421, 0.036068]  max_res=6.65e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.56771427e-05 2.16237989e-05 7.49071655e-07 8.25974364e-05
+ 3.99719621e-03 4.82946975e-03 8.42558335e-03 3.07171425e-02
+ 4.36011847e-02 3.86465019e-01 1.07162088e-01 1.27953531e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.019148254305086706.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[8.27899344e-06 8.64922637e-06 5.36349509e-07 1.25917509e-05
+ 6.07799638e-03 6.31167189e-03 9.09399424e-03 3.36767843e-02
+ 5.35377528e-02 2.69417688e-02 3.70407549e-02 5.70682720e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 11  t=9169s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 4e-06, 9e-06, 0.000284, 0.000518, 0.033757, 0.035413, 0.036054]  max_res=5.71e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.63936340e-05 2.26394166e-05 7.86295745e-07 9.09404350e-05
+ 3.11036376e-03 4.02430858e-03 7.17403057e-03 2.61467351e-02
+ 3.37905170e-02 2.94849109e-01 8.07364430e-02 1.16828672e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.01818293293182836.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[8.08880180e-06 8.20364668e-06 5.23940484e-07 1.22971034e-05
+ 4.90207694e-03 5.34770252e-03 1.02023082e-02 3.24400203e-02
+ 5.44734912e-02 2.32842323e-02 3.85212484e-02 4.89950018e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 12  t=9822s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 4e-06, 9e-06, 0.000279, 0.000505, 0.033754, 0.035407, 0.036042]  max_res=5.45e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.63234447e-05 2.36505339e-05 7.10700739e-07 8.21010869e-05
+ 2.63203043e-03 3.97262965e-03 4.57557450e-03 1.95406783e-02
+ 2.76535518e-02 2.52827156e-01 6.76440330e-02 9.07330165e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.01673159775633483.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.98222889e-06 8.14303304e-06 4.50618047e-07 1.09749594e-05
+ 4.99150313e-03 5.29205376e-03 7.43384913e-03 2.83062503e-02
+ 4.72424663e-02 2.36800798e-02 3.25914006e-02 5.12140192e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 13  t=10482s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 4e-06, 8e-06, 0.000275, 0.000494, 0.033751, 0.035401, 0.036032]  max_res=5.12e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.70000077e-05 2.28834422e-05 6.35398788e-07 7.71003109e-05
+ 2.09571785e-03 3.65203339e-03 3.77338788e-03 1.50576043e-02
+ 2.27228054e-02 2.09552096e-01 5.60799617e-02 8.70887197e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.01633083455343212.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.93605841e-06 7.85305096e-06 4.58281555e-07 1.11445879e-05
+ 4.16228798e-03 4.67970051e-03 8.64645378e-03 2.82840479e-02
+ 4.92716009e-02 2.10427625e-02 3.47800892e-02 4.50756799e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 14  t=11141s  lam = [-0.0, -0.0, -0.0, 0.0, 3e-06, 4e-06, 8e-06, 0.000271, 0.000485, 0.033749, 0.035396, 0.036023]  max_res=4.93e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.63485357e-05 2.22593043e-05 5.36433936e-07 6.65104083e-05
+ 1.80253846e-03 3.11583305e-03 2.56260785e-03 1.10508805e-02
+ 1.78889276e-02 1.85646084e-01 5.49234835e-02 7.70817886e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.015357179940233744.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.83386515e-06 7.86513576e-06 4.00467829e-07 1.00609284e-05
+ 4.34671165e-03 4.70640610e-03 6.46449879e-03 2.51937705e-02
+ 4.35799180e-02 2.18121385e-02 3.02607907e-02 4.78957647e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 15  t=11805s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 4e-06, 8e-06, 0.000267, 0.000476, 0.033747, 0.035391, 0.036014]  max_res=4.79e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.54204113e-05 1.86150465e-05 4.86813570e-07 6.25094799e-05
+ 1.39810745e-03 2.40260177e-03 2.54771503e-03 1.03101033e-02
+ 1.54097441e-02 1.49792981e-01 5.32158574e-02 9.24202421e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.015168779190585147.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.83371915e-06 7.66108771e-06 4.16305239e-07 1.04299254e-05
+ 3.69285812e-03 4.26735299e-03 7.66984410e-03 2.56525196e-02
+ 4.58244681e-02 1.96411919e-02 3.26077217e-02 4.26430528e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 16  t=12446s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 4e-06, 8e-06, 0.000264, 0.000467, 0.033745, 0.035386, 0.036006]  max_res=4.58e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.48548945e-05 1.78292794e-05 4.41797326e-07 5.97133951e-05
+ 1.30387954e-03 1.87560448e-03 2.33282001e-03 9.16853286e-03
+ 1.35892548e-02 1.38333613e-01 5.55464540e-02 7.95547240e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.014450350115838445.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.75024394e-06 7.69562833e-06 3.67880131e-07 9.48986402e-06
+ 3.91725874e-03 4.33031187e-03 5.83099374e-03 2.31188330e-02
+ 4.10023914e-02 2.05906823e-02 2.88896957e-02 4.56987310e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 17  t=13039s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 4e-06, 7e-06, 0.000261, 0.00046, 0.033743, 0.035382, 0.035998]  max_res=4.57e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.53514264e-05 1.61945085e-05 4.78418626e-07 6.51315781e-05
+ 1.13818235e-03 1.68038501e-03 2.85488791e-03 9.74776336e-03
+ 1.35711654e-02 1.33285238e-01 6.12141474e-02 9.58790652e-02]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.014318774648447524.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.77189899e-06 7.53712479e-06 3.95352146e-07 1.03170781e-05
+ 3.36676976e-03 3.99451154e-03 7.00985088e-03 2.37388741e-02
+ 4.32222827e-02 1.86021584e-02 3.09684715e-02 4.08963555e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 18  t=13642s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 4e-06, 7e-06, 0.000258, 0.000452, 0.033741, 0.035378, 0.035991]  max_res=4.32e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[2.00909493e-05 1.78795443e-05 5.50188506e-07 7.33835756e-05
+ 1.23092624e-03 2.17574497e-03 2.64763031e-03 9.53221736e-03
+ 1.51706347e-02 1.35460789e-01 6.75135716e-02 1.16725657e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.01381714593643825.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.70890909e-06 7.56793111e-06 3.63313091e-07 9.19166947e-06
+ 3.61771985e-03 4.07460646e-03 5.39113244e-03 2.16476414e-02
+ 3.90216390e-02 1.97707129e-02 2.80874146e-02 4.41700528e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 19  t=14239s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 4e-06, 7e-06, 0.000256, 0.000445, 0.03374, 0.035374, 0.035984]  max_res=4.42e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[1.97858727e-05 1.91680029e-05 6.67157692e-07 9.65468087e-05
+ 1.23811709e-03 1.76231718e-03 3.40882532e-03 9.27938176e-03
+ 1.41534246e-02 1.38358245e-01 6.76483619e-02 1.06735867e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.013761527448953629.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.72897535e-06 7.47571529e-06 3.69505158e-07 9.94674289e-06
+ 3.14090828e-03 3.80440784e-03 6.55417471e-03 2.24499505e-02
+ 4.12716987e-02 1.79651797e-02 3.01495684e-02 3.97769203e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 20  t=14819s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 3e-06, 7e-06, 0.000253, 0.000439, 0.033738, 0.03537, 0.035977]  max_res=4.13e-02
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited at iteration 8 with accuracies 
+[2.25964088e-05 2.06111404e-05 6.54544526e-07 9.83838870e-05
+ 1.23000268e-03 2.00218217e-03 2.93332534e-03 8.91315699e-03
+ 1.42097300e-02 1.50723940e-01 7.47194401e-02 1.10613709e-01]
+not reaching the requested tolerance 1e-05.
+Use iteration 1 instead with accuracy 
+0.013367641525392224.
+
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+/home/runner/work/PEW-2/PEW-2/numerical_minimization/protect3d_Z/hess_modes.py:52: UserWarning: Exited postprocessing with accuracies 
+[7.68854401e-06 7.49501619e-06 3.51467745e-07 8.92812248e-06
+ 3.39561055e-03 3.88155171e-03 5.07656348e-03 2.05428265e-02
+ 3.74294136e-02 1.92045489e-02 2.77581883e-02 4.30985322e-02]
+not reaching the requested tolerance 1e-05.
+  w, X, rn = lobpcg(A, X, M=M, largest=False, maxiter=8, tol=a.tol, retResidualNormsHistory=True)
+ronde 21  t=15414s  lam = [-0.0, -0.0, -0.0, 0.0, 2e-06, 3e-06, 7e-06, 0.000251, 0.000432, 0.033736, 0.035366, 0.03597]  max_res=4.31e-02
+{
+ "tag": "Q1_L48",
+ "lam": [
+  -1.0247498813010078e-08,
+  -1.0142634370163572e-08,
+  -4.93583866319092e-09,
+  2.7490595188515154e-08,
+  2.0980640304393404e-06,
+  3.381702396659586e-06,
+  6.660358756194858e-06,
+  0.00025071555669536763,
+  0.00043231558934938,
+  0.03373617657670333,
+  0.035366093037277016,
+  0.03596996866311491
+ ],
+ "residus": [
+  7.688544012049826e-06,
+  7.4950161929568835e-06,
+  3.514677446379135e-07,
+  8.928122479950839e-06,
+  0.0033956105537276218,
+  0.0038815517114264737,
+  0.005076563476807024,
+  0.020542826517753392,
+  0.037429413553973154,
+  0.01920454889872863,
+  0.027758188250704897,
+  0.043098532191180296
+ ],
+ "fraction_dans_r12": [
+  0.7935273458985584,
+  0.7935080025193987,
+  0.0694808034087499,
+  0.8456616409020773,
+  0.08896062536836831,
+  0.056983330200450565,
+  0.5532461973872107,
+  0.6456770528906388,
+  0.644416534869075,
+  0.049672675037074975,
+  0.028583238852747023,
+  0.05673568860679919
+ ],
+ "lam_vide_attendu_2k2": 0.03426945972600471
+}
