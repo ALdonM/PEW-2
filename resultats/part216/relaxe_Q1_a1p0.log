@@ -1,0 +1,4 @@
+it     0  E=850.5547  E2=337.739 E4=495.747 EV=17.069  E4/(E2+3EV)=1.275  Q=-0.985  rho_min=0.702  |g|rms=7.94e-08  t=3s
+FIN CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH nit 10
+it    10  E=850.5547  E2=337.739 E4=495.747 EV=17.069  E4/(E2+3EV)=1.275  Q=-0.985  rho_min=0.702  |g|rms=1.54e-08  t=27s
+degre exact -1
