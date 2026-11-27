@@ -17,11 +17,13 @@ from zlat import fwd, nvec, cross
 ap = argparse.ArgumentParser()
 ap.add_argument("champ"); ap.add_argument("--h", type=float, default=0.5); ap.add_argument("--mu", type=float, default=0.375)
 ap.add_argument("--e0", type=float, default=0.25); ap.add_argument("--d2", type=float, default=1e-3)
-ap.add_argument("--tag", default="noeud"); ap.add_argument("--out", default=None)
+ap.add_argument("--wr", type=float, default=1.0); ap.add_argument("--tag", default="noeud"); ap.add_argument("--out", default=None)
 a = ap.parse_args()
 phi = jnp.asarray(np.load(a.champ).astype(np.float64)); h = a.h; cF = 1.0 / (2 * a.e0 ** 2)
 g, f, p = zlat.energy_density(phi, h, a.mu, cF, a.d2)
+rho = jnp.sqrt(jnp.sum(phi ** 2, axis=0)); Erho = float(h**3 * sum(fwd(rho, ax, h) ** 2 for ax in (0, 1, 2)).sum())
 E2, E4, EV = float(h**3 * g.sum()), float(h**3 * f.sum()), float(h**3 * p.sum())
+E2 = E2 + (a.wr - 1.0) * Erho   # E2 pondere par la raideur de la houle (wr=1 : inchange)
 vac = a.mu ** 2 * (1.0 / (1.0 + a.d2) - 1.0) * phi.shape[1] ** 3 * h ** 3
 EVp = EV - vac
 m = [float(h**3 * jnp.sum(fwd(phi, ax, h) ** 2)) for ax in (1, 2, 3)]

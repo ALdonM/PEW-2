@@ -120,6 +120,7 @@ def main():
     ap.add_argument("--no-degree", action="store_true")
     ap.add_argument("--nu", type=float, default=0.0, help="masse des modes charges : + 2 nu^2 |Z2|^2 (part184b) ; 0 = modele Z pur")
     ap.add_argument("--a", type=float, default=1.0, help="amplitude de fond a (part216) : E2 et EV multiplies par a^2 (champ Z' = Z/a, vide (1,0,0,0)), E4 (Faddeev) inchange ; a=1 : modele usuel")
+    ap.add_argument("--wr", type=float, default=1.0, help="raideur de la houle (part218) : |grad rho|^2 multiplie par wr dans E2 (la partie angulaire reste a 1) ; wr=1 : modele usuel")
     ap.add_argument("--slab", type=int, default=0, help="epaisseur de tranche (N multiple) : energie/gradient par tranches, obligatoire pour N>=192 (RAM)")
     ap.add_argument("--maxcor", type=int, default=20, help="memoire L-BFGS-B (nb de paires s,y) ; 6 pour N>=192 (RAM)")
     ap.add_argument("--tmax", type=float, default=0.0, help="duree max de la minimisation en secondes (arret propre, le champ est sauvegarde)")
@@ -161,6 +162,17 @@ def main():
             g, f, p = _ed(phi, h, mu, cF, d2)
             return g, f, p + 2.0 * _nu ** 2 * (phi[2] ** 2 + phi[3] ** 2)
         _z.energy_density = _ed_nu
+    if a.wr != 1.0:
+        import zlat as _z3
+        _ed3, _wr3 = _z3.energy_density, a.wr
+
+        def _ed_wr(phi, h, mu, cF, d2):
+            g, f, p = _ed3(phi, h, mu, cF, d2)
+            rho = jnp.sqrt(jnp.sum(phi ** 2, axis=0))
+            gr = sum(_z3.fwd(rho, ax, h) ** 2 for ax in (0, 1, 2))
+            return g + (_wr3 - 1.0) * gr, f, p
+        _z3.energy_density = _ed_wr
+        print("raideur de la houle wr =", a.wr, flush=True)
     if a.a != 1.0:
         import zlat as _z2
         _ed2, _a2 = _z2.energy_density, a.a
