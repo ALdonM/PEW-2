@@ -40,6 +40,7 @@ GRADA = env('GRADA', 0.0)   # part217 : amplitude de fond a(x)=1+GRADA*x, champ 
 RT = jnp.asarray(1.0 + (GRAD if GRAD != 0.0 else GRADA) * _xg[:, None, None], dtype=jnp.float32)   # (N,1,1) : axe x = axe 1 de phi
 SPR0, SPRB, SPSIG = env('SPR0', 0.0), env('SPRB', 0.0), env('SPSIG', 0.3)   # part193 : éponge sphérique (rayon d'entrée SPR0, rayon de la boîte sphérique SPRB, taux max SPSIG) : amortit la vitesse et ramène phi vers le vide (kw,0,0,0)
 KT = env('KT', 1.0)
+KTA = env('KTA', 0.0)   # part225 : poids cinetique local w(x)=a(x)^(-2*KTA) (horloge locale) ; 0 = absent, +1 : cinetique/a^2, -1 : cinetique*a^2
 _ktf = os.environ.get('KTMAP', '')
 if _ktf: KT = jnp.asarray(np.load(_ktf).astype(np.float32))   # part198 : KT(x) fixe, tabule (vitesse des ondes ralentie davantage dans le noeud)   # part195 : poids du terme cinétique ½·KT·|∂ₜφ|² (vitesse des ondes c² ∝ 1/KT)
 WV = env('WV', 1.0)   # part194 : poids du potentiel V (1 = part191/192/193)
@@ -137,6 +138,7 @@ def _Mmat(phi):
     return M + (KT * jnp.eye(4, dtype=M.dtype)[:, :, None, None, None])
 def acc_full(phi, v, a_new, kw):
     g = gEw(phi, a_new**-2, a_new**-4, kw) / h**3
+    if KTA != 0.0: g = g * RT**(2 * KTA)
     if KF == 0.0: return -0.5 * g / KT
     t1 = jax.grad(_KFs, 0)(phi, v)
     t2 = jax.jvp(lambda p: _MGv(p, v), (phi,), (v,))[1]
@@ -233,7 +235,7 @@ else:
         print('paquet', WAVE, 'k', WK, 'omega', om, 'vg', vg, 'eps', WEPS, flush=True)
     phi = jnp.array(phi.astype(np.float32)); v = jnp.array(v0.astype(np.float32)); t = t0
     PHIREF = phi   # part224 : champ de depart, cible de l'eponge si SPREF=1
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB, GRADA=GRADA, KF=KF, KT=KT, SPR0=SPR0, SPRB=SPRB, SPSIG=SPSIG, NU=NU, V0ROT=V0ROT, ALIGN=env('ALIGN', 0.0), SPREF=env('SPREF', 0.0)), open(f"{TAG}_params.json", "w"))
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB, GRADA=GRADA, KF=KF, KT=KT, SPR0=SPR0, SPRB=SPRB, SPSIG=SPSIG, NU=NU, V0ROT=V0ROT, ALIGN=env('ALIGN', 0.0), SPREF=env('SPREF', 0.0), KTA=KTA), open(f"{TAG}_params.json", "w"))
 
 PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") else []   # part181 : projection de la densité d'énergie sur le plan xy à chaque mesure (float16)
 def measure(phi, v, t):
@@ -257,7 +259,20 @@ def measure(phi, v, t):
     cc = coss(phi); cmin = jnp.min(cc)
     zm = zz.reshape(4, -1).mean(1); zm = zm / (np.linalg.norm(zm) + 1e-30)
     core = int((np.einsum('a...,a->...', zz, zm) < 0).sum())
-    return dict(P0=P0, Pk=Pk, spec=spec, rho_mean=round(float(r.mean()) / rv, 4), rv=round(rv, 4), tau=round(tau_of(t), 2), t=round(t, 3), a=round(a, 4), Ek=round(float(jnp.sum(v**2)) * h**3, 2), Ekm=round(float(kin_total(phi, v)) * h**3, 2),
+    Pxt = Pxl = Fxt = Fxl = Fkin = 0.0
+    if GRADA != 0.0 or env('MEASP', 0.0) > 0:   # part225 : impulsion de Noether Px = -h^3 sum(pi . d_x phi), pi = 2(KT v + MGv) ; force explicite du gradient = -dE/dx|_phi + w'(x) vMv
+        pvac = mu**2 * (1.0 / (1.0 + d2) - 1.0)
+        pi_ = 2.0 * (KT * v + _MGv(phi, v)) * (RT**(-2.0 * KTA) if KTA != 0.0 else 1.0); dxp = (jnp.roll(phi, -1, axis=1) - jnp.roll(phi, 1, axis=1)) / (2 * h)
+        Pd = -np.array(jnp.sum(pi_ * dxp, axis=0), dtype=np.float64) * h**3
+        RTn = np.array(RT, dtype=np.float64)
+        gd = np.array(g, dtype=np.float64); pd_ = np.array(p, dtype=np.float64)   # densites NON ponderees par RT^2 dans measure
+        Fd = -2.0 * RTn * GRADA * (gd + pd_ - pvac) * h**3   # E2,EV de densite RT^2 (g+p-pvac) : d/dx explicite = 2 RT GRADA (g+p-pvac)
+        if KTA != 0.0:
+            kd = KT * np.array(jnp.sum(v**2, axis=0), dtype=np.float64) + 0.5 * KF * cF * np.array(sum(jnp.sum(q * v, axis=0)**2 for q in _qvecs(phi)), dtype=np.float64)
+            Fk_ = (-2.0 * KTA * GRADA * RTn**(-2.0 * KTA - 1.0)) * kd * h**3; Fkin = float(Fk_.sum()); Fd = Fd + Fk_
+        _X, _Y, _Z = np.meshgrid(np.array(_xg) - x4, np.array(_xg) - y4, np.array(_xg) - z4, indexing='ij'); _loc = (_X**2 + _Y**2 + _Z**2) < env('RF', 12.0)**2
+        Pxt, Pxl, Fxt, Fxl = float(Pd.sum()), float(Pd[_loc].sum()), float(Fd.sum()), float(Fd[_loc].sum())
+    return dict(Fx_kin=Fkin, Px_tot=Pxt, Px_loc=Pxl, Fx_tot=Fxt, Fx_loc=Fxl, P0=P0, Pk=Pk, spec=spec, rho_mean=round(float(r.mean()) / rv, 4), rv=round(rv, 4), tau=round(tau_of(t), 2), t=round(t, 3), a=round(a, 4), Ek=round(float(jnp.sum(v**2)) * h**3, 2), Ekm=round(float(kin_total(phi, v)) * h**3, 2),
                 E2=round(E[0] / a**2, 2), E4=round(E[1] / a**4, 2), EV=round(E[2], 2),
                 Q=round(float(q.sum()), 3), Qabs=round(float(np.abs(q).sum()), 3),
                 rho_min=round(float(r.min()) / rv, 3), rho_med=round(float(np.median(r)) / rv, 3),
