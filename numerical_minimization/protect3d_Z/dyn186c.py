@@ -182,6 +182,15 @@ else:
     if env('NORM', 0): phi = phi / np.sqrt((phi**2).sum(0))   # part186c : amplitude du vide partout, seule la direction n est aléatoire (départ à la Kibble)
     if INIT == 'file':
         phi = np.load(INIT_FILE).astype(np.float64)
+        ALIGN = env('ALIGN', 0.0)   # part223 : rotation globale U(2) alignant le champ lointain (r>ALIGN) sur le vide (1,0,0,0) ; symetrie exacte (nu=0), ne change pas l'energie
+        if ALIGN > 0:
+            _x = (np.arange(N) - N / 2 + 0.5) * h; _R = np.sqrt(_x[:, None, None]**2 + _x[None, :, None]**2 + _x[None, None, :]**2); _m = _R > ALIGN
+            mv = np.array([phi[i][_m].mean() for i in range(4)]); m1 = mv[0] + 1j*mv[1]; m2 = mv[2] + 1j*mv[3]; nm = np.sqrt(abs(m1)**2 + abs(m2)**2)
+            print('ALIGN champ lointain avant', mv, 'ecart rms au vide', float(np.sqrt(((phi - np.array([1.0, 0, 0, 0])[:, None, None, None])**2)[:, _m].mean())), flush=True)
+            Z1 = phi[0] + 1j*phi[1]; Z2 = phi[2] + 1j*phi[3]
+            Z1n = (np.conj(m1) * Z1 + np.conj(m2) * Z2) / nm; Z2n = (-m2 * Z1 + m1 * Z2) / nm
+            phi = np.stack([Z1n.real, Z1n.imag, Z2n.real, Z2n.imag])
+            print('ALIGN apres', [float(phi[i][_m].mean()) for i in range(4)], 'ecart rms au vide', float(np.sqrt(((phi - np.array([1.0, 0, 0, 0])[:, None, None, None])**2)[:, _m].mean())), flush=True)
         if NB != N: phi = pad_fourier(np.fft.fftn(phi, axes=(1, 2, 3)), N)
         if KW0 > 0: phi = phi * KW0   # part191 : champ de départ à l'amplitude de vide KW0
     if INIT == 'knot':
@@ -223,7 +232,7 @@ else:
             v0 = dld * phi; phi = phi * (1 + dl)
         print('paquet', WAVE, 'k', WK, 'omega', om, 'vg', vg, 'eps', WEPS, flush=True)
     phi = jnp.array(phi.astype(np.float32)); v = jnp.array(v0.astype(np.float32)); t = t0
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB), open(f"{TAG}_params.json", "w"))
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB, GRADA=GRADA, KF=KF, KT=KT, SPR0=SPR0, SPRB=SPRB, SPSIG=SPSIG, NU=NU, V0ROT=V0ROT, ALIGN=env('ALIGN', 0.0)), open(f"{TAG}_params.json", "w"))
 
 PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") else []   # part181 : projection de la densité d'énergie sur le plan xy à chaque mesure (float16)
 def measure(phi, v, t):
