@@ -232,7 +232,8 @@ else:
             v0 = dld * phi; phi = phi * (1 + dl)
         print('paquet', WAVE, 'k', WK, 'omega', om, 'vg', vg, 'eps', WEPS, flush=True)
     phi = jnp.array(phi.astype(np.float32)); v = jnp.array(v0.astype(np.float32)); t = t0
-    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB, GRADA=GRADA, KF=KF, KT=KT, SPR0=SPR0, SPRB=SPRB, SPSIG=SPSIG, NU=NU, V0ROT=V0ROT, ALIGN=env('ALIGN', 0.0)), open(f"{TAG}_params.json", "w"))
+    PHIREF = phi   # part224 : champ de depart, cible de l'eponge si SPREF=1
+    json.dump(dict(N=N, h=h, mu=mu, e0=e0, xi0=xi0, seed=seed, MODE=MODE, G0=G0, t0=t0, dt=dt, INIT=INIT, T_END=T_END, TSTART=TSTART, TQ=TQ, THOLD=THOLD, TON=TON, KC=KC, G0R=G0R, BARRIER=BARRIER, EPSB=EPSB, CSTAR=CSTAR, KNOT_SIGN=KNOT_SIGN, EINJ=EINJ, INIT_FILE=INIT_FILE, NB=NB, GRADA=GRADA, KF=KF, KT=KT, SPR0=SPR0, SPRB=SPRB, SPSIG=SPSIG, NU=NU, V0ROT=V0ROT, ALIGN=env('ALIGN', 0.0), SPREF=env('SPREF', 0.0)), open(f"{TAG}_params.json", "w"))
 
 PROJ = list(np.load(f"{TAG}_proj.npy")) if os.path.exists(f"{TAG}_proj.npy") else []   # part181 : projection de la densité d'énergie sur le plan xy à chaque mesure (float16)
 def measure(phi, v, t):
@@ -317,6 +318,7 @@ with open(hist, "a") as H_:
         if MEANC: phi = phi * (kw_of(t + dte) / jnp.mean(jnp.sqrt(jnp.sum(phi**2, axis=0))))   # part191 : rappel global de l'amplitude moyenne
         if SPR0 > 0:
             fs = jnp.exp(-SIG * dte); vac = jnp.array([kw_of(t + dte), 0, 0, 0], dtype=phi.dtype)[:, None, None, None] * (RT[None] if GRAD != 0.0 else 1.0)
+            if env('SPREF', 0.0) > 0: vac = PHIREF   # part224 : l'eponge ramene vers le champ de depart (queue figee) et non vers le vide uniforme
             v = v * fs[None]; phi = vac + (phi - vac) * fs[None]
         t += dte; nstep = locals().get('nstep', 0) + 1
         if nstep % CHECK == 0: RUNMIN[0] = min(RUNMIN[0], float(cosmin_j(phi)))
